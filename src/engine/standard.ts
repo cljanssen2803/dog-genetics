@@ -317,7 +317,11 @@ export function scoreDog(
   }
   const geometric = weightTotal > 0 ? Math.exp(logSum / weightTotal) : 0.6;
 
-  const base = (arithmetic * 0.38 + geometric * 0.62) * 100;
+  // Leaning a little back toward the average, so that real progress on most
+  // goals still shows up as a rising number rather than being flattened by one
+  // stubborn trait. The geometric half keeps a badly-missed priority from being
+  // ignored; it just no longer dominates everything else.
+  const base = (arithmetic * 0.48 + geometric * 0.52) * 100;
   const total = Math.max(0, Math.min(100, base - healthPenalty));
 
   const sorted = breakdown.slice().sort((a, b) => a.score * a.weight - b.score * b.weight);

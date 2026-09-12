@@ -193,48 +193,61 @@ export function conceptionChance(sire: Dog, dam: Dog, currentMonth: number, coi:
   const sireAge = ageMonths(sire, currentMonth);
 
   // Start from the pair's genetic fertility.
+  //
+  // These numbers are tuned for a game rather than for a textbook. A failed
+  // mating costs the player eight months of a female's short career, and
+  // losing that to a dice roll they could not influence is not interesting —
+  // it is just a wasted turn. So conception is generous, and the things the
+  // player CAN control (inbreeding, age, extreme size) still move the odds
+  // in the right direction.
   const fertility = (dam.observed.fertility * 0.65 + sire.observed.fertility * 0.35) / 100;
-  let chance = 0.34 + fertility * 0.58;
+  let chance = 0.58 + fertility * 0.4;
 
   // Age curve for the female: best between two and five years.
-  if (damAge < 24) chance *= 0.88;
-  if (damAge > 60) chance *= 1 - Math.min(0.55, (damAge - 60) / 70);
-  if (sireAge > 84) chance *= 1 - Math.min(0.4, (sireAge - 84) / 90);
+  if (damAge < 24) chance *= 0.94;
+  if (damAge > 60) chance *= 1 - Math.min(0.4, (damAge - 60) / 95);
+  if (sireAge > 84) chance *= 1 - Math.min(0.28, (sireAge - 84) / 120);
 
   // Each previous litter takes a small toll.
-  chance *= 1 - dam.littersProduced * 0.045;
+  chance *= 1 - dam.littersProduced * 0.03;
 
-  // Inbreeding hits fertility hard.
-  chance *= 1 - Math.min(0.45, coi * 1.6);
+  // Inbreeding still hurts, but not catastrophically.
+  chance *= 1 - Math.min(0.32, coi * 1.1);
 
   // Very small and very large dogs both struggle to reproduce.
   const weight = sizeToPounds(dam.observed.size);
-  if (weight < 8) chance *= 0.78 + (weight / 8) * 0.15;
-  if (weight > 110) chance *= 0.9;
+  if (weight < 8) chance *= 0.86 + (weight / 8) * 0.1;
+  if (weight > 110) chance *= 0.94;
 
   // Flat faces genuinely reduce natural conception and whelping success.
-  if (dam.observed.muzzle < 22) chance *= 0.7;
+  if (dam.observed.muzzle < 22) chance *= 0.82;
 
-  return Math.max(0.05, Math.min(0.94, chance));
+  return Math.max(0.22, Math.min(0.97, chance));
 }
 
 /** How many embryos a female is likely to carry. */
 function litterTarget(rng: Rng, sire: Dog, dam: Dog, currentMonth: number, coi: number): number {
+  // Litter size is the player's supply of choices. Too few puppies and every
+  // generation becomes "take whatever you were given", which is not a game.
+  // Nudged upward accordingly, and the floor is two rather than one so a
+  // singleton stays a rare disappointment instead of a regular event.
   const weight = sizeToPounds(dam.observed.size);
-  let base = 0.9 + 1.55 * Math.pow(weight, 0.33);
+  let base = 1.9 + 1.65 * Math.pow(weight, 0.33);
 
-  base *= 0.72 + (dam.observed.fertility / 100) * 0.56;
-  base *= 1 - Math.min(0.4, coi * 1.5);
+  base *= 0.8 + (dam.observed.fertility / 100) * 0.45;
+  base *= 1 - Math.min(0.28, coi * 1.05);
 
   const damAge = ageMonths(dam, currentMonth);
-  if (damAge < 24) base *= 0.85;
-  if (damAge > 60) base *= 1 - Math.min(0.4, (damAge - 60) / 80);
-  if (dam.observed.muzzle < 22) base *= 0.8;
+  if (damAge < 24) base *= 0.92;
+  if (damAge > 60) base *= 1 - Math.min(0.3, (damAge - 60) / 105);
+  if (dam.observed.muzzle < 22) base *= 0.88;
 
   void sire;
 
-  const rolled = Math.round(rng.normal(base, 1.35));
-  return Math.max(1, Math.min(14, rolled));
+  const rolled = Math.round(rng.normal(base, 1.25));
+  // A true singleton is still possible, just uncommon.
+  const floor = rng.chance(0.06) ? 1 : 2;
+  return Math.max(floor, Math.min(14, rolled));
 }
 
 /**
@@ -328,8 +341,10 @@ function createEmbryo(rng: Rng, sire: Dog, dam: Dog, coi: number): Embryo {
     }
   }
 
-  // Heavy inbreeding causes a share of embryos to fail outright.
-  if (coi > 0.06 && rng.chance(Math.min(0.35, (coi - 0.06) * 1.9))) {
+  // Heavy inbreeding costs puppies, but the penalty only really bites once the
+  // player is doing something genuinely reckless. Below about 12% it is a
+  // gentle nudge rather than a punishment.
+  if (coi > 0.1 && rng.chance(Math.min(0.22, (coi - 0.1) * 1.3))) {
     embryo.viable = false;
     embryo.lossReason = 'Reabsorbed early. Closely bred litters lose more puppies.';
     return embryo;
@@ -337,12 +352,12 @@ function createEmbryo(rng: Rng, sire: Dog, dam: Dog, coi: number): Embryo {
 
   // Very small or very flat-faced puppies have a higher newborn loss rate.
   const adultWeight = sizeToPounds(observed.size);
-  if (adultWeight < 5 && rng.chance(0.16)) {
+  if (adultWeight < 5 && rng.chance(0.09)) {
     embryo.viable = false;
     embryo.lossReason = 'Too small to survive the first days.';
     return embryo;
   }
-  if (observed.muzzle < 15 && rng.chance(0.12)) {
+  if (observed.muzzle < 15 && rng.chance(0.07)) {
     embryo.viable = false;
     embryo.lossReason = 'Could not breathe well enough to nurse.';
     return embryo;
@@ -404,7 +419,15 @@ export function deliverLitter(
       coi: pregnancy.coi,
       litterId,
       status: 'kennel',
-      tests: { dna: false, hips: false, eyes: false, cardiac: false },
+      // Puppies bred in your own kennel arrive already DNA panelled.
+      //
+      // Strictly a convenience rather than a simulation: in reality you would
+      // pay for every panel. But the alternative is a player throwing away the
+      // one puppy that carried the recessive they had spent six generations
+      // chasing, purely because they could not see it. That is not a
+      // meaningful decision, just a hidden trapdoor. Structural tests — hips,
+      // eyes and heart — still have to be earned.
+      tests: { dna: true, hips: false, eyes: false, cardiac: false },
       littersProduced: 0,
       offspringIds: [],
       rarities: [],

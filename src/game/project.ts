@@ -41,7 +41,14 @@ import { LOCUS_BY_KEY } from '../engine/loci';
 import { findRarities, resolveCoat, resolveColor } from '../engine/phenotype';
 import type { Sex } from '../engine/names';
 
-export const DEFAULT_KENNEL_CAPACITY = 12;
+/**
+ * Kennel capacity is the main source of pressure in the game, but twelve
+ * turned out to be tight enough that a single good litter forced the player to
+ * dismantle their breeding population. Fourteen leaves room to keep a promising
+ * puppy without immediately giving up an adult, while still making "which two
+ * do I keep?" a real question.
+ */
+export const DEFAULT_KENNEL_CAPACITY = 14;
 
 export interface Litter {
   id: string;

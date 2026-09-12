@@ -218,24 +218,29 @@ export function breedingEligibility(
  * decent weight prediction and a nearly meaningless confidence score.
  */
 export function uncertainty(trait: PolyTrait, months: number): number {
+  // These ages are a little earlier than real life. A puppy whose temperament
+  // is still a coin flip at eighteen months gives the player nothing to reason
+  // about — the decision stops being judgement and becomes a lottery. Settling
+  // sooner means a careful player who waits an extra few months is genuinely
+  // rewarded with better information.
   const settleAge: Partial<Record<PolyTrait, number>> = {
-    size: 12,
-    substance: 14,
-    muzzle: 12,
-    earSet: 8,
-    energy: 20,
-    preyDrive: 18,
-    vocality: 16,
-    alertness: 16,
-    sociability: 20,
-    biddability: 20,
-    stability: 26,
-    persistence: 22,
-    independence: 22,
-    handling: 20,
-    structure: 24,
-    longevity: 96,
-    fertility: 30,
+    size: 10,
+    substance: 12,
+    muzzle: 10,
+    earSet: 7,
+    energy: 15,
+    preyDrive: 13,
+    vocality: 12,
+    alertness: 12,
+    sociability: 15,
+    biddability: 15,
+    stability: 19,
+    persistence: 16,
+    independence: 16,
+    handling: 15,
+    structure: 18,
+    longevity: 60,
+    fertility: 22,
   };
   const settle = settleAge[trait] ?? 20;
   if (months >= settle) return 0;

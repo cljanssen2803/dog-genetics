@@ -294,51 +294,59 @@ export interface CorrelationFactor {
   loadings: Partial<Record<PolyTrait, number>>;
 }
 
+/**
+ * A note on strength. These loadings are deliberately milder than the real
+ * genetic correlations in dogs. At full strength the trade-offs become walls:
+ * a player who wants a quiet, driven terrier simply never gets one, however
+ * carefully they breed. At this strength the pull is clearly visible in the
+ * first few generations and can be broken by a determined player over five or
+ * six — which is the interesting version.
+ */
 export const CORRELATION_FACTORS: CorrelationFactor[] = [
   {
     key: 'arousal',
     label: 'switched-on intensity',
     loadings: {
-      energy: 0.4,
-      preyDrive: 0.45,
-      alertness: 0.45,
-      vocality: 0.4,
-      persistence: 0.3,
-      independence: 0.15,
-      stability: -0.3,
-      handling: -0.15,
+      energy: 0.3,
+      preyDrive: 0.34,
+      alertness: 0.34,
+      vocality: 0.3,
+      persistence: 0.22,
+      independence: 0.12,
+      stability: -0.22,
+      handling: -0.12,
     },
   },
   {
     key: 'bulk',
     label: 'sheer body mass',
     loadings: {
-      size: 0.35,
-      substance: 0.45,
-      longevity: -0.3,
-      structure: -0.2,
-      energy: -0.1,
+      size: 0.26,
+      substance: 0.34,
+      longevity: -0.22,
+      structure: -0.15,
+      energy: -0.08,
     },
   },
   {
     key: 'affability',
     label: 'people focus',
     loadings: {
-      sociability: 0.45,
-      biddability: 0.4,
-      handling: 0.4,
-      stability: 0.25,
-      independence: -0.4,
+      sociability: 0.34,
+      biddability: 0.3,
+      handling: 0.3,
+      stability: 0.19,
+      independence: -0.3,
     },
   },
   {
     key: 'vigour',
     label: 'general hardiness',
     loadings: {
-      longevity: 0.35,
-      structure: 0.35,
-      fertility: 0.35,
-      stability: 0.15,
+      longevity: 0.26,
+      structure: 0.26,
+      fertility: 0.26,
+      stability: 0.12,
     },
   },
 ];

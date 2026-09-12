@@ -28,7 +28,15 @@ import {
   scoreToStars,
   sizeToPounds,
 } from '../engine/traits';
-import { geneticHealthFlags, resolveCoat, resolveColor, resolveEars, resolveTail, EAR_LABEL } from '../engine/phenotype';
+import {
+  EAR_LABEL,
+  geneticHealthFlags,
+  hiddenCarriers,
+  resolveCoat,
+  resolveColor,
+  resolveEars,
+  resolveTail,
+} from '../engine/phenotype';
 import { LOCI, LOCUS_BY_KEY, genopairSymbol } from '../engine/loci';
 import { scoreDog } from '../engine/standard';
 import { describeCoi } from '../engine/pedigree';
@@ -76,6 +84,9 @@ export function DogCard({
 
   const weight = currentWeight(dog, month);
   const estimate = weightEstimate(dog, month);
+  // Hidden recessives are the whole game for coat and colour projects, so they
+  // get a line on the card rather than being buried in the detail sheet.
+  const carries = dog.tests.dna ? hiddenCarriers(dog.genotype).slice(0, 4) : [];
 
   const calm = calmnessFrom(dog.observed.energy, dog.observed.stability, dog.observed.vocality);
 
@@ -116,6 +127,12 @@ export function DogCard({
           )}
 
           <div className="text-[11.5px] text-[var(--text-soft)] truncate">{coat.label}</div>
+
+          {carries.length > 0 && (
+            <div className="text-[11.5px] text-clay truncate">
+              Carries {carries.map((c) => c.label).join(', ')}
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-1 mt-1.5">
             {showScore && (
@@ -247,6 +264,18 @@ export function DogDetailSheet({
             />
             <StatRow label="Coat" value={coat.label} />
             <StatRow label="Colour" value={color.name} />
+            {dog.tests.dna && (
+              <StatRow
+                label="Hidden genes carried"
+                value={
+                  hiddenCarriers(dog.genotype).length === 0
+                    ? 'None — what you see is what it passes on'
+                    : hiddenCarriers(dog.genotype)
+                        .map((c) => c.label)
+                        .join(', ')
+                }
+              />
+            )}
             <StatRow label="Ears and tail" value={`${EAR_LABEL[resolveEars(dog.observed.earSet)]}, ${resolveTail(dog.genotype) === 'bobtail' ? 'natural bobtail' : 'full tail'}`} />
             <StatRow label="Own inbreeding" value={`${(dog.coi * 100).toFixed(1)}% — ${coi.label.toLowerCase()}`} tone={coi.tone === 'bad' ? 'bad' : coi.tone === 'warn' ? 'warn' : 'good'} />
             {dog.littersProduced > 0 && (

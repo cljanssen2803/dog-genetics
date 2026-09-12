@@ -19,7 +19,7 @@ import { type Dog, ageMonths, estimateTrait, formatAge, weightEstimate } from '.
 import { calmnessFrom, scoreToStars, sizeToPounds } from '../../engine/traits';
 import { scoreDog } from '../../engine/standard';
 import { type Litter, kennelCount, puppiesOf, setRetention } from '../../game/project';
-import { resolveCoat, resolveColor } from '../../engine/phenotype';
+import { hiddenCarriers, resolveCoat, resolveColor } from '../../engine/phenotype';
 
 export function PuppiesTab({ onShowPedigree }: { onShowPedigree?: (dog: Dog) => void }) {
   const { project } = useGame();
@@ -159,6 +159,9 @@ function PuppyCard({ puppy, onOpen }: { puppy: Dog; onOpen: (dog: Dog) => void }
   const coat = resolveCoat(puppy.genotype, sizeToPounds(puppy.observed.size));
   const color = resolveColor(puppy.genotype);
   const score = scoreDog(puppy, project.standard);
+  // Home-bred puppies come DNA panelled, so what they hide is visible from
+  // day one. This is often the real reason to keep a plain-looking puppy.
+  const carries = puppy.tests.dna ? hiddenCarriers(puppy.genotype).slice(0, 4) : [];
 
   if (puppy.status === 'placed') {
     return (
@@ -220,6 +223,12 @@ function PuppyCard({ puppy, onOpen }: { puppy: Dog; onOpen: (dog: Dog) => void }
           <div className="text-[11.5px] text-[var(--text-soft)] truncate">
             {color.name} · {coat.label}
           </div>
+
+          {carries.length > 0 && (
+            <div className="text-[11.5px] text-clay truncate">
+              Carries {carries.map((c) => c.label).join(', ')}
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-1 mt-1">
             <Chip tone={score.total >= 70 ? 'good' : score.total >= 45 ? 'neutral' : 'bad'}>

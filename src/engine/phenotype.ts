@@ -448,6 +448,52 @@ export function geneticHealthFlags(g: Genotype): GeneticHealthFlag[] {
 // Rare finds — the collectible layer
 // ---------------------------------------------------------------------------
 
+/**
+ * HIDDEN CARRIERS
+ *
+ * What this dog is secretly carrying but not showing. A DNA panel reveals it.
+ *
+ * This is the single most useful thing a breeder can know. A smooth-coated
+ * puppy carrying one copy of long coat looks worthless if you are chasing a
+ * long coat — and is in fact the most valuable puppy in the litter, because
+ * bred to another carrier, a quarter of ITS puppies will be long-coated.
+ */
+export interface HiddenTrait {
+  locus: string;
+  label: string;
+  /** True when two copies would produce something genuinely rare. */
+  prized: boolean;
+}
+
+const CARRIED_LABELS: { locus: string; allele: string; label: string; prized?: boolean }[] = [
+  { locus: 'coatLength', allele: 'l', label: 'long coat' },
+  { locus: 'curl', allele: 'Cu', label: 'curl' },
+  { locus: 'shedding', allele: 'sh', label: 'low shedding' },
+  { locus: 'furnishings', allele: 'F', label: 'furnishings' },
+  { locus: 'locusB', allele: 'b', label: 'chocolate' },
+  { locus: 'locusD', allele: 'd', label: 'dilute' },
+  { locus: 'cocoa', allele: 'co', label: 'cocoa', prized: true },
+  { locus: 'locusS', allele: 'sp', label: 'piebald' },
+  { locus: 'intensity', allele: 'i', label: 'cream' },
+  { locus: 'locusE', allele: 'e', label: 'red' },
+  { locus: 'hairlessRec', allele: 'hr', label: 'hairlessness', prized: true },
+  { locus: 'albino', allele: 'al', label: 'albinism', prized: true },
+  { locus: 'locusA', allele: 'at', label: 'tan points' },
+];
+
+/**
+ * Everything this dog carries one copy of but does not show. Only meaningful
+ * once a DNA panel has been run.
+ */
+export function hiddenCarriers(g: Genotype): HiddenTrait[] {
+  const out: HiddenTrait[] = [];
+  for (const entry of CARRIED_LABELS) {
+    if (copies(g, entry.locus, entry.allele) !== 1) continue;
+    out.push({ locus: entry.locus, label: entry.label, prized: entry.prized ?? false });
+  }
+  return out;
+}
+
 export type Rarity = 'uncommon' | 'rare' | 'very rare' | 'legendary';
 
 export interface RareFind {

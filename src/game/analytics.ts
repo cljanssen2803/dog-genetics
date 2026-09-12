@@ -273,40 +273,43 @@ export function assessEstablishment(project: Project): EstablishmentStatus {
   ).length;
   const affectedRate = activeDogs(project).length ? affected / activeDogs(project).length : 0;
 
+  // Set to be a genuine achievement that a thoughtful player reaches somewhere
+  // around generation ten, rather than a perfectionist's checklist that almost
+  // nobody completes. Reaching it is not the end — the project continues.
   const criteria: EstablishmentCriterion[] = [
     {
-      label: 'At least eight generations bred',
-      met: project.generation >= 8,
+      label: 'At least seven generations bred',
+      met: project.generation >= 7,
       detail: `Currently on generation ${project.generation}.`,
     },
     {
-      label: '80% of adults meet your standard',
-      met: snapshot.percentMeetingStandard >= 80,
+      label: '72% of adults meet your standard',
+      met: snapshot.percentMeetingStandard >= 72,
       detail: `Currently ${Math.round(snapshot.percentMeetingStandard)}%.`,
     },
     {
-      label: 'Average inbreeding below 10%',
-      met: snapshot.averageCoi < 0.1,
+      label: 'Average inbreeding below 13%',
+      met: snapshot.averageCoi < 0.13,
       detail: `Currently ${(snapshot.averageCoi * 100).toFixed(1)}%.`,
     },
     {
-      label: 'At least three separate family lines',
-      met: snapshot.familyLines >= 3,
+      label: 'At least two separate family lines',
+      met: snapshot.familyLines >= 2,
       detail: `Currently ${snapshot.familyLines}.`,
     },
     {
-      label: 'At least eight breeding adults',
-      met: population.length >= 8,
+      label: 'At least six breeding adults',
+      met: population.length >= 6,
       detail: `Currently ${population.length}.`,
     },
     {
-      label: 'Serious inherited disease under 5%',
-      met: affectedRate < 0.05,
+      label: 'Serious inherited disease under 8%',
+      met: affectedRate < 0.08,
       detail: `Currently ${Math.round(affectedRate * 100)}% of your dogs are affected by something.`,
     },
     {
-      label: 'Effective founder number of four or more',
-      met: snapshot.effectiveFounders >= 4,
+      label: 'Effective founder number of three or more',
+      met: snapshot.effectiveFounders >= 3,
       detail: `Currently ${snapshot.effectiveFounders.toFixed(1)}.`,
     },
   ];
