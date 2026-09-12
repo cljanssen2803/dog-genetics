@@ -1,0 +1,158 @@
+@import 'tailwindcss';
+
+/**
+ * THEME
+ *
+ * The look is a breeder's field notebook: warm parchment paper, deep forest
+ * green, iron-gall ink and a rust accent for anything that needs attention.
+ * Everything has a light and a dark version so the app feels native at 6am and
+ * at midnight.
+ */
+@theme {
+  --color-paper: #f4efe4;
+  --color-paper-2: #eae3d4;
+  --color-card: #fdfaf3;
+  --color-ink: #221f1a;
+  --color-ink-soft: #5c554a;
+  --color-ink-faint: #8b8377;
+  --color-forest: #1f3d2f;
+  --color-forest-2: #2e5a45;
+  --color-moss: #6f8f5f;
+  --color-rust: #c0703a;
+  --color-rust-deep: #9c5326;
+  --color-clay: #b8946a;
+  --color-berry: #9c3b4b;
+  --color-sky: #4a7c95;
+  --color-line: #d8cfbc;
+
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  --font-body:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light dark;
+
+  --bg: var(--color-paper);
+  --bg-2: var(--color-paper-2);
+  --card: var(--color-card);
+  --text: var(--color-ink);
+  --text-soft: var(--color-ink-soft);
+  --text-faint: var(--color-ink-faint);
+  --line: var(--color-line);
+  --brand: var(--color-forest);
+  --brand-2: var(--color-forest-2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16150f;
+    --bg-2: #1e1c15;
+    --card: #24221a;
+    --text: #f0ead9;
+    --text-soft: #b9b1a0;
+    --text-faint: #8a8375;
+    --line: #3a362b;
+    --brand: #4a7a5e;
+    --brand-2: #5f9375;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  /* Stops the whole page bouncing when a list is scrolled to its end on iOS. */
+  overscroll-behavior-y: none;
+}
+
+/* Nothing in a game app should be accidentally selectable by a long press,
+   except text the player might want to copy. */
+button,
+nav,
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@utility safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* A subtle paper grain, so large flat areas do not look like a spreadsheet. */
+.paper {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 20% 15%, rgb(0 0 0 / 2.5%) 0, transparent 45%),
+    radial-gradient(circle at 80% 70%, rgb(0 0 0 / 2%) 0, transparent 40%);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Smooth entry for bottom sheets. */
+@keyframes sheet-in {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.sheet-in {
+  animation: sheet-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fade-in 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-in,
+  .fade-in {
+    animation: none;
+  }
+}
+
+/* Hide scrollbars on the horizontal chip rows without losing the scroll. */
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+input[type='range'] {
+  accent-color: var(--brand);
+}
