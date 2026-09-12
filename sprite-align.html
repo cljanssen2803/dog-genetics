@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+  Alignment rig. Shows each ear and tail laid over the body at its natural
+  position and scale, so the corrections can be measured rather than guessed.
+-->
+<meta charset="utf-8" />
+<title>Sprite alignment</title>
+<style>
+  body { margin: 0; padding: 16px; background: #d9d3c6;
+         font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  figure { margin: 0; background: #fbf7ee; border: 2px solid #8a8378; border-radius: 8px; }
+  .stage { position: relative; height: 240px; }
+  .stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .part { filter: invert(38%) sepia(85%) saturate(2000%) hue-rotate(340deg); opacity: .85; }
+  figcaption { font-size: 13px; font-weight: 700; padding: 3px 8px; background: #1f3d2f; color: #fff; }
+  /* Percentage grid so positions can be read straight off the picture. */
+  .grid-lines { position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      repeating-linear-gradient(to right, rgba(0,80,160,.30) 0 1px, transparent 1px 10%),
+      repeating-linear-gradient(to bottom, rgba(0,80,160,.30) 0 1px, transparent 1px 10%); }
+</style>
+<div class="grid" id="g"></div>
+<script>
+const PARTS = ['ear-erect', 'ear-semi', 'ear-button', 'ear-drop', 'tail-full', 'tail-bob'];
+const host = document.getElementById('g');
+for (const part of PARTS) {
+  const fig = document.createElement('figure');
+  fig.innerHTML =
+    `<div class="stage">
+       <img src="/sprites/body-smooth.png">
+       <img class="part" src="/sprites/${part}.png">
+       <div class="grid-lines"></div>
+     </div>
+     <figcaption>${part} — untransformed</figcaption>`;
+  host.appendChild(fig);
+}
+</script>

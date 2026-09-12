@@ -202,21 +202,84 @@ function stripGroundLine(image) {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Halve the resolution.
+ *
+ * The artwork arrives at 1448px wide but is never drawn larger than about
+ * 200 CSS pixels, so full resolution is roughly seven times more than the
+ * screen can show. Since the whole app is precached for offline play, every
+ * wasted megabyte is a megabyte of the player's phone. A simple box filter —
+ * averaging each 2x2 block — is all this needs, and averaging in the alpha
+ * channel keeps the edges smooth.
+ */
+function halve(image) {
+  const { width, height, data } = image;
+  const w = Math.floor(width / 2);
+  const h = Math.floor(height / 2);
+  const out = Buffer.alloc(w * h * 4);
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let r = 0, g = 0, b = 0, a = 0;
+      for (let dy = 0; dy < 2; dy++) {
+        for (let dx = 0; dx < 2; dx++) {
+          const i = ((y * 2 + dy) * width + (x * 2 + dx)) * 4;
+          const alpha = data[i + 3];
+          // Weight colour by alpha so transparent pixels do not drag the
+          // edges toward black.
+          r += data[i] * alpha;
+          g += data[i + 1] * alpha;
+          b += data[i + 2] * alpha;
+          a += alpha;
+        }
+      }
+      const o = (y * w + x) * 4;
+      if (a === 0) {
+        out[o] = out[o + 1] = out[o + 2] = out[o + 3] = 0;
+      } else {
+        out[o] = Math.round(r / a);
+        out[o + 1] = Math.round(g / a);
+        out[o + 2] = Math.round(b / a);
+        out[o + 3] = Math.round(a / 4);
+      }
+    }
+  }
+
+  return { width: w, height: h, data: out };
+}
+
 const files = readdirSync(spriteDir).filter((f) => f.endsWith('.png'));
 if (files.length === 0) {
   console.log('No sprites found in public/sprites.');
   process.exit(0);
 }
 
+let before = 0;
+let after = 0;
+
 for (const file of files) {
   const path = join(spriteDir, file);
-  const image = decodePng(readFileSync(path));
+  const source = readFileSync(path);
+  before += source.length;
+
+  let image = decodePng(source);
   const result = stripGroundLine(image);
-  writeFileSync(path, encodePng(image.width, image.height, image.data));
+
+  // Only shrink oversized artwork, so running this twice is harmless.
+  const resized = image.width > 900;
+  if (resized) image = halve(image);
+
+  const encoded = encodePng(image.width, image.height, image.data);
+  writeFileSync(path, encoded);
+  after += encoded.length;
+
   console.log(
-    `${file.padEnd(20)} ${image.width}x${image.height}  ` +
-      (result.cleared
-        ? `erased ${result.cleared} ground-line pixels across ${result.rows} rows`
-        : 'no ground line found'),
+    `${file.padEnd(20)} ${String(image.width + 'x' + image.height).padEnd(10)} ` +
+      `${(source.length / 1024).toFixed(0).padStart(5)} kB -> ${(encoded.length / 1024).toFixed(0).padStart(4)} kB  ` +
+      (result.cleared ? `erased ${result.cleared} ground-line pixels` : ''),
   );
 }
+
+console.log(
+  `\nTotal ${(before / 1048576).toFixed(2)} MB -> ${(after / 1048576).toFixed(2)} MB`,
+);
