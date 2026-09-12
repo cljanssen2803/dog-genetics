@@ -1,38 +1,73 @@
 <!doctype html>
 <!--
-  Alignment rig. Shows each ear and tail laid over the body at its natural
-  position and scale, so the corrections can be measured rather than guessed.
+  Alignment rig.
+
+  Two jobs:
+   1. Show where the ear anchor point lands on EVERY body, since the eight coat
+      bodies were drawn separately and their heads may not sit identically.
+   2. Show each ear fitted, to check the transform maths.
 -->
 <meta charset="utf-8" />
 <title>Sprite alignment</title>
 <style>
-  body { margin: 0; padding: 16px; background: #d9d3c6;
+  body { margin: 0; padding: 14px; background: #d9d3c6;
          font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; }
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  h2 { font-size: 15px; margin: 12px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   figure { margin: 0; background: #fbf7ee; border: 2px solid #8a8378; border-radius: 8px; }
-  .stage { position: relative; height: 240px; }
+  /* The stage MUST match the artwork's aspect ratio. If it does not, the
+     letterboxing from object-fit shifts the picture inside the box and every
+     percentage overlaid on top is measuring the wrong thing. */
+  .stage { position: relative; width: 100%; aspect-ratio: 1448 / 1086; }
   .stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-  .part { filter: invert(38%) sepia(85%) saturate(2000%) hue-rotate(340deg); opacity: .85; }
-  figcaption { font-size: 13px; font-weight: 700; padding: 3px 8px; background: #1f3d2f; color: #fff; }
-  /* Percentage grid so positions can be read straight off the picture. */
-  .grid-lines { position: absolute; inset: 0; pointer-events: none;
-    background-image:
-      repeating-linear-gradient(to right, rgba(0,80,160,.30) 0 1px, transparent 1px 10%),
-      repeating-linear-gradient(to bottom, rgba(0,80,160,.30) 0 1px, transparent 1px 10%); }
+  .part { filter: invert(38%) sepia(85%) saturate(2000%) hue-rotate(340deg); opacity: .9; }
+  figcaption { font-size: 11px; font-weight: 700; padding: 2px 6px; background: #1f3d2f; color: #fff; }
+  /* The ear target, drawn as a crosshair so it can be judged against each head. */
+  .target { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px;
+            border-radius: 50%; background: #e11; box-shadow: 0 0 0 2px #fff; }
 </style>
-<div class="grid" id="g"></div>
+
+<h2>Ear anchor target (79%, 30%) on every body — is it on the head?</h2>
+<div class="grid" id="bodies"></div>
+
+<h2>Each ear, fitted</h2>
+<div class="grid" id="ears"></div>
+
 <script>
-const PARTS = ['ear-erect', 'ear-semi', 'ear-button', 'ear-drop', 'tail-full', 'tail-bob'];
-const host = document.getElementById('g');
-for (const part of PARTS) {
+const BODIES = ['smooth','silky','long','double','wire','wavy','curly','hairless'];
+const EARS = {
+  erect:     { anchor: [65.8, 77.2], target: [75.5, 16.5], scale: 0.18 },
+  semi:      { anchor: [57.6, 72.7], target: [75.5, 17],   scale: 0.18 },
+  button:    { anchor: [77.8, 31.5], target: [75.5, 14.5], scale: 0.43 },
+  drop:      { anchor: [73.8, 30.6], target: [75.5, 15],   scale: 0.44 },
+};
+
+const bodyHost = document.getElementById('bodies');
+for (const b of BODIES) {
+  const fig = document.createElement('figure');
+  fig.innerHTML =
+    `<div class="stage">
+       <img src="/sprites/body-${b}.png">
+       <div class="target" style="left:75.5%; top:16%"></div>
+     </div>
+     <figcaption>body-${b}</figcaption>`;
+  bodyHost.appendChild(fig);
+}
+
+const earHost = document.getElementById('ears');
+for (const [name, fit] of Object.entries(EARS)) {
+  const tx = (fit.target[0] - fit.anchor[0]).toFixed(2);
+  const ty = (fit.target[1] - fit.anchor[1]).toFixed(2);
   const fig = document.createElement('figure');
   fig.innerHTML =
     `<div class="stage">
        <img src="/sprites/body-smooth.png">
-       <img class="part" src="/sprites/${part}.png">
-       <div class="grid-lines"></div>
+       <img class="part" src="/sprites/ear-${name}.png"
+            style="transform-origin:${fit.anchor[0]}% ${fit.anchor[1]}%;
+                   transform: translate(${tx}%, ${ty}%) scale(${fit.scale})">
+       <div class="target" style="left:75.5%; top:16%"></div>
      </div>
-     <figcaption>${part} — untransformed</figcaption>`;
-  host.appendChild(fig);
+     <figcaption>ear-${name} fitted</figcaption>`;
+  earHost.appendChild(fig);
 }
 </script>

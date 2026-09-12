@@ -84,13 +84,21 @@ interface Fit {
   scale: number;
 }
 
+/**
+ * Measured, not guessed. Each ear's anchor is the real edge of its artwork
+ * where it meets the skull — the bottom edge for an ear that stands up, the top
+ * edge for one that hangs down. The target is the top-rear of the skull on the
+ * body art, which is where an ear actually joins a dog. Earlier values put the
+ * join on the cheek, so ears hung off the jaw like saddlebags.
+ *
+ * The scales look drastic because they are: the erect ear was drawn nearly as
+ * tall as the whole dog.
+ */
 const EAR_FIT: Record<EarType, Fit> = {
-  // Drawn at roughly four times body scale, anchored at the base of the ear.
-  erect: { anchor: [66, 77], target: [79.5, 30], scale: 0.22 },
-  semiErect: { anchor: [57, 73], target: [79, 31], scale: 0.26 },
-  // These two arrived close to the right size already.
-  button: { anchor: [78, 33], target: [79, 30.5], scale: 1 },
-  drop: { anchor: [74, 31], target: [79, 29], scale: 0.55 },
+  erect: { anchor: [65.8, 77.2], target: [75.5, 16.5], scale: 0.18 },
+  semiErect: { anchor: [57.6, 72.7], target: [75.5, 17], scale: 0.18 },
+  button: { anchor: [77.8, 31.5], target: [75.5, 14.5], scale: 0.43 },
+  drop: { anchor: [73.8, 30.6], target: [75.5, 15], scale: 0.44 },
 };
 
 const TAIL_FIT: Record<TailType, Fit> = {
@@ -224,6 +232,34 @@ function shade(hex: string, amount: number): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
+function luminance(hex: string): number {
+  const n = parseInt(hex.slice(1), 16);
+  return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114;
+}
+
+/**
+ * Lighten a colour before the artwork's shading is multiplied over it.
+ *
+ * Multiply can only ever darken. A near-black dog filled with its true colour
+ * has nowhere left to go, so every fold and muscle the artist drew collapses
+ * and the dog becomes a flat silhouette. Lifting the fill first leaves headroom
+ * for the shading to work in, and the shaded result reads as black again —
+ * which is also how a black dog actually photographs. Pure black fur is
+ * essentially never pure black on the eye.
+ */
+function forShading(hex: string): string {
+  const light = luminance(hex);
+  if (light >= 96) return hex;
+  // Just enough headroom for the shading to read, no more. Lift too far and a
+  // black dog turns grey.
+  return shade(hex, (96 - light) * 0.72);
+}
+
+/** A colour guaranteed to be visible against the given one. */
+function contrastInk(hex: string, strength = 58): string {
+  return shade(hex, luminance(hex) < 120 ? strength : -strength);
+}
+
 function describe(dog: Dog) {
   const weight = sizeToPounds(dog.observed.size);
   const coat = resolveCoat(dog.genotype, weight);
@@ -242,7 +278,8 @@ function describe(dog: Dog) {
 
   const bodyTransform = `scale(${(sizeScale * substance * stretch).toFixed(3)}, ${(sizeScale * legSquash).toFixed(3)})`;
 
-  const base = coat.hairless ? shade(colour.base, 26) : colour.base;
+  const trueColour = coat.hairless ? shade(colour.base, 26) : colour.base;
+  const base = forShading(trueColour);
 
   return {
     bodySrc: BODY_SRC[coat.kind],
@@ -255,7 +292,7 @@ function describe(dog: Dog) {
     earColour: shade(base, -14),
     colorName: colour.name,
     coatLabel: coat.label,
-    markings: <Markings colour={colour} base={base} noise={noise} />,
+    markings: <Markings colour={colour} base={base} accent={forShading(colour.accent)} noise={noise} />,
   };
 }
 
@@ -271,14 +308,16 @@ function describe(dog: Dog) {
 function Markings({
   colour,
   base,
+  accent,
   noise,
 }: {
   colour: ReturnType<typeof resolveColor>;
   base: string;
+  accent: string;
   noise: () => number;
 }) {
   const shapes: React.ReactNode[] = [];
-  const dark = shade(base, -52);
+  const fleck = contrastInk(base);
   const light = shade(base, 40);
 
   const blob = (
@@ -322,7 +361,7 @@ function Markings({
             // not a painted stripe.
             width: `${5 + noise() * 4}%`,
             height: '128%',
-            background: colour.accent,
+            background: accent,
             opacity: 0.2 + noise() * 0.12,
             borderRadius: '50%',
             transform: `rotate(${-8 + noise() * 10}deg)`,
@@ -343,13 +382,13 @@ function Markings({
   // --- Tan points: legs, muzzle, eyebrows, chest ---------------------------
   if (colour.tanPoints) {
     shapes.push(
-      blob('tp-leg1', 24, 66, 9, 26, colour.accent, 0.95),
-      blob('tp-leg2', 36, 68, 9, 24, colour.accent, 0.95),
-      blob('tp-leg3', 62, 66, 9, 26, colour.accent, 0.95),
-      blob('tp-leg4', 72, 68, 9, 24, colour.accent, 0.95),
-      blob('tp-muzzle', 84, 20, 10, 10, colour.accent, 0.9),
-      blob('tp-brow', 80, 13, 5, 4, colour.accent, 0.85),
-      blob('tp-chest', 72, 44, 10, 14, colour.accent, 0.8),
+      blob('tp-leg1', 24, 66, 9, 26, accent, 0.95),
+      blob('tp-leg2', 36, 68, 9, 24, accent, 0.95),
+      blob('tp-leg3', 62, 66, 9, 26, accent, 0.95),
+      blob('tp-leg4', 72, 68, 9, 24, accent, 0.95),
+      blob('tp-muzzle', 84, 20, 10, 10, accent, 0.9),
+      blob('tp-brow', 80, 13, 5, 4, accent, 0.85),
+      blob('tp-chest', 72, 44, 10, 14, accent, 0.8),
     );
   }
 
@@ -364,8 +403,11 @@ function Markings({
           10 + noise() * 72,
           5 + noise() * 11,
           5 + noise() * 12,
-          colour.harlequin ? '#1d1a17' : shade(base, colour.doubleMerle ? 46 : -44),
-          colour.harlequin ? 0.94 : 0.78,
+          // Merle dilutes patches of pigment, so they are always LIGHTER than
+          // the base — a blue merle is black with grey torn through it, never
+          // black with darker patches.
+          colour.harlequin ? '#f5f0e6' : shade(base, colour.doubleMerle ? 62 : 44),
+          colour.harlequin ? 0.96 : 0.8,
         ),
       );
     }
@@ -395,8 +437,9 @@ function Markings({
     }
 
     if (w > 0.4) {
-      // A collar across the shoulders, which is where piebald goes next.
-      shapes.push(blob('w-collar', 62, 24, 15, 32, white, 0.96));
+      // A collar across the shoulders, which is where piebald goes next. Kept
+      // clear of the skull so it does not look like the head has come off.
+      shapes.push(blob('w-collar', 57, 28, 14, 30, white, 0.96));
       shapes.push(blob('w-belly', 28, 58, 42, 20, white));
     }
 
@@ -411,7 +454,7 @@ function Markings({
   if (colour.ticked) {
     for (let i = 0; i < 26; i++) {
       shapes.push(
-        blob(`t${i}`, 20 + noise() * 62, 30 + noise() * 58, 0.9, 1.2, dark, 0.6),
+        blob(`t${i}`, 20 + noise() * 62, 30 + noise() * 58, 0.9, 1.2, fleck, 0.6),
       );
     }
   }
