@@ -110,6 +110,10 @@ export interface Project {
   litters: Litter[];
   /** When each female last whelped, used for recovery time. */
   lastLitter: Record<string, number>;
+  /** When each dog was last entered in a show. */
+  lastShown?: Record<string, number>;
+  /** Total show points won. A respected kennel attracts better outside dogs. */
+  reputation?: number;
 
   kennelCapacity: number;
   /** Kept only so older saves still load. Health information is always known. */
@@ -367,6 +371,8 @@ export interface MonthReport {
   deaths: { name: string; age: number; cause: string }[];
   matured: string[];
   warnings: string[];
+  /** Genes that appeared from nowhere this month. */
+  mutations: string[];
 }
 
 /**
@@ -383,6 +389,7 @@ export function advanceMonth(project: Project): MonthReport {
     deaths: [],
     matured: [],
     warnings: [],
+    mutations: [],
   };
 
   // --- Births --------------------------------------------------------------
@@ -423,6 +430,16 @@ export function advanceMonth(project: Project): MonthReport {
           addLog(project, 'milestone', `Rare find: ${puppy.name} is ${find.title.toLowerCase()}. ${find.blurb}`);
         }
       }
+    }
+
+    // A gene out of nowhere is the rarest thing that can happen in a project.
+    for (const mutation of result.mutations) {
+      addLog(
+        project,
+        'milestone',
+        `MUTATION: ${mutation.puppyName} was born carrying ${mutation.story}. Neither parent had it.`,
+      );
+      report.mutations.push(`${mutation.puppyName} — ${mutation.story}`);
     }
 
     sire.littersProduced += 1;
@@ -694,6 +711,14 @@ export function searchOutsideDogs(project: Project, search: OutsideSearch, count
   const rng = rngFor(project);
   const results: Dog[] = [];
 
+  // A kennel with a reputation gets better dogs offered to it. This is the
+  // point of winning at shows: it feeds back into the breeding game rather
+  // than filling a trophy cabinet.
+  const standing = reputationTier(project.reputation ?? 0).bonus;
+  const reputationNudge: Partial<Record<PolyTrait, number>> = standing
+    ? { structure: standing, longevity: standing, stability: standing * 0.6, fertility: standing * 0.5 }
+    : {};
+
   for (let i = 0; i < count; i++) {
     const sex: Sex = search.sex ?? (rng.chance(0.5) ? 'M' : 'F');
     let dog: Dog;
@@ -705,6 +730,7 @@ export function searchOutsideDogs(project: Project, search: OutsideSearch, count
         name: pickName(project.names, sex, rng),
         currentMonth: project.month,
         ageMonths: rng.int(14, 46),
+        nudge: reputationNudge,
         wildcards: true,
       });
     } else if (search.kind === 'traits') {
@@ -725,7 +751,7 @@ export function searchOutsideDogs(project: Project, search: OutsideSearch, count
       const pool = scored.slice(0, 10);
       const chosen = rng.weighted(pool, pool.map((_, idx) => 10 / (idx + 1)));
 
-      const nudge: Partial<Record<PolyTrait, number>> = {};
+      const nudge: Partial<Record<PolyTrait, number>> = { ...reputationNudge };
       for (const [trait, direction] of Object.entries(search.needs)) {
         if (trait === 'size') continue;
         nudge[trait as PolyTrait] = direction === 'high' ? 7 : -7;
@@ -746,6 +772,7 @@ export function searchOutsideDogs(project: Project, search: OutsideSearch, count
         name: pickName(project.names, sex, rng),
         currentMonth: project.month,
         ageMonths: rng.int(12, 48),
+        nudge: reputationNudge,
         wildcards: true,
       });
     }
@@ -845,6 +872,19 @@ export function recordGeneration(project: Project): GenerationSnapshot {
   project.history.push(snapshot);
   project.updatedAt = Date.now();
   return snapshot;
+}
+
+/**
+ * Reputation gives winning at shows a purpose beyond a trophy cabinet: a
+ * respected kennel gets better dogs offered to it when it goes looking for an
+ * outcross.
+ */
+export function reputationTier(points: number): { label: string; bonus: number } {
+  if (points >= 120) return { label: 'Renowned', bonus: 7 };
+  if (points >= 70) return { label: 'Well regarded', bonus: 5 };
+  if (points >= 35) return { label: 'Known locally', bonus: 3 };
+  if (points >= 12) return { label: 'Getting noticed', bonus: 1.5 };
+  return { label: 'Unknown', bonus: 0 };
 }
 
 export function ensureIds(project: Project) {

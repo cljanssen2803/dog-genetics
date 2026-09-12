@@ -134,6 +134,12 @@ export interface Dog {
    * Storing it keeps a seed genuinely reproducible.
    */
   seedValue: number;
+  /** Set when this dog was born carrying a gene neither parent had. */
+  mutation?: string;
+  /** Show titles this dog has earned. */
+  titles?: string[];
+  /** Points accumulated toward the next title. */
+  showPoints?: number;
 }
 
 // ---------------------------------------------------------------------------

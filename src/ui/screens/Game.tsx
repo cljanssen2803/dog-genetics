@@ -13,20 +13,27 @@ import { DogCard, DogDetailSheet } from '../dogs';
 import { BreedTab } from './BreedTab';
 import { PuppiesTab } from './PuppiesTab';
 import { AnalyticsTab, PedigreeTab } from './PopulationTab';
-import { DifficultyPanel } from './NewProject';
+import { DifficultyPanel, StandardFields, editorStateFrom, standardFrom, type EditorState } from '../StandardEditor';
 import { type Dog, ageMonths, lifeStage } from '../../engine/dog';
+import { geneticTraits } from '../../engine/phenotype';
+
+/** Every notable gene a dog holds, shown or hidden. Used by the kennel search. */
+const carriedAndShown = (dog: Dog) => geneticTraits(dog.genotype);
 import { sizeToPounds } from '../../engine/traits';
 import { assessDifficulty, scoreDog, PRIORITY_LABEL, DERIVED_LABEL } from '../../engine/standard';
 import { TRAITS, type PolyTrait } from '../../engine/traits';
 import {
   type MonthReport,
   activeDogs,
+  addLog,
   advanceMonth,
   kennelCount,
   recordGeneration,
 } from '../../game/project';
 import { buildGenerationReport, type GenerationReport } from '../../game/analytics';
 import { Tutorial } from '../Tutorial';
+import { ShowSheet } from './ShowSheet';
+import { reputationTier } from '../../game/project';
 
 type Tab = 'project' | 'kennel' | 'breed' | 'puppies' | 'pedigree' | 'analytics';
 
@@ -47,6 +54,8 @@ export function Game({ onExit }: { onExit: () => void }) {
   const [pedigreeFocus, setPedigreeFocus] = useState<Dog | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(!project.tutorialSeen);
+  const [editorState, setEditorState] = useState<EditorState | null>(null);
+  const [showsOpen, setShowsOpen] = useState(false);
 
   const advance = (months: number) => {
     const reports: MonthReport[] = [];
@@ -108,7 +117,13 @@ export function Game({ onExit }: { onExit: () => void }) {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-lg mx-auto">
           {tab === 'project' && (
-            <ProjectTab onCloseGeneration={closeGeneration} onAdvance={advance} onAdvanceToEvent={advanceToEvent} />
+            <ProjectTab
+              onCloseGeneration={closeGeneration}
+              onAdvance={advance}
+              onAdvanceToEvent={advanceToEvent}
+              onEditStandard={() => setEditorState(editorStateFrom(project.standard))}
+              onShows={() => setShowsOpen(true)}
+            />
           )}
           {tab === 'kennel' && <KennelTab onShowPedigree={showPedigree} />}
           {tab === 'breed' && <BreedTab />}
@@ -149,6 +164,60 @@ export function Game({ onExit }: { onExit: () => void }) {
       </nav>
 
       {/* ---------------------------------------------------------- sheets */}
+      {editorState && (
+        <Sheet
+          open
+          onClose={() => setEditorState(null)}
+          title="Revise your standard"
+          subtitle="Every dog is re-scored immediately"
+          footer={
+            <div className="flex gap-2">
+              <Button tone="secondary" onClick={() => setEditorState(null)}>
+                Cancel
+              </Button>
+              <Button
+                full
+                onClick={() => {
+                  const previous = project.standard.name;
+                  project.standard = standardFrom(editorState);
+                  addLog(
+                    project,
+                    'decision',
+                    `Breed standard revised${previous !== project.standard.name ? ` and renamed to ${project.standard.name}` : ''}.`,
+                  );
+                  setEditorState(null);
+                  say('Standard revised. Every dog has been re-scored.');
+                  refresh();
+                }}
+              >
+                Save changes
+              </Button>
+            </div>
+          }
+        >
+          <div className="card p-3 mb-4">
+            <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">
+              Real breeders refine what they are aiming at as they learn what is achievable. Changing
+              your standard rescores every dog you own — a dog that looked mediocre may suddenly be
+              exactly right, and vice versa. Nothing else about your project is affected.
+            </p>
+            <p className="text-[12px] text-[var(--text-faint)] leading-relaxed mt-2">
+              Goals you do not touch keep their exact original settings, so opening this and closing
+              it again changes nothing.
+            </p>
+          </div>
+
+          <StandardFields
+            state={editorState}
+            setState={(updater) => setEditorState((s) => (s ? updater(s) : s))}
+          />
+
+          <DifficultyPanel difficulty={assessDifficulty(standardFrom(editorState))} />
+        </Sheet>
+      )}
+
+      {showsOpen && <ShowSheet onClose={() => setShowsOpen(false)} />}
+
       {timeReport && <TimeSheet reports={timeReport} onClose={() => setTimeReport(null)} />}
       {genReport && <GenerationReportSheet report={genReport} onClose={() => setGenReport(null)} />}
 
@@ -231,13 +300,19 @@ function ProjectTab({
   onCloseGeneration,
   onAdvance,
   onAdvanceToEvent,
+  onEditStandard,
+  onShows,
 }: {
   onCloseGeneration: () => void;
   onAdvance: (months: number) => void;
   onAdvanceToEvent: () => void;
+  onEditStandard: () => void;
+  onShows: () => void;
 }) {
   const { project } = useGame();
   const difficulty = useMemo(() => assessDifficulty(project.standard), [project.standard]);
+  const standing = reputationTier(project.reputation ?? 0);
+  const titled = activeDogs(project).filter((d) => d.titles && d.titles.length > 0);
 
   const traitGoals = Object.entries(project.standard.traitGoals).filter(
     ([, g]) => g && g.priority > 0,
@@ -284,7 +359,38 @@ function ProjectTab({
         </Button>
       </Section>
 
-      <Section title="Your standard" subtitle="Anything not listed here is on Don't care and is ignored.">
+      <Section
+        title="Dog shows"
+        subtitle="Outside judgement of how well your breed is coming together."
+      >
+        <Card>
+          <StatRow label="Kennel standing" value={standing.label} />
+          {(project.reputation ?? 0) > 0 && (
+            <StatRow label="Show points won" value={project.reputation} />
+          )}
+          {titled.length > 0 && (
+            <StatRow label="Titled dogs" value={titled.map((d) => d.name).join(', ')} />
+          )}
+          <p className="text-[12px] text-[var(--text-faint)] leading-relaxed mt-2 mb-2">
+            {standing.bonus > 0
+              ? 'Your reputation means better dogs are being offered to you when you look for an outcross.'
+              : 'Win at shows to build a reputation. A respected kennel gets better dogs offered to it.'}
+          </p>
+          <Button full small tone="accent" onClick={onShows}>
+            Enter a show
+          </Button>
+        </Card>
+      </Section>
+
+      <Section
+        title="Your standard"
+        subtitle="Anything not listed here is on Don't care and is ignored."
+        right={
+          <Button small tone="secondary" onClick={onEditStandard}>
+            Revise
+          </Button>
+        }
+      >
         <Card>
           {traitGoals.map(([key, goal]) => {
             const trait = key as PolyTrait;
@@ -335,12 +441,32 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
   const [open, setOpen] = useState<Dog | null>(null);
   const [filter, setFilter] = useState<'all' | 'F' | 'M' | 'young'>('all');
   const [sort, setSort] = useState<'score' | 'age' | 'name'>('score');
+  const [gene, setGene] = useState<string | null>(null);
+
+  /**
+   * Which interesting genes actually exist in this kennel, so the filter only
+   * ever offers something that will return a result.
+   */
+  const geneOptions = useMemo(() => {
+    const found = new Map<string, { label: string; count: number; prized: boolean }>();
+    for (const dog of activeDogs(project)) {
+      for (const trait of carriedAndShown(dog)) {
+        const existing = found.get(trait.label);
+        if (existing) existing.count += 1;
+        else found.set(trait.label, { label: trait.label, count: 1, prized: trait.prized });
+      }
+    }
+    return Array.from(found.values()).sort(
+      (a, b) => Number(b.prized) - Number(a.prized) || a.label.localeCompare(b.label),
+    );
+  }, [project, project.month]);
 
   const dogs = useMemo(() => {
     let list = activeDogs(project);
     if (filter === 'F') list = list.filter((d) => d.sex === 'F');
     if (filter === 'M') list = list.filter((d) => d.sex === 'M');
     if (filter === 'young') list = list.filter((d) => ageMonths(d, project.month) < 18);
+    if (gene) list = list.filter((d) => carriedAndShown(d).some((t) => t.label === gene));
 
     if (sort === 'score') {
       list = list
@@ -352,7 +478,7 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
       list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
     }
     return list;
-  }, [project, project.month, filter, sort]);
+  }, [project, project.month, filter, sort, gene]);
 
   const retired = Object.values(project.dogs).filter(
     (d) => d.status === 'kennel' && lifeStage(d, project.month) === 'retired',
@@ -384,6 +510,41 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
         />
       </div>
 
+      {geneOptions.length > 0 && (
+        <div className="mb-4">
+          <div className="text-[12px] text-[var(--text-faint)] mb-1.5 px-1">
+            Find dogs carrying a gene
+          </div>
+          <div className="scroll-x flex gap-1.5 pb-1">
+            <button
+              onClick={() => setGene(null)}
+              className={`flex-none rounded-full border px-3 py-1.5 text-[11.5px] font-semibold whitespace-nowrap ${
+                gene === null
+                  ? 'bg-[var(--brand)] text-white border-transparent'
+                  : 'bg-[var(--bg-2)] border-[var(--line)] text-[var(--text-soft)]'
+              }`}
+            >
+              Any
+            </button>
+            {geneOptions.map((option) => (
+              <button
+                key={option.label}
+                onClick={() => setGene(gene === option.label ? null : option.label)}
+                className={`flex-none rounded-full border px-3 py-1.5 text-[11.5px] font-semibold whitespace-nowrap ${
+                  gene === option.label
+                    ? 'bg-[var(--brand)] text-white border-transparent'
+                    : option.prized
+                      ? 'bg-clay/20 border-clay/40 text-clay'
+                      : 'bg-[var(--bg-2)] border-[var(--line)] text-[var(--text-soft)]'
+                }`}
+              >
+                {option.label} · {option.count}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {dogs.length === 0 ? (
         <Empty>No dogs match that filter.</Empty>
       ) : (
@@ -413,6 +574,7 @@ function TimeSheet({ reports, onClose }: { reports: MonthReport[]; onClose: () =
   const births = reports.flatMap((r) => r.births);
   const deaths = reports.flatMap((r) => r.deaths);
   const warnings = reports[reports.length - 1]?.warnings ?? [];
+  const mutations = reports.flatMap((r) => r.mutations);
   const months = reports.length;
 
   return (
@@ -427,7 +589,25 @@ function TimeSheet({ reports, onClose }: { reports: MonthReport[]; onClose: () =
         </Button>
       }
     >
-      {births.length === 0 && deaths.length === 0 && warnings.length === 0 && (
+      {mutations.length > 0 && (
+        <Section title="Something new">
+          {mutations.map((m, i) => (
+            <Card key={i} className="mb-2 border-clay">
+              <div className="flex items-center gap-2 mb-1">
+                <Chip tone="rare">mutation</Chip>
+                <span className="text-[13px] font-semibold">A gene from nowhere</span>
+              </div>
+              <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">{m}</p>
+              <p className="text-[12px] text-[var(--text-faint)] mt-1 leading-relaxed">
+                Neither parent carried this. It has simply appeared, the way chocolate once appeared
+                in Labradors. Whether it becomes part of your breed is now up to you.
+              </p>
+            </Card>
+          ))}
+        </Section>
+      )}
+
+      {births.length === 0 && deaths.length === 0 && warnings.length === 0 && mutations.length === 0 && (
         <Empty>A quiet stretch. Nothing of note happened.</Empty>
       )}
 

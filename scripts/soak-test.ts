@@ -28,6 +28,9 @@ import {
   takeSnapshot,
 } from '../src/game/project';
 import { previewPairing } from '../src/game/matchmaking';
+import { runShow, titleFor } from '../src/game/shows';
+import { attemptMating } from '../src/engine/breeding';
+import { Rng } from '../src/engine/rng';
 import { assessEstablishment } from '../src/game/analytics';
 import { HEARTHDOG, MOUSIE, designerCrossStandard, scoreDog } from '../src/engine/standard';
 import { ALL_TRAITS, sizeToPounds } from '../src/engine/traits';
@@ -284,6 +287,73 @@ function testMatingsAlwaysTake() {
   console.log(`  40 of 40 matings conceived; all ${Object.keys(project.dogs).length} dogs fully known`);
 }
 
+function testMutations() {
+  console.log('\n=== Genes appear from nowhere, rarely ===');
+  const project = createProject({ name: 'Mut', standard: structuredClone(HEARTHDOG), seed: 8080 });
+  const rng = new Rng(99);
+  const dam = activeDogs(project).find((d) => d.sex === 'F')!;
+  const sire = activeDogs(project).find((d) => d.sex === 'M')!;
+
+  let embryos = 0;
+  let mutated = 0;
+
+  for (let i = 0; i < 900; i++) {
+    const attempt = attemptMating(rng, sire, dam, project.month, 0, 1);
+    for (const embryo of attempt.pregnancy.embryos) {
+      embryos += 1;
+      if (embryo.mutation) {
+        mutated += 1;
+        // A mutation must actually be present in the genotype, not just labelled.
+        const changed = Object.entries(embryo.genotype).some(([locus, pair]) => {
+          const parentAlleles = new Set([
+            ...(sire.genotype[locus] ?? []),
+            ...(dam.genotype[locus] ?? []),
+          ]);
+          return pair.some((a) => !parentAlleles.has(a));
+        });
+        check(changed, 'an embryo was flagged as mutated but carries only its parents alleles');
+      }
+    }
+  }
+
+  const rate = mutated / embryos;
+  console.log(`  ${mutated} mutations in ${embryos} embryos (${(rate * 1000).toFixed(2)} per thousand)`);
+  check(mutated > 0, 'no mutations occurred in 900 litters');
+  check(rate < 0.01, `mutation rate ${rate} is far too high to feel special`);
+}
+
+function testShows() {
+  console.log('\n=== Dog shows ===');
+  const project = createProject({ name: 'Shows', standard: structuredClone(HEARTHDOG), seed: 3131 });
+  const dog = activeDogs(project).find((d) => ageMonths(d, project.month) >= 24)!;
+
+  const startReputation = project.reputation ?? 0;
+  const result = runShow(project, dog.id);
+  check(!!result, 'a mature dog could not be entered in a show');
+  if (!result) return;
+
+  check(result.placement >= 0 && result.placement <= 4, `impossible placement ${result.placement}`);
+  check(result.entrants.length >= 5, 'a show needs a real line-up');
+  check(result.entrants.filter((e) => e.isPlayer).length === 1, 'the player should have exactly one entrant');
+  check(result.critique.length > 40, 'the judge should actually say something');
+  check((project.reputation ?? 0) >= startReputation, 'reputation should never go backwards');
+  check((dog.showPoints ?? 0) === result.points, 'points were not recorded on the dog');
+
+  // The cooldown must stop the same dog being shown repeatedly for free points.
+  const immediate = runShow(project, dog.id);
+  check(immediate === null, 'a dog was shown twice with no cooldown');
+
+  // Titles arrive at the advertised thresholds.
+  dog.showPoints = 15;
+  check(titleFor(dog.showPoints)?.title === 'Ch.', 'fifteen points should award a championship');
+  dog.showPoints = 40;
+  check(titleFor(dog.showPoints)?.title === 'Gr.Ch.', 'forty points should award a grand championship');
+
+  console.log(
+    `  ${dog.name} placed ${result.placement === 0 ? 'unplaced' : result.placement} of ${result.entrants.length}, ${result.points} points; cooldown holds`,
+  );
+}
+
 function testSeedReproducibility() {
   console.log('\n=== Same seed produces the same world ===');
 
@@ -443,6 +513,8 @@ function testKinshipMaths() {
 console.log('Dog Genetics — soak test');
 
 testMatingsAlwaysTake();
+testMutations();
+testShows();
 testSeedReproducibility();
 testOneRollEmbryos();
 testLethalGenes();

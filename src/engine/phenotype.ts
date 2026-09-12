@@ -465,31 +465,64 @@ export interface HiddenTrait {
   prized: boolean;
 }
 
-const CARRIED_LABELS: { locus: string; allele: string; label: string; prized?: boolean }[] = [
+const CARRIED_LABELS: {
+  locus: string;
+  allele: string;
+  label: string;
+  prized?: boolean;
+  /** True when a single copy already shows, so one copy is not "hidden". */
+  dominant?: boolean;
+}[] = [
   { locus: 'coatLength', allele: 'l', label: 'long coat' },
-  { locus: 'curl', allele: 'Cu', label: 'curl' },
+  { locus: 'curl', allele: 'Cu', label: 'curl', dominant: true },
   { locus: 'shedding', allele: 'sh', label: 'low shedding' },
-  { locus: 'furnishings', allele: 'F', label: 'furnishings' },
+  { locus: 'furnishings', allele: 'F', label: 'furnishings', dominant: true },
   { locus: 'locusB', allele: 'b', label: 'chocolate' },
   { locus: 'locusD', allele: 'd', label: 'dilute' },
   { locus: 'cocoa', allele: 'co', label: 'cocoa', prized: true },
   { locus: 'locusS', allele: 'sp', label: 'piebald' },
   { locus: 'intensity', allele: 'i', label: 'cream' },
   { locus: 'locusE', allele: 'e', label: 'red' },
+  { locus: 'merle', allele: 'M', label: 'merle', prized: true, dominant: true },
+  { locus: 'harlequin', allele: 'H', label: 'harlequin', prized: true, dominant: true },
+  { locus: 'blueEyes', allele: 'Be', label: 'blue eyes', dominant: true },
+  { locus: 'bobtail', allele: 'Bt', label: 'bobtail', dominant: true },
   { locus: 'hairlessRec', allele: 'hr', label: 'hairlessness', prized: true },
+  { locus: 'hairlessDom', allele: 'Hd', label: 'crested hairlessness', prized: true, dominant: true },
   { locus: 'albino', allele: 'al', label: 'albinism', prized: true },
   { locus: 'locusA', allele: 'at', label: 'tan points' },
 ];
 
 /**
- * Everything this dog carries one copy of but does not show. Only meaningful
- * once a DNA panel has been run.
+ * Everything this dog carries one copy of but does not show — the genes that
+ * matter for planning and are invisible when you look at the dog.
  */
 export function hiddenCarriers(g: Genotype): HiddenTrait[] {
   const out: HiddenTrait[] = [];
   for (const entry of CARRIED_LABELS) {
+    if (entry.dominant) continue; // one copy already shows, so nothing is hidden
     if (copies(g, entry.locus, entry.allele) !== 1) continue;
     out.push({ locus: entry.locus, label: entry.label, prized: entry.prized ?? false });
+  }
+  return out;
+}
+
+/**
+ * Every notable gene this dog has at least one copy of, whether it shows or
+ * not. Used by the kennel search, so "show me everything carrying chocolate"
+ * finds both the chocolate dogs and the black dogs hiding it.
+ */
+export function geneticTraits(g: Genotype): (HiddenTrait & { shown: boolean })[] {
+  const out: (HiddenTrait & { shown: boolean })[] = [];
+  for (const entry of CARRIED_LABELS) {
+    const count = copies(g, entry.locus, entry.allele);
+    if (count === 0) continue;
+    out.push({
+      locus: entry.locus,
+      label: entry.label,
+      prized: entry.prized ?? false,
+      shown: entry.dominant ? count >= 1 : count === 2,
+    });
   }
   return out;
 }

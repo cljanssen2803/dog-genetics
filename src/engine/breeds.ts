@@ -1041,3 +1041,40 @@ export const WILDCARD_ALLELES: { locus: string; allele: string; weight: number }
 
 /** How often a random outside dog hides one of the above. */
 export const WILDCARD_CHANCE = 0.11;
+
+/**
+ * MUTATIONS
+ *
+ * Very occasionally a puppy is born carrying a gene neither parent had. This is
+ * genuinely how rare colours enter a breed — every chocolate Labrador alive
+ * descends from an animal this happened to once.
+ *
+ * The chance below is per embryo, but only about a third of rolls change
+ * anything — the rest pick a gene that was already somewhere in the family,
+ * which is inheritance rather than mutation. The effective rate lands near one
+ * puppy in two hundred and fifty, so a long project usually sees one or two.
+ * Rare enough to be an event, common enough that it is not a feature nobody
+ * ever meets.
+ */
+export const MUTATION_CHANCE = 0.012;
+
+/**
+ * What can appear from nowhere. Weighted toward the visually striking, because
+ * a spontaneous mutation nobody can see is not a story. Disease alleles are
+ * deliberately excluded — being randomly handed a genetic illness you could not
+ * have avoided is not interesting, it is just unfair.
+ */
+export const MUTABLE_ALLELES: { locus: string; allele: string; weight: number; story: string }[] = [
+  { locus: 'locusB', allele: 'b', weight: 16, story: 'a chocolate gene, appearing from nowhere' },
+  { locus: 'locusD', allele: 'd', weight: 16, story: 'a dilution gene, appearing from nowhere' },
+  { locus: 'coatLength', allele: 'l', weight: 14, story: 'a long-coat gene, appearing from nowhere' },
+  { locus: 'curl', allele: 'Cu', weight: 10, story: 'a curl gene, appearing from nowhere' },
+  { locus: 'shedding', allele: 'sh', weight: 10, story: 'a low-shedding gene, appearing from nowhere' },
+  { locus: 'intensity', allele: 'i', weight: 9, story: 'a cream gene, appearing from nowhere' },
+  { locus: 'blueEyes', allele: 'Be', weight: 7, story: 'blue eyes, appearing from nowhere' },
+  { locus: 'bobtail', allele: 'Bt', weight: 6, story: 'a natural bobtail, appearing from nowhere' },
+  { locus: 'cocoa', allele: 'co', weight: 5, story: 'the cocoa gene, appearing from nowhere' },
+  { locus: 'merle', allele: 'M', weight: 4, story: 'merle, appearing from nowhere' },
+  { locus: 'hairlessRec', allele: 'hr', weight: 2, story: 'hairlessness, appearing from nowhere' },
+  { locus: 'albino', allele: 'al', weight: 1, story: 'albinism, appearing from nowhere' },
+];

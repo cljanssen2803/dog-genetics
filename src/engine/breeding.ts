@@ -26,6 +26,7 @@ import { type Genotype, LOCI, orderPair, copies } from './loci';
 import { type Dog, type Sex, ageMonths, newDogId } from './dog';
 import { findRarities, resolveCoat, resolveColor } from './phenotype';
 import { type NameRegistry, pickName } from './names';
+import { MUTABLE_ALLELES, MUTATION_CHANCE } from './breeds';
 
 /** How long a pregnancy lasts, in months. Real dogs take about 63 days. */
 export const GESTATION_MONTHS = 2;
@@ -47,6 +48,8 @@ export interface Embryo {
   viable: boolean;
   /** Plain-language reason, shown in the litter report. */
   lossReason?: string;
+  /** Set when a gene appeared that neither parent carried. */
+  mutation?: string;
 }
 
 export interface Pregnancy {
@@ -250,6 +253,27 @@ export function attemptMating(
  */
 function createEmbryo(rng: Rng, sire: Dog, dam: Dog, coi: number): Embryo {
   const genotype = combine(gamete(rng, sire), gamete(rng, dam));
+
+  // A gene neither parent carried, appearing from nothing. Rare enough to be an
+  // event; this is genuinely how chocolate entered Labradors.
+  //
+  // It only counts as a mutation if NEITHER parent carries the gene. Otherwise
+  // the puppy has simply inherited something that was already in the family,
+  // and announcing it as a mutation would be a lie.
+  let mutation: string | undefined;
+  if (rng.chance(MUTATION_CHANCE)) {
+    const pick = rng.weighted(MUTABLE_ALLELES, MUTABLE_ALLELES.map((m) => m.weight));
+    const inFamily =
+      copies(sire.genotype, pick.locus, pick.allele) > 0 ||
+      copies(dam.genotype, pick.locus, pick.allele) > 0;
+    const current = genotype[pick.locus];
+
+    if (!inFamily && current) {
+      const keep = rng.chance(0.5) ? current[0] : current[1];
+      genotype[pick.locus] = orderPair(pick.locus, keep, pick.allele);
+      mutation = pick.story;
+    }
+  }
   const sex: Sex = rng.chance(0.51) ? 'M' : 'F';
   const { bv, het, observed, guessNoise } = inheritPolygenic(rng, sire, dam, coi);
 
@@ -262,6 +286,7 @@ function createEmbryo(rng: Rng, sire: Dog, dam: Dog, coi: number): Embryo {
     guessNoise,
     seedValue: rng.int(0, 2147483646),
     viable: true,
+    mutation,
   };
 
   // --- Viability, judged on the genes just rolled --------------------------
@@ -315,6 +340,8 @@ export interface LitterResult {
   lost: { reason: string }[];
   /** Rare finds that appeared in this litter. */
   discoveries: { puppyId: string; key: string; title: string; rarity: string; blurb: string }[];
+  /** Genes that appeared in this litter that neither parent carried. */
+  mutations: { puppyName: string; story: string }[];
 }
 
 /**
@@ -334,6 +361,7 @@ export function deliverLitter(
   const puppies: Dog[] = [];
   const lost: { reason: string }[] = [];
   const discoveries: LitterResult['discoveries'] = [];
+  const mutations: LitterResult['mutations'] = [];
 
   for (const embryo of pregnancy.embryos) {
     if (!embryo.viable) {
@@ -366,7 +394,10 @@ export function deliverLitter(
       rarities: [],
       breedingRetired: false,
       seedValue: embryo.seedValue,
+      mutation: embryo.mutation,
     };
+
+    if (embryo.mutation) mutations.push({ puppyName: puppy.name, story: embryo.mutation });
 
     // Look for anything genetically remarkable.
     const coat = resolveCoat(puppy.genotype, sizeToPounds(puppy.observed.size));
@@ -385,7 +416,7 @@ export function deliverLitter(
     puppies.push(puppy);
   }
 
-  return { litterId, puppies, lost, discoveries };
+  return { litterId, puppies, lost, discoveries, mutations };
 }
 
 // ---------------------------------------------------------------------------
