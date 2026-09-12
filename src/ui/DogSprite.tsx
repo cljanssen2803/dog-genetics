@@ -95,10 +95,10 @@ interface Fit {
  * tall as the whole dog.
  */
 const EAR_FIT: Record<EarType, Fit> = {
-  erect: { anchor: [65.8, 77.2], target: [75.5, 16.5], scale: 0.18 },
-  semiErect: { anchor: [57.6, 72.7], target: [75.5, 17], scale: 0.18 },
-  button: { anchor: [77.8, 31.5], target: [75.5, 14.5], scale: 0.43 },
-  drop: { anchor: [73.8, 30.6], target: [75.5, 15], scale: 0.44 },
+  erect: { anchor: [65.8, 77.2], target: [74.5, 19], scale: 0.27 },
+  semiErect: { anchor: [57.6, 72.7], target: [74.5, 19], scale: 0.25 },
+  button: { anchor: [77.8, 31.5], target: [75, 16], scale: 0.52 },
+  drop: { anchor: [73.8, 30.6], target: [75.5, 16], scale: 0.52 },
 };
 
 const TAIL_FIT: Record<TailType, Fit> = {
@@ -291,7 +291,9 @@ function describe(dog: Dog, blurPx: number) {
     tailFit: TAIL_FIT[tail],
     bodyTransform,
     base,
-    earColour: shade(base, -14),
+    // Ear leather is genuinely darker than body coat, and the contrast is what
+    // makes an ear read as an ear rather than a bump on the skull.
+    earColour: shade(base, -32),
     colorName: colour.name,
     coatLabel: coat.label,
     markings: (
