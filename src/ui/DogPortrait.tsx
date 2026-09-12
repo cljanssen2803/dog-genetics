@@ -65,8 +65,8 @@ export function DogPortrait({ dog, size = 120, className = '', framed = true }: 
       <defs>
         <clipPath id={clipId}>{art.silhouette}</clipPath>
         <linearGradient id={`grad-${dog.id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={shade(art.base, 18)} />
-          <stop offset="100%" stopColor={shade(art.base, -22)} />
+          <stop offset="0%" stopColor={shade(art.base, 28)} />
+          <stop offset="100%" stopColor={shade(art.base, -10)} />
         </linearGradient>
       </defs>
 
@@ -77,6 +77,10 @@ export function DogPortrait({ dog, size = 120, className = '', framed = true }: 
       {art.tail}
       {art.farLegs}
 
+      {/* Coat texture goes BEHIND the body, so a heavy coat reads as a fluffy
+          outline rather than burying the dog's own legs in a blob. */}
+      {art.coatTexture}
+
       {/* The dog itself. */}
       <g>
         <g fill={`url(#grad-${dog.id})`}>{art.silhouette}</g>
@@ -84,8 +88,8 @@ export function DogPortrait({ dog, size = 120, className = '', framed = true }: 
       </g>
 
       {art.nearLegs}
-      {art.coatTexture}
       {art.ears}
+      {art.coatFront}
       {art.face}
     </svg>
   );
@@ -94,7 +98,10 @@ export function DogPortrait({ dog, size = 120, className = '', framed = true }: 
 interface Art {
   silhouette: React.ReactNode;
   markings: React.ReactNode;
+  /** Fur that sits behind the body: the fluffy outline. */
   coatTexture: React.ReactNode;
+  /** Fur that must stay in front: beard, eyebrows, crest, ruff. */
+  coatFront: React.ReactNode;
   ears: React.ReactNode;
   face: React.ReactNode;
   tail: React.ReactNode;
@@ -120,19 +127,22 @@ function buildArt(dog: Dog): Art {
   const ground = 132;
   const sizeFactor = 0.78 + 0.34 * Math.min(1, Math.max(0, (Math.log(weight) - Math.log(4)) / (Math.log(170) - Math.log(4))));
 
-  const bodyDepth = (24 + dog.observed.substance * 0.17) * sizeFactor;
-  const legFactor = shortLegs === 2 ? 0.3 : shortLegs === 1 ? 0.55 : 1;
-  const legLength = (16 + (100 - dog.observed.substance) * 0.1) * legFactor * sizeFactor;
+  const bodyDepth = (22 + dog.observed.substance * 0.16) * sizeFactor;
+  const legFactor = shortLegs === 2 ? 0.28 : shortLegs === 1 ? 0.52 : 1;
+  // Leg length carries most of the "is this a dog" signal. A normal dog stands
+  // roughly as tall at the shoulder as it is long in the body; getting this
+  // wrong is what makes a drawing read as a cat or a weasel.
+  const legLength = (31 + (100 - dog.observed.substance) * 0.12) * legFactor * sizeFactor;
 
-  const bodyRx = (44 + (shortLegs > 0 ? 8 : 0)) * sizeFactor;
+  const bodyRx = (33 + (shortLegs > 0 ? 10 : 0)) * sizeFactor;
   const bodyRy = bodyDepth / 2;
   const bodyY = ground - legLength - bodyRy;
   const bodyX = 92;
 
   // Head sits forward and above the shoulder.
-  const headX = bodyX + bodyRx + 16 * sizeFactor;
-  const headY = bodyY - bodyRy - 12 * sizeFactor;
-  const skullR = 13 * sizeFactor;
+  const headX = bodyX + bodyRx + 15 * sizeFactor;
+  const headY = bodyY - bodyRy - 13 * sizeFactor;
+  const skullR = 15 * sizeFactor;
   const muzzleLen = (6 + dog.observed.muzzle * 0.19) * sizeFactor;
   const muzzleH = 8.5 * sizeFactor;
 
@@ -205,11 +215,13 @@ function buildArt(dog: Dog): Art {
     tailType === 'bobtail' ? (
       <ellipse cx={tailBaseX - 4} cy={tailBaseY} rx={7 * sizeFactor} ry={6 * sizeFactor} fill={base} />
     ) : (
+      // Sweeping back and down, then lifting at the tip — a dog's tail, not a
+      // cat's question mark.
       <path
         d={`M ${tailBaseX} ${tailBaseY}
-            Q ${tailBaseX - 26 * sizeFactor} ${tailBaseY - 22 * sizeFactor} ${tailBaseX - 12 * sizeFactor} ${tailBaseY - 34 * sizeFactor}`}
+            Q ${tailBaseX - 21 * sizeFactor} ${tailBaseY + 7 * sizeFactor} ${tailBaseX - 30 * sizeFactor} ${tailBaseY - 13 * sizeFactor}`}
         stroke={base}
-        strokeWidth={(coat.kind === 'smooth' ? 6 : 10) * sizeFactor}
+        strokeWidth={(coat.kind === 'smooth' ? 5 : 9) * sizeFactor}
         strokeLinecap="round"
         fill="none"
       />
@@ -221,17 +233,20 @@ function buildArt(dog: Dog): Art {
   let earShape: React.ReactNode;
 
   if (ears === 'erect') {
+    // Wide at the base and only moderately tall. Tall narrow triangles read as
+    // a cat; a dog's erect ear is a broad wedge.
     earShape = (
       <path
-        d={`M ${earX} ${earY} L ${earX - 3} ${earY - 17 * sizeFactor} L ${earX + 10 * sizeFactor} ${earY - 4} Z`}
+        d={`M ${earX - 5 * sizeFactor} ${earY + 3} L ${earX + 1} ${earY - 13 * sizeFactor}
+            L ${earX + 12 * sizeFactor} ${earY - 1} Z`}
         fill={shade(base, -12)}
       />
     );
   } else if (ears === 'semiErect') {
     earShape = (
       <path
-        d={`M ${earX} ${earY} L ${earX - 2} ${earY - 13 * sizeFactor}
-            Q ${earX + 7 * sizeFactor} ${earY - 15 * sizeFactor} ${earX + 10 * sizeFactor} ${earY - 2} Z`}
+        d={`M ${earX - 4 * sizeFactor} ${earY + 3} L ${earX} ${earY - 10 * sizeFactor}
+            Q ${earX + 8 * sizeFactor} ${earY - 11 * sizeFactor} ${earX + 11 * sizeFactor} ${earY + 1} Z`}
         fill={shade(base, -12)}
       />
     );
@@ -366,6 +381,7 @@ function buildArt(dog: Dog): Art {
 
   // --- Coat texture -------------------------------------------------------
   const texture: React.ReactNode[] = [];
+  const textureFront: React.ReactNode[] = [];
   const outlinePoints: [number, number][] = [];
   for (let i = 0; i < 26; i++) {
     const angle = (i / 26) * Math.PI * 2;
@@ -389,7 +405,7 @@ function buildArt(dog: Dog): Art {
         />,
       );
     }
-    texture.push(
+    textureFront.push(
       <circle key="ch" cx={headX - 2} cy={headY - skullR * 0.7} r={8 * sizeFactor} fill={light} opacity="0.9" />,
     );
   } else if (coat.kind === 'long' || coat.kind === 'silky' || coat.kind === 'doubleThick') {
@@ -411,25 +427,31 @@ function buildArt(dog: Dog): Art {
       );
     }
     if (coat.kind === 'doubleThick') {
-      texture.push(
-        <ellipse key="ruff" cx={bodyX + bodyRx * 0.72} cy={bodyY - bodyRy * 0.15} rx={16 * sizeFactor} ry={20 * sizeFactor} fill={light} opacity="0.55" />,
+      textureFront.push(
+        <ellipse key="ruff" cx={bodyX + bodyRx * 0.78} cy={bodyY - bodyRy * 0.2} rx={14 * sizeFactor} ry={18 * sizeFactor} fill={light} opacity="0.5" />,
       );
     }
   } else if (coat.kind === 'wire' || coat.kind === 'wavyFurnished') {
+    // Harsh hair along the topline and skirt only. Spiking the whole outline
+    // turns the dog into a porcupine.
     for (let i = 0; i < outlinePoints.length; i += 2) {
       const [x, y] = outlinePoints[i];
+      const onTop = y < bodyY - bodyRy * 0.25;
+      const underneath = y > bodyY + bodyRy * 0.35;
+      if (!onTop && !underneath) continue;
+      const length = onTop ? 3 + noise() * 2.5 : 4 + noise() * 3;
       texture.push(
         <path
           key={`w${i}`}
-          d={`M ${x} ${y} l ${(noise() - 0.5) * 6} ${-4 - noise() * 4}`}
+          d={`M ${x} ${y} l ${(noise() - 0.5) * 4} ${onTop ? -length : length}`}
           stroke={light}
-          strokeWidth="2.2"
+          strokeWidth="2.4"
           strokeLinecap="round"
         />,
       );
     }
     // Beard and eyebrows, the giveaway of a furnished coat.
-    texture.push(
+    textureFront.push(
       <ellipse
         key="beard"
         cx={headX + skullR * 0.45 + muzzleLen * 0.7}
@@ -450,9 +472,9 @@ function buildArt(dog: Dog): Art {
   } else if (coat.hairless) {
     // A crest on the head and a plume on the tail, which is what the dominant
     // hairless gene actually leaves behind.
-    texture.push(
+    textureFront.push(
       <ellipse key="crest" cx={headX - skullR * 0.2} cy={headY - skullR} rx={7 * sizeFactor} ry={6 * sizeFactor} fill={shade(color.base, -20)} opacity="0.9" />,
-      <circle key="tuft" cx={tailBaseX - 12 * sizeFactor} cy={tailBaseY - 32 * sizeFactor} r={6 * sizeFactor} fill={shade(color.base, -20)} opacity="0.9" />,
+      <circle key="tuft" cx={tailBaseX - 30 * sizeFactor} cy={tailBaseY - 13 * sizeFactor} r={6 * sizeFactor} fill={shade(color.base, -20)} opacity="0.9" />,
     );
   }
 
@@ -480,6 +502,7 @@ function buildArt(dog: Dog): Art {
     silhouette,
     markings,
     coatTexture: texture,
+    coatFront: textureFront,
     ears: earShape,
     face,
     tail,
