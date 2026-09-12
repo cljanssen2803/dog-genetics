@@ -331,7 +331,6 @@ function PairingSheet({
 
       <Section title="Expected litter">
         <div className="card p-3">
-          <StatRow label="Chance of conceiving" value={`${Math.round(preview.conception * 100)}%`} />
           <StatRow label="Expected live puppies" value={preview.expectedLitterSize.toFixed(1)} />
           <StatRow
             label="Puppies meeting your standard"

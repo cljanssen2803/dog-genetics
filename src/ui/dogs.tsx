@@ -45,13 +45,10 @@ import { Button, Card, Chip, Explain, Section, Sheet, StatRow, TraitBar } from '
 import { useGame } from './GameContext';
 import {
   PLACEMENT_LABEL,
-  TEST_INFO,
-  type TestKind,
   ancestorInfluenceFor,
   placeDog,
   placementFit,
   renameDog,
-  runTest,
   setRetention,
 } from '../game/project';
 import type { PlacementType } from '../engine/dog';
@@ -191,11 +188,6 @@ export function DogDetailSheet({
 
   const sire = dog.sireId ? project.dogs[dog.sireId] : undefined;
   const dam = dog.damId ? project.dogs[dog.damId] : undefined;
-
-  const doTest = (kind: TestKind) => {
-    say(runTest(project, dog.id, kind));
-    refresh();
-  };
 
   const doPlace = (placement: PlacementType) => {
     say(placeDog(project, dog.id, placement));
@@ -347,23 +339,10 @@ export function DogDetailSheet({
             </p>
           </Explain>
 
-          {!dog.tests.dna && (
-            <div className="card p-3 mb-3 border-rust/40">
-              <div className="text-[13px] font-semibold mb-1">No DNA panel yet</div>
-              <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">
-                Without a DNA panel this list only shows what is already visible. Hidden carrier
-                status stays unknown, and pairing recommendations have to be cautious.
-              </p>
-              <Button small tone="accent" onClick={() => doTest('dna')} disabled={project.testCredits < 1}>
-                Run DNA panel ({project.testCredits} credits left)
-              </Button>
-            </div>
-          )}
-
           <div className="card p-3 mb-4">
             {flags.length === 0 ? (
               <p className="text-[13px] text-moss font-medium">
-                Nothing flagged. {dog.tests.dna ? 'Confirmed clear on every gene tested.' : 'Nothing visible, but untested.'}
+                Nothing flagged. Confirmed clear on every gene we screen for.
               </p>
             ) : (
               flags.map((flag) => (
@@ -380,29 +359,28 @@ export function DogDetailSheet({
             )}
           </div>
 
-          <Section title="Testing">
+          <Section title="What this dog carries">
             <div className="card p-3">
-              <p className="text-[12.5px] text-[var(--text-soft)] mb-3">
-                You have <strong>{project.testCredits}</strong> testing credits. More arrive each
-                generation.
-              </p>
-              {(Object.keys(TEST_INFO) as TestKind[]).map((kind) => (
-                <div key={kind} className="flex items-start gap-3 py-2 border-b border-[var(--line)] last:border-0">
-                  <div className="flex-1">
-                    <div className="text-[13px] font-semibold">{TEST_INFO[kind].label}</div>
-                    <p className="text-[12px] text-[var(--text-faint)] leading-snug">{TEST_INFO[kind].blurb}</p>
+              {hiddenCarriers(dog.genotype).length === 0 ? (
+                <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">
+                  Nothing hidden. What you see on {dog.name} is what {dog.sex === 'M' ? 'he' : 'she'}{' '}
+                  passes on.
+                </p>
+              ) : (
+                <>
+                  <p className="text-[12.5px] text-[var(--text-soft)] mb-2 leading-relaxed">
+                    One copy of each of these, so they do not show — but half of{' '}
+                    {dog.sex === 'M' ? 'his' : 'her'} puppies will inherit them.
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {hiddenCarriers(dog.genotype).map((c) => (
+                      <Chip key={c.locus} tone={c.prized ? 'rare' : 'neutral'}>
+                        {c.label}
+                      </Chip>
+                    ))}
                   </div>
-                  <div className="flex-none pt-0.5">
-                    {dog.tests[kind] ? (
-                      <Chip tone="good">done</Chip>
-                    ) : (
-                      <Button small tone="secondary" onClick={() => doTest(kind)} disabled={project.testCredits < 1}>
-                        Run
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                </>
+              )}
             </div>
           </Section>
         </>

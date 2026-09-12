@@ -13,7 +13,7 @@
 
 import { Rng, hashString } from '../engine/rng';
 import { type Dog, ageMonths, breedingEligibility } from '../engine/dog';
-import { attemptMating, conceptionChance, diseaseRisks, predictCoatOutcomes, type DiseaseRisk } from '../engine/breeding';
+import { attemptMating, diseaseRisks, predictCoatOutcomes, type DiseaseRisk } from '../engine/breeding';
 import { type DogScore, scoreDog } from '../engine/standard';
 import { ALL_TRAITS, type PolyTrait, TRAITS, sizeToPounds } from '../engine/traits';
 import { describeCoi, sharedAncestors } from '../engine/pedigree';
@@ -49,7 +49,6 @@ export interface PairingPreview {
   coi: number;
   coiLabel: string;
   coiTone: 'good' | 'ok' | 'warn' | 'bad';
-  conception: number;
   expectedLitterSize: number;
 
   /** Average project score of the simulated puppies. */
@@ -90,7 +89,6 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
   const coiInfo = describeCoi(coi);
 
   const rng = previewRng(project, sire.id, dam.id);
-  const conception = conceptionChance(sire, dam, project.month, coi);
 
   // --- Simulate a run of litters -----------------------------------------
   const simulated: Dog[] = [];
@@ -304,9 +302,7 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
   }
 
   explanation.push(
-    `Conception is not guaranteed: this mating has roughly a ${Math.round(conception * 100)}% chance of taking, and would be expected to produce about ${(
-      litterSizeTotal / Math.max(1, litters)
-    ).toFixed(1)} live puppies.`,
+    `Expect about ${(litterSizeTotal / Math.max(1, litters)).toFixed(1)} live puppies from this pairing.`,
   );
 
   return {
@@ -315,7 +311,6 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
     coi,
     coiLabel: coiInfo.label,
     coiTone: coiInfo.tone,
-    conception,
     expectedLitterSize: litterSizeTotal / Math.max(1, litters),
     meanScore,
     bestScore,

@@ -20,7 +20,6 @@ import {
   takeSnapshot,
 } from './project';
 import { genomeContribution } from '../engine/pedigree';
-import { ageMonths } from '../engine/dog';
 
 export interface ReportLine {
   text: string;
@@ -216,13 +215,6 @@ export function buildGenerationReport(project: Project): GenerationReport {
 
   if (population.length < 4) {
     suggestions.push('Your breeding population is very small. Keep more puppies, or bring in outside dogs, before you lose options entirely.');
-  }
-
-  const untested = activeDogs(project).filter(
-    (d) => !d.tests.dna && ageMonths(d, project.month) >= 10,
-  ).length;
-  if (untested >= 3 && project.testCredits > 0) {
-    suggestions.push(`${untested} adult dogs have never had a DNA panel. Testing them would remove a lot of guesswork from your pairings.`);
   }
 
   if (suggestions.length === 0) {

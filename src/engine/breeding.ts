@@ -177,52 +177,7 @@ function inheritPolygenic(
 
 export interface MatingAttempt {
   conceived: boolean;
-  /** Plain-language explanation when nothing happened. */
-  reason?: string;
-  pregnancy?: Pregnancy;
-  /** The conception chance that was rolled against, for the report. */
-  chance: number;
-}
-
-/**
- * The odds of a mating taking. Nothing here is guaranteed: a perfectly healthy
- * pair can simply miss, which is exactly how real breeding works.
- */
-export function conceptionChance(sire: Dog, dam: Dog, currentMonth: number, coi: number): number {
-  const damAge = ageMonths(dam, currentMonth);
-  const sireAge = ageMonths(sire, currentMonth);
-
-  // Start from the pair's genetic fertility.
-  //
-  // These numbers are tuned for a game rather than for a textbook. A failed
-  // mating costs the player eight months of a female's short career, and
-  // losing that to a dice roll they could not influence is not interesting —
-  // it is just a wasted turn. So conception is generous, and the things the
-  // player CAN control (inbreeding, age, extreme size) still move the odds
-  // in the right direction.
-  const fertility = (dam.observed.fertility * 0.65 + sire.observed.fertility * 0.35) / 100;
-  let chance = 0.58 + fertility * 0.4;
-
-  // Age curve for the female: best between two and five years.
-  if (damAge < 24) chance *= 0.94;
-  if (damAge > 60) chance *= 1 - Math.min(0.4, (damAge - 60) / 95);
-  if (sireAge > 84) chance *= 1 - Math.min(0.28, (sireAge - 84) / 120);
-
-  // Each previous litter takes a small toll.
-  chance *= 1 - dam.littersProduced * 0.03;
-
-  // Inbreeding still hurts, but not catastrophically.
-  chance *= 1 - Math.min(0.32, coi * 1.1);
-
-  // Very small and very large dogs both struggle to reproduce.
-  const weight = sizeToPounds(dam.observed.size);
-  if (weight < 8) chance *= 0.86 + (weight / 8) * 0.1;
-  if (weight > 110) chance *= 0.94;
-
-  // Flat faces genuinely reduce natural conception and whelping success.
-  if (dam.observed.muzzle < 22) chance *= 0.82;
-
-  return Math.max(0.22, Math.min(0.97, chance));
+  pregnancy: Pregnancy;
 }
 
 /** How many embryos a female is likely to carry. */
@@ -251,8 +206,14 @@ function litterTarget(rng: Rng, sire: Dog, dam: Dog, currentMonth: number, coi: 
 }
 
 /**
- * Try to breed two dogs. On success this returns a pregnancy with every embryo
- * already fully decided — genes, sex, temperament, the lot.
+ * Breed two dogs. Always produces a pregnancy, with every embryo fully decided
+ * here and now — genes, sex, temperament, the lot.
+ *
+ * Matings never fail. In reality a good pairing misses perhaps a quarter of
+ * the time, but a failed mating costs the player eight months of a female's
+ * short career on a dice roll they could not influence or foresee. That is not
+ * tension, it is a wasted turn. Fertility still matters — it just shows up in
+ * how many puppies arrive rather than in whether any arrive at all.
  */
 export function attemptMating(
   rng: Rng,
@@ -262,16 +223,6 @@ export function attemptMating(
   coi: number,
   generation: number,
 ): MatingAttempt {
-  const chance = conceptionChance(sire, dam, currentMonth, coi);
-
-  if (!rng.chance(chance)) {
-    return {
-      conceived: false,
-      chance,
-      reason: pickMissReason(rng, sire, dam, currentMonth, coi),
-    };
-  }
-
   const count = litterTarget(rng, sire, dam, currentMonth, coi);
   const embryos: Embryo[] = [];
 
@@ -281,7 +232,6 @@ export function attemptMating(
 
   return {
     conceived: true,
-    chance,
     pregnancy: {
       id: `p${newDogId()}`,
       damId: dam.id,
@@ -293,17 +243,6 @@ export function attemptMating(
       generation,
     },
   };
-}
-
-function pickMissReason(rng: Rng, sire: Dog, dam: Dog, currentMonth: number, coi: number): string {
-  const reasons: string[] = ['The mating did not take this season. It happens.'];
-  const damAge = ageMonths(dam, currentMonth);
-  if (damAge > 60) reasons.push(`${dam.name} is getting older and her cycles are less reliable.`);
-  if (dam.observed.fertility < 40) reasons.push(`${dam.name} has never been an easy female to get in whelp.`);
-  if (sire.observed.fertility < 40) reasons.push(`${sire.name}'s fertility is below average.`);
-  if (coi > 0.12) reasons.push('Closely related pairings often fail to conceive at all.');
-  if (dam.observed.muzzle < 22) reasons.push('Very short-faced females frequently need veterinary help to conceive.');
-  return rng.pick(reasons);
 }
 
 /**
@@ -419,15 +358,9 @@ export function deliverLitter(
       coi: pregnancy.coi,
       litterId,
       status: 'kennel',
-      // Puppies bred in your own kennel arrive already DNA panelled.
-      //
-      // Strictly a convenience rather than a simulation: in reality you would
-      // pay for every panel. But the alternative is a player throwing away the
-      // one puppy that carried the recessive they had spent six generations
-      // chasing, purely because they could not see it. That is not a
-      // meaningful decision, just a hidden trapdoor. Structural tests — hips,
-      // eyes and heart — still have to be earned.
-      tests: { dna: true, hips: false, eyes: false, cardiac: false },
+      // Every dog's health information is simply known. See the note on the
+      // Dog type: withholding it created busywork, not decisions.
+      tests: { dna: true, hips: true, eyes: true, cardiac: true },
       littersProduced: 0,
       offspringIds: [],
       rarities: [],

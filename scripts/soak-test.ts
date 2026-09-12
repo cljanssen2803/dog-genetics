@@ -24,7 +24,6 @@ import {
   kinshipFor,
   placeDog,
   recordGeneration,
-  refreshTestCredits,
   searchOutsideDogs,
   takeSnapshot,
 } from '../src/game/project';
@@ -180,7 +179,6 @@ function playGenerations(project: Project, generations: number, label: string) {
 
     const snapshot = takeSnapshot(project);
     recordGeneration(project);
-    refreshTestCredits(project);
     auditProject(project, `${label} gen ${gen}`);
 
     console.log(
@@ -257,6 +255,33 @@ function testOneRollEmbryos() {
     check(puppies[i].sex === viableSnapshots[i].sex, `puppy ${i} sex changed between conception and birth`);
   }
   console.log(`  checked ${puppies.length} puppies against their stored embryos`);
+}
+
+function testMatingsAlwaysTake() {
+  console.log('\n=== Matings always take, and health is always known ===');
+  const project = createProject({ name: 'Always', standard: structuredClone(HEARTHDOG), seed: 5150 });
+
+  const dam = activeDogs(project).find((d) => d.sex === 'F')!;
+  const sire = activeDogs(project).find((d) => d.sex === 'M')!;
+
+  let failures = 0;
+  for (let i = 0; i < 40; i++) {
+    project.lastLitter[dam.id] = -99;
+    dam.littersProduced = 0;
+    project.pregnancies = [];
+    const result = breedPair(project, sire.id, dam.id);
+    if (!result.success) failures += 1;
+  }
+  check(failures === 0, `${failures} of 40 matings failed to take`);
+
+  // Every dog, however it came into the world, has complete information.
+  for (const dog of Object.values(project.dogs)) {
+    check(
+      dog.tests.dna && dog.tests.hips && dog.tests.eyes && dog.tests.cardiac,
+      `${dog.name} has incomplete health information`,
+    );
+  }
+  console.log(`  40 of 40 matings conceived; all ${Object.keys(project.dogs).length} dogs fully known`);
 }
 
 function testSeedReproducibility() {
@@ -417,6 +442,7 @@ function testKinshipMaths() {
 
 console.log('Dog Genetics — soak test');
 
+testMatingsAlwaysTake();
 testSeedReproducibility();
 testOneRollEmbryos();
 testLethalGenes();

@@ -20,6 +20,7 @@ import {
 } from './traits';
 import type { Dog } from './dog';
 import { type CoatKind, type EarType, type TailType, resolveCoat, resolveColor, resolveEars, resolveTail, geneticHealthFlags } from './phenotype';
+import { copies } from './loci';
 
 export type Priority = 0 | 1 | 2 | 3 | 4;
 
@@ -210,15 +211,30 @@ export function scoreDog(
   if (standard.coatGoal && standard.coatGoal.priority > 0) {
     const hit = standard.coatGoal.kinds.includes(coat.kind);
     const weight = PRIORITY_WEIGHT[standard.coatGoal.priority];
+
+    // What the dog IS scores one way; what it can PRODUCE scores another.
+    //
+    // Coat genes are mostly recessive, so the first cross between two breeds
+    // almost never shows the coat you want — it just carries it. Judged purely
+    // on appearance those first-cross dogs score terribly, and a sensible
+    // player culls the only animals holding the genes they need. That is a
+    // valley with no way across.
+    //
+    // So when we are asking "what will this dog give me?", a dog carrying
+    // every gene the target coat requires gets most of the credit even though
+    // it does not wear the coat itself.
+    const potential = coatPotential(dog, standard.coatGoal.kinds);
+    const score = useBreedingValue ? Math.max(hit ? 1 : 0.1, potential) : hit ? 1 : 0.1;
+
     breakdown.push({
       key: 'coatKind',
       label: 'Coat type',
-      actual: coat.label,
-      score: hit ? 1 : 0.1,
+      actual: hit || !useBreedingValue ? coat.label : `${coat.label} (carries the target coat)`,
+      score,
       priority: standard.coatGoal.priority,
       weight,
     });
-    weightedSum += (hit ? 1 : 0.1) * weight;
+    weightedSum += score * weight;
     weightTotal += weight;
     if (standard.coatGoal.priority >= 3 && !hit) meets = false;
   }
@@ -339,6 +355,59 @@ export function scoreDog(
     healthPenalty: Math.round(healthPenalty),
     healthNotes,
   };
+}
+
+/**
+ * The genes each target coat actually needs. Used to give a dog credit for
+ * carrying a coat it does not wear.
+ */
+const COAT_REQUIREMENTS: Record<CoatKind, { locus: string; allele: string; needed: number }[]> = {
+  curly: [
+    { locus: 'curl', allele: 'Cu', needed: 2 },
+    { locus: 'coatLength', allele: 'l', needed: 2 },
+  ],
+  wavyFurnished: [
+    { locus: 'curl', allele: 'Cu', needed: 1 },
+    { locus: 'furnishings', allele: 'F', needed: 1 },
+  ],
+  long: [
+    { locus: 'coatLength', allele: 'l', needed: 2 },
+    { locus: 'furnishings', allele: 'F', needed: 1 },
+  ],
+  silky: [{ locus: 'coatLength', allele: 'l', needed: 2 }],
+  doubleThick: [{ locus: 'coatLength', allele: 'l', needed: 2 }],
+  wire: [{ locus: 'furnishings', allele: 'F', needed: 1 }],
+  smooth: [{ locus: 'coatLength', allele: 'L', needed: 1 }],
+  short: [{ locus: 'coatLength', allele: 'L', needed: 1 }],
+  hairless: [{ locus: 'hairlessDom', allele: 'Hd', needed: 1 }],
+};
+
+/**
+ * How much of a target coat this dog is holding, from 0 (none of the genes) to
+ * 0.65 (carries everything needed but does not show it). Capped below 1 so a
+ * dog that actually wears the coat still scores higher than one that merely
+ * carries it.
+ */
+function coatPotential(dog: Dog, kinds: CoatKind[]): number {
+  let best = 0;
+
+  for (const kind of kinds) {
+    const requirements = COAT_REQUIREMENTS[kind];
+    if (!requirements || requirements.length === 0) continue;
+
+    let held = 0;
+    for (const requirement of requirements) {
+      const carried = copies(dog.genotype, requirement.locus, requirement.allele);
+      if (carried >= requirement.needed) held += 1;
+      // One copy of a gene that needs two: the dog is halfway there, and can
+      // produce the coat when bred to another carrier.
+      else if (carried >= 1) held += 0.7;
+    }
+
+    best = Math.max(best, (held / requirements.length) * 0.65);
+  }
+
+  return best;
 }
 
 // ---------------------------------------------------------------------------

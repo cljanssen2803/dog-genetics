@@ -24,7 +24,6 @@ import {
   advanceMonth,
   kennelCount,
   recordGeneration,
-  refreshTestCredits,
 } from '../../game/project';
 import { buildGenerationReport, type GenerationReport } from '../../game/analytics';
 import { Tutorial } from '../Tutorial';
@@ -71,7 +70,6 @@ export function Game({ onExit }: { onExit: () => void }) {
   const closeGeneration = () => {
     const report = buildGenerationReport(project);
     recordGeneration(project);
-    refreshTestCredits(project);
     setGenReport(report);
     refresh();
   };
@@ -279,7 +277,7 @@ function ProjectTab({
 
       <Section
         title="Generation report"
-        subtitle="Close out a generation to see what changed and get fresh testing credits."
+        subtitle="Close out a generation to see what genuinely changed, and what to aim at next."
       >
         <Button full tone="primary" onClick={onCloseGeneration}>
           Close out generation {project.generation}

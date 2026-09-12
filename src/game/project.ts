@@ -112,7 +112,8 @@ export interface Project {
   lastLitter: Record<string, number>;
 
   kennelCapacity: number;
-  testCredits: number;
+  /** Kept only so older saves still load. Health information is always known. */
+  testCredits?: number;
 
   discoveries: Discovery[];
   log: LogEntry[];
@@ -233,7 +234,6 @@ export function createProject(opts: NewProjectOptions): Project {
     litters: [],
     lastLitter: {},
     kennelCapacity: DEFAULT_KENNEL_CAPACITY,
-    testCredits: 6,
     discoveries: [],
     log: [],
     history: [],
@@ -562,11 +562,6 @@ export function breedPair(project: Project, sireId: string, damId: string): Bree
   commitRng(project, rng);
   project.updatedAt = Date.now();
 
-  if (!attempt.conceived || !attempt.pregnancy) {
-    addLog(project, 'breeding', `${dam.name} was bred to ${sire.name} but did not conceive.`);
-    return { success: false, message: attempt.reason ?? 'The mating did not take.' };
-  }
-
   project.pregnancies.push(attempt.pregnancy);
   addLog(project, 'breeding', `${dam.name} was bred to ${sire.name} and is in whelp.`);
 
@@ -679,51 +674,6 @@ export function renameDog(project: Project, dogId: string, name: string): string
   registerName(project.names, dog.name);
   project.updatedAt = Date.now();
   return null;
-}
-
-// ---------------------------------------------------------------------------
-// Health testing
-// ---------------------------------------------------------------------------
-
-export type TestKind = 'dna' | 'hips' | 'eyes' | 'cardiac';
-
-export const TEST_INFO: Record<TestKind, { label: string; cost: number; blurb: string }> = {
-  dna: {
-    label: 'DNA panel',
-    cost: 1,
-    blurb: 'Reveals every single gene this dog carries, including hidden disease copies and hidden coat colours.',
-  },
-  hips: {
-    label: 'Hip and elbow evaluation',
-    cost: 1,
-    blurb: 'Confirms structural soundness. Removes the guesswork from this dog\'s joint score.',
-  },
-  eyes: {
-    label: 'Eye examination',
-    cost: 1,
-    blurb: 'Checks for inherited eye disease that a DNA panel alone would not catch.',
-  },
-  cardiac: {
-    label: 'Cardiac examination',
-    cost: 1,
-    blurb: 'Screens the heart. Particularly important in giant breeds and anything with Cavalier ancestry.',
-  },
-};
-
-export function runTest(project: Project, dogId: string, kind: TestKind): string {
-  const dog = project.dogs[dogId];
-  if (!dog) return 'That dog no longer exists.';
-  if (dog.tests[kind]) return 'That test has already been done.';
-  const cost = TEST_INFO[kind].cost;
-  if (project.testCredits < cost) return 'You are out of testing credits this season.';
-
-  project.testCredits -= cost;
-  dog.tests[kind] = true;
-  project.updatedAt = Date.now();
-
-  if (kind === 'dna') recordRarities(project, dog);
-  addLog(project, 'decision', `${TEST_INFO[kind].label} completed for ${dog.name}.`);
-  return `${TEST_INFO[kind].label} complete.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -895,11 +845,6 @@ export function recordGeneration(project: Project): GenerationSnapshot {
   project.history.push(snapshot);
   project.updatedAt = Date.now();
   return snapshot;
-}
-
-/** Give the player some testing credits back at the start of each generation. */
-export function refreshTestCredits(project: Project) {
-  project.testCredits = Math.min(12, project.testCredits + 4);
 }
 
 export function ensureIds(project: Project) {

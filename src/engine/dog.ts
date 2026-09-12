@@ -54,12 +54,24 @@ export type PlacementType =
   | 'workingHome'
   | 'farmHome';
 
+/**
+ * Health information is always fully known for every dog in this game.
+ *
+ * The original design gated it behind paid tests, but that turned out to be
+ * busywork rather than a decision: the answer was always "yes, test it", and
+ * the only thing the cost achieved was occasionally hiding a crucial fact from
+ * the player until after they had made an irreversible choice. The flags are
+ * kept so older saves still load and so the interface can say where a piece of
+ * information comes from.
+ */
 export interface HealthTests {
   dna: boolean;
   hips: boolean;
   eyes: boolean;
   cardiac: boolean;
 }
+
+export const ALL_KNOWN: HealthTests = { dna: true, hips: true, eyes: true, cardiac: true };
 
 export interface Dog {
   id: string;
@@ -460,7 +472,7 @@ export function createFounder(rng: Rng, opts: FounderOptions): Dog {
     generation: opts.generation ?? 0,
     coi: 0,
     status: 'kennel',
-    tests: { dna: false, hips: false, eyes: false, cardiac: false },
+    tests: { ...ALL_KNOWN },
     littersProduced: 0,
     offspringIds: [],
     rarities: [],

@@ -455,7 +455,6 @@ export function KennelSummary() {
       <StatRow label="Dogs in the kennel" value={`${dogs.length} of ${project.kennelCapacity}`} />
       <StatRow label="Adults" value={adults.length} />
       <StatRow label="Puppies and youngsters" value={dogs.length - adults.length} />
-      <StatRow label="Testing credits" value={project.testCredits} />
     </Card>
   );
 }
