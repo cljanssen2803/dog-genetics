@@ -135,8 +135,10 @@ export interface DogSpriteProps {
 }
 
 export function DogSprite({ dog, size = 120, className = '', framed = true }: DogSpriteProps) {
-  const art = useMemo(() => describe(dog), [dog]);
   const height = (size * 1086) / 1448;
+  // Just enough to take the hard edge off. Any more and white markings turn
+  // into a glow, as though the dog were lit from inside.
+  const art = useMemo(() => describe(dog, Math.max(0.6, size * 0.005)), [dog, size]);
 
   return (
     <div
@@ -260,7 +262,7 @@ function contrastInk(hex: string, strength = 58): string {
   return shade(hex, luminance(hex) < 120 ? strength : -strength);
 }
 
-function describe(dog: Dog) {
+function describe(dog: Dog, blurPx: number) {
   const weight = sizeToPounds(dog.observed.size);
   const coat = resolveCoat(dog.genotype, weight);
   const colour = resolveColor(dog.genotype);
@@ -292,7 +294,15 @@ function describe(dog: Dog) {
     earColour: shade(base, -14),
     colorName: colour.name,
     coatLabel: coat.label,
-    markings: <Markings colour={colour} base={base} accent={forShading(colour.accent)} noise={noise} />,
+    markings: (
+      <Markings
+        colour={colour}
+        base={base}
+        accent={forShading(colour.accent)}
+        noise={noise}
+        blurPx={blurPx}
+      />
+    ),
   };
 }
 
@@ -310,11 +320,14 @@ function Markings({
   base,
   accent,
   noise,
+  blurPx,
 }: {
   colour: ReturnType<typeof resolveColor>;
   base: string;
   accent: string;
   noise: () => number;
+  /** Softening for the white markings, scaled to how big the dog is drawn. */
+  blurPx: number;
 }) {
   const shapes: React.ReactNode[] = [];
   const fleck = contrastInk(base);
@@ -416,45 +429,60 @@ function Markings({
   // --- White markings ------------------------------------------------------
   // White does not land at random on a real dog. It creeps inward in a fixed
   // order from the extremities: chest and toes first, then a collar and blaze,
-  // then up the flanks until only patches of colour remain. Following that
+  // then up the flanks until only islands of colour remain. Following that
   // order is what makes a marked dog read as a dog rather than a cow.
+  //
+  // The whole group is softened at the end. A hard-edged ellipse reads as a
+  // sticker on the dog; real white breaks into the surrounding coat.
   if (colour.white > 0.08) {
     const w = colour.white;
     const white = '#f7f2e8';
+    const marks: React.ReactNode[] = [];
 
-    shapes.push(blob('w-chest', 70, 40, 13, 22, white));
-    shapes.push(blob('w-toe1', 24, 84, 8, 11, white));
-    shapes.push(blob('w-toe2', 36, 86, 8, 10, white));
-    shapes.push(blob('w-toe3', 62, 84, 8, 11, white));
-    shapes.push(blob('w-toe4', 72, 86, 8, 10, white));
+    // The chest marking runs down the FRONT of the chest, between the forelegs.
+    // Seen from the side that is a narrow strip at the leading edge, not a
+    // patch on the shoulder.
+    marks.push(blob('w-chest', 74, 44, 7, 20, white));
+    marks.push(blob('w-toe1', 24, 85, 7, 9, white));
+    marks.push(blob('w-toe2', 36, 87, 7, 8, white));
+    marks.push(blob('w-toe3', 62, 85, 7, 9, white));
+    marks.push(blob('w-toe4', 72, 87, 7, 8, white));
 
     if (w > 0.25) {
-      shapes.push(blob('w-throat', 76, 27, 10, 14, white));
-      shapes.push(blob('w-blaze', 85, 11, 4.5, 13, white, 0.95));
-      shapes.push(blob('w-tailtip', 7, 43, 11, 11, white, 0.9));
-      shapes.push(blob('w-sock1', 24, 72, 9, 18, white));
-      shapes.push(blob('w-sock2', 62, 72, 9, 18, white));
+      marks.push(blob('w-throat', 77, 30, 7, 13, white));
+      marks.push(blob('w-blaze', 85, 11, 4, 12, white, 0.95));
+      marks.push(blob('w-tailtip', 7, 43, 10, 10, white, 0.9));
+      marks.push(blob('w-sock1', 24, 74, 8, 16, white));
+      marks.push(blob('w-sock2', 62, 74, 8, 16, white));
     }
 
     if (w > 0.4) {
       // A collar across the shoulders, which is where piebald goes next. Kept
       // clear of the skull so it does not look like the head has come off.
-      shapes.push(blob('w-collar', 57, 28, 14, 30, white, 0.96));
-      shapes.push(blob('w-belly', 28, 58, 42, 20, white));
+      marks.push(blob('w-collar', 57, 28, 14, 30, white, 0.96));
+      marks.push(blob('w-belly', 28, 58, 42, 20, white));
     }
 
     if (w > 0.55) {
-      // Extensive white leaves islands of colour over the ears, eye and rump.
-      shapes.push(blob('w-flank', 22, 34, 40, 34, white, 0.95));
-      shapes.push(blob('w-neck', 55, 18, 16, 26, white, 0.9));
+      marks.push(blob('w-flank', 22, 34, 40, 34, white, 0.95));
+      marks.push(blob('w-neck', 55, 18, 16, 26, white, 0.9));
     }
+
+    shapes.push(
+      <div key="white" style={{ position: 'absolute', inset: 0, filter: `blur(${blurPx}px)` }}>
+        {marks}
+      </div>,
+    );
   }
 
-  // --- Ticking: flecks of colour scattered through the white ---------------
-  if (colour.ticked) {
-    for (let i = 0; i < 26; i++) {
+  // --- Ticking -------------------------------------------------------------
+  // Ticking is flecks of colour appearing IN white markings. On a solid dog
+  // there is no white for it to appear in, and scattering dots over a coloured
+  // coat just looks like the dog needs a bath.
+  if (colour.ticked && colour.white > 0.2) {
+    for (let i = 0; i < 16; i++) {
       shapes.push(
-        blob(`t${i}`, 20 + noise() * 62, 30 + noise() * 58, 0.9, 1.2, fleck, 0.6),
+        blob(`t${i}`, 22 + noise() * 56, 66 + noise() * 24, 0.8, 1.1, fleck, 0.45),
       );
     }
   }
