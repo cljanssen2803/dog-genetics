@@ -104,24 +104,84 @@ Paste this at the front of every prompt so the whole set matches:
 
 ---
 
-## If the pilot works — the full set
+## PILOT RESULT — passed, 2026-09-12
 
-**Base bodies (6)** — each with no ears and no tail:
-fine and racy build; medium build; heavy and thick build; and the same three
-again on short Dachshund-style legs.
+All three came back at exactly 1448×1086, genuinely transparent, effectively
+pure greyscale (11 coloured pixels in 1.5 million, being the nose and eye), and
+the ear and tail landed on the head and rump with no adjustment needed.
 
-**Ears (4)** — erect and pointed; semi-erect with a folded tip; small button
-ear folded forward; long drop ear hanging beside the cheek.
+Two things learned:
 
-**Tails (2)** — long full tail; short natural bobtail stub.
+- **The ground line is unavoidable.** It got drawn under the feet regardless of
+  the instruction. Ignore it — `scripts/clean-sprites.mjs` now detects and
+  erases it automatically.
+- **Canvas size does not need to be 1024×768.** Whatever size comes out
+  natively is fine. What matters is that **every image is the same size as
+  every other**, which they were.
+- **Exact positioning does not need to be perfect** either. Each layer's offset
+  can be nudged in code. Shape and consistency are what matter.
 
-**Coat overlays (8)** — drawn as fur sitting over the body, transparent where
-there is no fur: smooth short; long silky; long furnished with feathering;
-dense double coat with a thick ruff; wiry with beard and eyebrows; wavy
-furnished; tight curly like a Poodle; hairless with tufts on the head, feet and
-tail tip.
+---
 
-That is 20 images total.
+## THE FULL SET — 14 images
+
+Revised down from 20. The original plan had coat overlays separate from body
+builds, which cannot work: an overlay drawn over a medium dog will not fit a
+racy one, and unlike position, that is not fixable in code.
+
+Instead each coat type is a **complete dog**, and body build and size are
+applied by scaling in code.
+
+### Bodies — 8 images, one per coat type
+
+Every one of these is a **complete dog with no ears and no tail**, in the same
+pose and proportions as the pilot body. Use the pilot body as a reference image
+if that helps keep them consistent.
+
+1. **Smooth** — short, close, sleek coat like a Labrador.
+2. **Long silky** — long straight coat with feathering on the legs, chest and
+   underside, like a Setter.
+3. **Long furnished** — long coat with a fuller face, a moustache and eyebrows.
+4. **Dense double** — thick plush coat with a heavy ruff around the neck, like a
+   Samoyed or Husky.
+5. **Wiry** — harsh, slightly spiky coat with a pronounced beard and bushy
+   eyebrows, like a Schnauzer.
+6. **Wavy furnished** — soft wavy coat with a beard, like a Labradoodle.
+7. **Curly** — tight dense curls all over, like a Standard Poodle in a plain
+   clip.
+8. **Hairless** — bare skin with a soft crest of hair on top of the head and
+   small tufts on the feet. Smooth, slightly wrinkled bare skin everywhere else.
+
+### Ears — 4 images
+
+Just the ear, alone on an empty canvas, positioned roughly where it sits on the
+pilot dog's head. **Make these four clearly distinct from each other:**
+
+9. **Erect** — standing straight up, pointed, like a German Shepherd. Tall and
+   upright, NOT hanging down.
+10. **Semi-erect** — standing up but with the top third folded forward, like a
+    Collie.
+11. **Button** — small, folded forward and down against the skull, like a Jack
+    Russell.
+12. **Drop** — long, hanging straight down beside the cheek, like a Spaniel.
+    (The pilot ear was this one.)
+
+### Tails — 2 images
+
+Just the tail, alone on an empty canvas, at the rump.
+
+13. **Full tail** — long, gently curved, sweeping back and down. (The pilot
+    tail was this one, and it worked — regenerate only if you want it tidier.)
+14. **Bobtail** — a short natural stub, only a few inches long.
+
+---
+
+## What happens when you send them back
+
+Save them anywhere and tell me the folder. I will run the cleaner, build the
+compositing layer, tune each piece's offset, and wire it to the genetics.
+Colour, markings, merle, brindle, white patches, body build and size are all
+applied in code — they are not part of the artwork.
 
 ---
 

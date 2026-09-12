@@ -1,0 +1,134 @@
+<!doctype html>
+<!--
+  Sprite pilot check.
+
+  Answers the three questions that decide whether the layered sprite approach
+  is viable at all:
+    1. Are the PNGs actually transparent, or is the background solid white?
+    2. Are they greyscale, so code can tint them to a dog's genetic colour?
+    3. Do the ear and tail land where the body expects them?
+
+  Served by the dev server so it can read pixels without cross-origin trouble.
+-->
+<meta charset="utf-8" />
+<title>Sprite lab</title>
+<style>
+  body { margin: 0; padding: 24px; background: #f4efe4; color: #221f1a;
+         font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; }
+  h1 { font-family: Georgia, serif; font-size: 22px; margin: 0 0 16px; }
+  h2 { font-size: 15px; margin: 24px 0 8px; }
+  pre { background: #fdfaf3; border: 1px solid #d8cfbc; border-radius: 10px;
+        padding: 12px; font-size: 12px; overflow-x: auto; }
+  .stage { position: relative; width: 420px; height: 315px; border: 1px solid #d8cfbc;
+           border-radius: 12px; background:
+             repeating-conic-gradient(#e8e2d4 0% 25%, #f4efe4 0% 50%) 50% / 20px 20px; }
+  .stage img { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+               object-fit: contain; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  .tinted { position: relative; width: 420px; height: 315px; border: 1px solid #d8cfbc;
+            border-radius: 12px; overflow: hidden; background: #f6f1e6; }
+  .tintlayer { position: absolute; inset: 0; mix-blend-mode: multiply; }
+  .tintlayer img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .swatch { position: absolute; inset: 0; }
+</style>
+
+<h1>Sprite pilot — does this approach actually work?</h1>
+
+<h2>1. Raw layers stacked, on a checkerboard (checks transparency and registration)</h2>
+<div class="row">
+  <div class="stage">
+    <img src="/sprites/body-medium.png" />
+    <img src="/sprites/ear-erect.png" />
+    <img src="/sprites/tail-full.png" />
+  </div>
+  <div class="stage"><img src="/sprites/body-medium.png" /></div>
+</div>
+
+<h2>2. Tinted, to check the artwork can take a genetic colour</h2>
+<div class="row" id="tints"></div>
+
+<h2>3. Pixel analysis</h2>
+<pre id="out">measuring…</pre>
+
+<script>
+const FILES = ['body-medium', 'ear-erect', 'tail-full'];
+const COLOURS = ['#26221f', '#b9702f', '#5a3a24', '#6f7076'];
+
+const tintHost = document.getElementById('tints');
+for (const colour of COLOURS) {
+  const box = document.createElement('div');
+  box.className = 'tinted';
+  box.innerHTML =
+    `<div class="swatch" style="background:${colour}"></div>` +
+    `<div class="tintlayer">` +
+    FILES.map((f) => `<img src="/sprites/${f}.png" />`).join('') +
+    `</div>`;
+  tintHost.appendChild(box);
+}
+
+function load(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+async function analyse(name) {
+  const img = await load(`/sprites/${name}.png`);
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0);
+  const { data } = ctx.getImageData(0, 0, c.width, c.height);
+
+  let transparent = 0, opaque = 0, coloured = 0, nearWhite = 0;
+  let minX = c.width, minY = c.height, maxX = 0, maxY = 0;
+  let maxSat = 0;
+
+  for (let y = 0; y < c.height; y++) {
+    for (let x = 0; x < c.width; x++) {
+      const i = (y * c.width + x) * 4;
+      const a = data[i + 3];
+      if (a < 16) { transparent++; continue; }
+      opaque++;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const sat = Math.max(r, g, b) - Math.min(r, g, b);
+      if (sat > maxSat) maxSat = sat;
+      if (sat > 24) coloured++;
+      if (r > 238 && g > 238 && b > 238) nearWhite++;
+    }
+  }
+
+  const total = c.width * c.height;
+  return {
+    name,
+    size: `${c.width}x${c.height}`,
+    aspect: (c.width / c.height).toFixed(3),
+    transparentPct: ((transparent / total) * 100).toFixed(1),
+    colouredPixels: coloured,
+    maxSaturation: maxSat,
+    nearWhitePct: ((nearWhite / Math.max(1, opaque)) * 100).toFixed(1),
+    boundsPct: opaque === 0 ? 'empty' :
+      `x ${(minX / c.width * 100).toFixed(1)}–${(maxX / c.width * 100).toFixed(1)}%, ` +
+      `y ${(minY / c.height * 100).toFixed(1)}–${(maxY / c.height * 100).toFixed(1)}%`,
+  };
+}
+
+(async () => {
+  const results = [];
+  for (const f of FILES) {
+    try { results.push(await analyse(f)); }
+    catch (e) { results.push({ name: f, error: String(e) }); }
+  }
+  document.getElementById('out').textContent = JSON.stringify(results, null, 2);
+  window.__spriteReport = results;
+})();
+</script>
