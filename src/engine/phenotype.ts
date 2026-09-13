@@ -160,11 +160,17 @@ export function resolveColor(g: Genotype): CoatColor {
   let mask = false;
 
   if (clearRed) {
-    // Two copies of the red allele erase all dark pigment from the coat.
+    // Two copies of the red allele erase all dark pigment from the coat —
+    // but not from the nose, eye rims and pads, which still show whatever the
+    // B and D genes say. A yellow dog on a chocolate base is the "Dudley"
+    // Labrador: liver-pink nose and pale eyes.
     base = red.hex;
     accent = red.hex;
     name = red.name;
     if (creamCopies === 2) name = 'Cream';
+    if (brown && dilute) name += ' with a lilac nose';
+    else if (brown) name += ' (Dudley nose)';
+    else if (dilute) name += ' with a blue nose';
   } else if (kLocus === 'KB') {
     base = dark.hex;
     accent = dark.hex;
@@ -290,14 +296,16 @@ export function resolveColor(g: Genotype): CoatColor {
   const noseName =
     dark.name === 'Black' ? 'black'
     : dark.name === 'Blue' ? 'slate grey'
-    : dark.name === 'Chocolate' || dark.name === 'Cocoa' ? 'brown'
+    : dark.name === 'Chocolate' || dark.name === 'Cocoa' ? (clearRed ? 'liver-pink (Dudley)' : 'brown')
     : 'pale lilac';
 
   return {
     name,
     base,
     accent,
-    nose: dark.nose,
+    // A Dudley nose is pinker than a chocolate dog's, because there is no
+    // dark hair around it to make it read as brown.
+    nose: clearRed && brown && !dilute ? '#a87a6c' : dark.nose,
     eye,
     noseName,
     eyeName,
@@ -763,6 +771,9 @@ export function findRarities(g: Genotype, coat: CoatProfile, color: CoatColor): 
   }
   if (copies(g, 'bobtail', 'Bt') === 1) {
     add('bobtail', 'Natural bobtail', 'uncommon', 'Born with a short tail, no docking required.');
+  }
+  if (brown && copies(g, 'locusE', 'e') === 2 && !dilute) {
+    add('dudley', 'Dudley nose', 'uncommon', 'A yellow or red coat over chocolate pigment: liver-pink nose, pale eye rims and amber eyes. A fault in the Labrador ring, a charm everywhere else.');
   }
   if (dilute && copies(g, 'locusE', 'e') === 2 && copies(g, 'intensity', 'i') === 2) {
     add('platinum', 'Platinum cream', 'very rare', 'Cream over a dilute base, with a soft grey nose. Nearly white without being albino.');
