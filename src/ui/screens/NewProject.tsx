@@ -324,7 +324,7 @@ export function BreedPicker({
     if (group !== 'All' && breedFamily(b) !== group) return false;
     if (!query.trim()) return true;
     return b.name.toLowerCase().includes(query.trim().toLowerCase());
-  });
+  }).sort((a, b) => a.name.localeCompare(b.name));
 
   const selected = BREEDS.find((b) => b.key === value);
 
