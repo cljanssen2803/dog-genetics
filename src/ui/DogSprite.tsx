@@ -21,7 +21,8 @@
  */
 
 import { useMemo, useState } from 'react';
-import type { Dog } from '../engine/dog';
+import { type Dog, currentWeight } from '../engine/dog';
+import { useGameMaybe } from './GameContext';
 import { sizeToPounds } from '../engine/traits';
 import {
   type CoatKind,
@@ -145,7 +146,11 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
   // filter's strength is in pixels, so a small card and a large portrait use
   // different ones or the small one turns to mush.
   const furFilter = size < 110 ? 'fur-edge-s' : size < 170 ? 'fur-edge-m' : 'fur-edge-l';
-  const art = useMemo(() => describe(dog, Math.max(0.6, size * 0.005), furFilter), [dog, size, furFilter]);
+  // Puppies are drawn at their CURRENT weight, so a litter of newborns is
+  // visibly a litter of newborns and a dog grows on screen as the months pass.
+  const game = useGameMaybe();
+  const nowLbs = game ? currentWeight(dog, game.project.month) : sizeToPounds(dog.observed.size);
+  const art = useMemo(() => describe(dog, Math.max(0.6, size * 0.005), furFilter, nowLbs), [dog, size, furFilter, nowLbs]);
 
   // Tap the dog and it wags. Purely for the pleasure of it.
   const [wagging, setWagging] = useState(false);
@@ -170,7 +175,9 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
       aria-label={`${dog.name}, ${art.colorName}, ${art.coatLabel}`}
       onPointerDown={wag}
     >
-      <div style={{ position: 'absolute', inset: 0, transform: art.bodyTransform }}>
+      {/* Scaled about the feet, so a small dog stands on the same ground as a big
+          one instead of floating in the middle of the box. */}
+      <div style={{ position: 'absolute', inset: 0, transform: art.bodyTransform, transformOrigin: '50% 88%' }}>
         {/* Tail sits behind the body. The wrapper wags about the tail root. */}
         <div
           className={wagging ? 'wagging' : undefined}
@@ -283,8 +290,9 @@ function contrastInk(hex: string, strength = 58): string {
   return shade(hex, luminance(hex) < 120 ? strength : -strength);
 }
 
-function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m') {
+function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: number) {
   const weight = sizeToPounds(dog.observed.size);
+  const visual = drawLbs ?? weight;
   const coat = resolveCoat(dog.genotype, weight);
   const colour = resolveColor(dog.genotype);
   const ears = resolveEars(dog.observed.earSet);
@@ -293,7 +301,12 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m') {
   const noise = makeNoise(dog.seedValue ?? 1);
 
   // Body build and size, applied by scaling rather than extra artwork.
-  const sizeScale = 0.82 + 0.3 * Math.min(1, Math.max(0, (Math.log(weight) - Math.log(4)) / (Math.log(170) - Math.log(4))));
+  // Size has to be OBVIOUS. A Chihuahua and a Great Dane differ thirty-fold in
+  // weight; drawing them within 30% of each other, as an earlier version did,
+  // made every dog look the same. Weight is on a log scale here because that is
+  // how size reads to the eye: 5 lb to 15 lb is a bigger visual jump than
+  // 100 lb to 110 lb.
+  const sizeScale = 0.46 + 0.7 * Math.min(1, Math.max(0, (Math.log(visual) - Math.log(4)) / (Math.log(170) - Math.log(4))));
   const substance = 0.94 + (dog.observed.substance / 100) * 0.14;
   // Short-legged dogs read as longer and lower rather than simply smaller.
   const legSquash = shortLegs === 2 ? 0.82 : shortLegs === 1 ? 0.91 : 1;

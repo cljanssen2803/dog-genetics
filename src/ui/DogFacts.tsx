@@ -51,6 +51,8 @@ export interface DogFacts {
   /** Adult weight or estimate range, as a display string. */
   adultWeight: string;
   weightLbs: number;
+  /** Extra small / Small / Medium / Large / Extra large. */
+  sizeBand: string;
   colour: string;
   coat: string;
   ears: string;
@@ -68,6 +70,15 @@ export interface DogFacts {
   healthCarrier: string[];
   titles: string[];
   rarities: string[];
+}
+
+/** The five size bands the interface talks about. */
+export function sizeBandOf(lbs: number): string {
+  if (lbs < 12) return 'Extra small';
+  if (lbs < 25) return 'Small';
+  if (lbs < 55) return 'Medium';
+  if (lbs < 95) return 'Large';
+  return 'Extra large';
 }
 
 export function describeDog(dog: Dog, project: Project): DogFacts {
@@ -114,6 +125,7 @@ export function describeDog(dog: Dog, project: Project): DogFacts {
       ? `${fmt(est.center)} lb`
       : `${est.low.toFixed(0)}–${est.high.toFixed(0)} lb (estimate)`,
     weightLbs: lbs,
+    sizeBand: sizeBandOf(lbs),
     colour: colour.name,
     coat: coat.label,
     ears: EAR_LABEL[resolveEars(dog.observed.earSet)],
@@ -142,7 +154,7 @@ export function describeDog(dog: Dog, project: Project): DogFacts {
 export function FactLine({ f, className = '' }: { f: DogFacts; className?: string }) {
   return (
     <div className={`text-[11.5px] text-[var(--text-faint)] leading-snug ${className}`}>
-      {f.age} · {f.grown ? f.adultWeight : `${f.weight} now, adult ${f.adultWeight}`} · {f.breed}
+      {f.age} · {f.grown ? f.adultWeight : `${f.weight} now, adult ${f.adultWeight}`} · {f.sizeBand.toLowerCase()} · {f.breed}
     </div>
   );
 }
@@ -250,7 +262,7 @@ export function dogDescription(dog: Dog, project: Project, includeGenotype: bool
   lines.push(`Project: ${project.name} (${project.standard.name} standard)`);
   lines.push(`Stage: ${f.stage}, ${f.age}`);
   lines.push(`Breed background: ${f.breed}`);
-  lines.push(`Weight: ${f.weight}${f.grown ? '' : `, adult ${f.adultWeight}`}`);
+  lines.push(`Weight: ${f.weight}${f.grown ? '' : `, adult ${f.adultWeight}`} (${f.sizeBand.toLowerCase()})`);
   lines.push(`Colour: ${f.colour}`);
   lines.push(`Coat: ${f.coat}`);
   lines.push(`Ears: ${f.ears}. Tail: ${f.tail}`);

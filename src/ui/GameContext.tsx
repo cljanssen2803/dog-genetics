@@ -96,6 +96,12 @@ export function GameProvider({
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 
+/** Like useGame, but returns null outside a game — for components that are
+ * also rendered on screens with no project, such as the portrait gallery. */
+export function useGameMaybe(): GameContextValue | null {
+  return useContext(GameContext);
+}
+
 export function useGame(): GameContextValue {
   const context = useContext(GameContext);
   if (!context) throw new Error('useGame must be used inside a GameProvider');
