@@ -13,12 +13,12 @@ import { type ReactNode, useEffect } from 'react';
 type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
 
 const TONE_CLASS: Record<ButtonTone, string> = {
-  primary: 'bg-[var(--brand)] text-white border-transparent active:bg-[var(--brand-2)]',
-  accent: 'bg-rust text-white border-transparent active:bg-rust-deep',
+  primary: 'btn-3d bg-[var(--brand)] text-white border-transparent [--btn-shadow:#1f8a4f]',
+  accent: 'btn-3d bg-rust text-white border-transparent [--btn-shadow:#d5651c]',
   secondary:
-    'bg-[var(--card)] text-[var(--text)] border-[var(--line)] active:bg-[var(--bg-2)]',
+    'btn-3d bg-[var(--card)] text-[var(--text)] border-[var(--line)] [--btn-shadow:var(--line)]',
   ghost: 'bg-transparent text-[var(--text-soft)] border-transparent active:bg-[var(--bg-2)]',
-  danger: 'bg-berry text-white border-transparent active:opacity-85',
+  danger: 'btn-3d bg-berry text-white border-transparent [--btn-shadow:#c23d60]',
 };
 
 export function Button({
@@ -47,7 +47,7 @@ export function Button({
       disabled={disabled}
       className={`${TONE_CLASS[tone]} ${full ? 'w-full' : ''} ${
         small ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-3 text-[15px]'
-      } rounded-xl border font-semibold transition-colors disabled:opacity-40 disabled:pointer-events-none ${className}`}
+      } rounded-2xl border-2 font-bold disabled:opacity-40 disabled:pointer-events-none ${className}`}
     >
       {children}
     </button>
@@ -126,15 +126,15 @@ export function Chip({
 }) {
   const tones = {
     neutral: 'bg-[var(--bg-2)] text-[var(--text-soft)] border-[var(--line)]',
-    good: 'bg-moss/15 text-moss border-moss/30',
-    warn: 'bg-rust/15 text-rust border-rust/30',
-    bad: 'bg-berry/15 text-berry border-berry/30',
-    info: 'bg-sky/15 text-sky border-sky/30',
-    rare: 'bg-clay/20 text-clay border-clay/40',
+    good: 'bg-moss/15 text-[#1f8a4f] border-moss/40',
+    warn: 'bg-rust/15 text-[#d5651c] border-rust/40',
+    bad: 'bg-berry/15 text-[#c8375c] border-berry/40',
+    info: 'bg-sky/15 text-[#1f7fc0] border-sky/40',
+    rare: 'bg-sun/35 text-[#a1690f] border-sun',
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${tones[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold whitespace-nowrap ${tones[tone]} ${className}`}
     >
       {children}
     </span>
@@ -260,7 +260,7 @@ export function Sheet({
         onClick={onClose}
         aria-label="Close"
       />
-      <div className="sheet-in relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-t-2xl bg-[var(--bg)] border-t border-[var(--line)] shadow-2xl">
+      <div className="sheet-in relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-t-3xl bg-[var(--bg)] border-t-2 border-[var(--line)] shadow-2xl">
         <div className="flex-none px-4 pt-3 pb-3 border-b border-[var(--line)]">
           <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line)]" />
           <div className="flex items-start justify-between gap-3">

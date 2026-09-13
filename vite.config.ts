@@ -18,8 +18,8 @@ export default defineConfig({
         short_name: 'Dog Genetics',
         description:
           'A selective dog-breeding sandbox built on real canine genetics. Design a breed, then create it across generations.',
-        theme_color: '#1f3d2f',
-        background_color: '#f4efe4',
+        theme_color: '#2f9be6',
+        background_color: '#fff8e8',
         display: 'standalone',
         orientation: 'portrait',
         start_url: './',

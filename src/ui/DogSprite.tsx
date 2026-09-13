@@ -345,19 +345,33 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
 
   return (
     <div
-      className={`relative ${className}`}
+      className={`relative ${framed ? 'stage' : ''} ${className}`}
       style={{
         width: size,
         height,
         isolation: 'isolate',
-        borderRadius: framed ? 10 : 0,
-        background: framed ? 'rgb(0 0 0 / 3%)' : 'transparent',
+        borderRadius: framed ? 14 : 0,
         overflow: 'hidden',
       }}
       role="img"
       aria-label={`${dog.name}, ${art.colorName}, ${art.coatLabel}`}
       onPointerDown={wag}
     >
+      {/* A soft shadow on the grass under the dog. */}
+      {framed && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '22%',
+            right: '18%',
+            top: '84%',
+            height: '8%',
+            borderRadius: '50%',
+            background: 'rgb(0 0 0 / 10%)',
+            filter: 'blur(2px)',
+          }}
+        />
+      )}
       {/* Scaled about the feet, so a small dog stands on the same ground as a big
           one instead of floating in the middle of the box. */}
       <div style={{ position: 'absolute', inset: 0, transform: art.bodyTransform, transformOrigin: '50% 88%' }}>

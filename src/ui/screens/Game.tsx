@@ -43,12 +43,12 @@ import { reputationTier } from '../../game/project';
 type Tab = 'project' | 'kennel' | 'breed' | 'puppies' | 'pedigree' | 'analytics';
 
 const TABS: { key: Tab; label: string; icon: string }[] = [
-  { key: 'project', label: 'Project', icon: '◆' },
-  { key: 'kennel', label: 'Kennel', icon: '⌂' },
-  { key: 'breed', label: 'Breed', icon: '❋' },
-  { key: 'puppies', label: 'Puppies', icon: '✦' },
-  { key: 'pedigree', label: 'Family', icon: '⑃' },
-  { key: 'analytics', label: 'Trends', icon: '▤' },
+  { key: 'project', label: 'Project', icon: '🏡' },
+  { key: 'kennel', label: 'Kennel', icon: '🐕' },
+  { key: 'breed', label: 'Breed', icon: '💞' },
+  { key: 'puppies', label: 'Puppies', icon: '🐾' },
+  { key: 'pedigree', label: 'Family', icon: '🌳' },
+  { key: 'analytics', label: 'Trends', icon: '📈' },
 ];
 
 export function Game({ onExit }: { onExit: () => void }) {
@@ -105,7 +105,7 @@ export function Game({ onExit }: { onExit: () => void }) {
   return (
     <div className="paper min-h-full flex flex-col">
       {/* ---------------------------------------------------------- header */}
-      <header className="flex-none safe-top bg-[var(--brand)] text-white">
+      <header className="flex-none safe-top text-white" style={{ background: 'linear-gradient(160deg, #5cc3ff 0%, #2f9be6 60%, #2589cf 100%)' }}>
         <div className="max-w-lg mx-auto px-4 py-2.5 flex items-center gap-3">
           <button onClick={onExit} className="text-[20px] leading-none opacity-80" aria-label="All projects">
             ‹
@@ -119,7 +119,7 @@ export function Game({ onExit }: { onExit: () => void }) {
           </div>
           <button
             onClick={() => setSettingsOpen(true)}
-            className="w-8 h-8 rounded-full bg-white/15 text-[15px] leading-none"
+            className="w-8 h-8 rounded-full bg-white/25 text-[15px] leading-none"
             aria-label="Settings"
           >
             ⚙
@@ -154,7 +154,7 @@ export function Game({ onExit }: { onExit: () => void }) {
         <div className="max-w-lg mx-auto px-4 pb-1 flex justify-end gap-2">
           <button
             onClick={advanceToEvent}
-            className="pointer-events-auto rounded-full bg-rust text-white px-4 py-2.5 text-[13px] font-semibold shadow-lg active:bg-rust-deep"
+            className="pointer-events-auto btn-3d rounded-full bg-rust text-white px-4 py-2.5 text-[13px] font-bold shadow-lg [--btn-shadow:#d5651c]"
           >
             Advance time ▸
           </button>
@@ -162,18 +162,18 @@ export function Game({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* ------------------------------------------------------------ tabs */}
-      <nav className="flex-none border-t border-[var(--line)] bg-[var(--card)] safe-bottom">
-        <div className="max-w-lg mx-auto flex">
+      <nav className="flex-none border-t-2 border-[var(--line)] bg-[var(--card)] safe-bottom">
+        <div className="max-w-lg mx-auto flex px-1 py-1">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 flex flex-col items-center gap-0.5 ${
-                tab === t.key ? 'text-[var(--brand)]' : 'text-[var(--text-faint)]'
+              className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-2xl ${
+                tab === t.key ? 'bg-[var(--bg-2)] text-[var(--brand)]' : 'text-[var(--text-faint)]'
               }`}
             >
-              <span className="text-[16px] leading-none">{t.icon}</span>
-              <span className="text-[10px] font-semibold">{t.label}</span>
+              <span className={`text-[18px] leading-none ${tab === t.key ? '' : 'grayscale opacity-70'}`}>{t.icon}</span>
+              <span className="text-[10px] font-bold">{t.label}</span>
             </button>
           ))}
         </div>

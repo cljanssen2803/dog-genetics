@@ -76,7 +76,7 @@ export function DogCard({
     <Card onClick={onOpen ? () => onOpen(dog) : undefined} className="mb-2">
       <div className="flex gap-3">
         <div className="flex-none">
-          <DogPortrait dog={dog} size={86} />
+          <DogPortrait dog={dog} size={104} />
         </div>
 
         <div className="flex-1 min-w-0">

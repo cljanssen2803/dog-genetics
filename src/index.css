@@ -3,29 +3,34 @@
 /**
  * THEME
  *
- * The look is a breeder's field notebook: warm parchment paper, deep forest
- * green, iron-gall ink and a rust accent for anything that needs attention.
- * Everything has a light and a dark version so the app feels native at 6am and
- * at midnight.
+ * A bright storybook on warm cream paper: meadow green, summer sky, a
+ * tangerine for anything that needs a tap, honey-gold for anything rare.
+ * Chunky rounded shapes with a flat "paper cut-out" shadow. Everything has a
+ * light and a night version.
+ *
+ * The colour NAMES are historical (forest, rust, clay...) because the whole
+ * interface refers to them; the values are the new look.
  */
 @theme {
-  --color-paper: #f4efe4;
-  --color-paper-2: #eae3d4;
-  --color-card: #fdfaf3;
-  --color-ink: #221f1a;
-  --color-ink-soft: #5c554a;
-  --color-ink-faint: #8b8377;
-  --color-forest: #1f3d2f;
-  --color-forest-2: #2e5a45;
-  --color-moss: #6f8f5f;
-  --color-rust: #c0703a;
-  --color-rust-deep: #9c5326;
-  --color-clay: #b8946a;
-  --color-berry: #9c3b4b;
-  --color-sky: #4a7c95;
-  --color-line: #d8cfbc;
+  --color-paper: #fff8e8;
+  --color-paper-2: #fdeed2;
+  --color-card: #ffffff;
+  --color-ink: #2b2140;
+  --color-ink-soft: #5b5170;
+  --color-ink-faint: #8d84a0;
+  --color-forest: #2fb36a;
+  --color-forest-2: #23985a;
+  --color-moss: #3fa860;
+  --color-rust: #ff8a3d;
+  --color-rust-deep: #e46f24;
+  --color-clay: #d9961e;
+  --color-berry: #ef5b7f;
+  --color-sky: #2f9be6;
+  --color-line: #f0dcb8;
+  --color-lilac: #9b7cf6;
+  --color-sun: #ffcf4a;
 
-  --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  --font-display: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI', system-ui, sans-serif;
   --font-body:
     -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
 }
@@ -46,15 +51,15 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #16150f;
-    --bg-2: #1e1c15;
-    --card: #24221a;
-    --text: #f0ead9;
-    --text-soft: #b9b1a0;
-    --text-faint: #8a8375;
-    --line: #3a362b;
-    --brand: #4a7a5e;
-    --brand-2: #5f9375;
+    --bg: #1b1f3a;
+    --bg-2: #232a4d;
+    --card: #2a3157;
+    --text: #f6f1ff;
+    --text-soft: #c3bcd8;
+    --text-faint: #8f88a8;
+    --line: #3a4270;
+    --brand: #3fc77a;
+    --brand-2: #35b06b;
   }
 }
 
@@ -91,23 +96,47 @@ nav,
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* A subtle paper grain, so large flat areas do not look like a spreadsheet. */
+/* A faint warm glow in the corners, so big cream areas feel like paper in
+   sunlight rather than a spreadsheet. */
 .paper {
   background-color: var(--bg);
   background-image:
-    radial-gradient(circle at 20% 15%, rgb(0 0 0 / 2.5%) 0, transparent 45%),
-    radial-gradient(circle at 80% 70%, rgb(0 0 0 / 2%) 0, transparent 40%);
+    radial-gradient(circle at 15% 10%, rgb(255 207 74 / 14%) 0, transparent 40%),
+    radial-gradient(circle at 85% 90%, rgb(47 155 230 / 10%) 0, transparent 40%);
 }
 
+/* Chunky cut-out cards: a soft border and a flat shadow underneath. */
 .card {
   background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 3px 0 var(--line);
 }
 
 .display {
   font-family: var(--font-display);
+  font-weight: 800;
   letter-spacing: -0.01em;
+}
+
+/* Buttons push down like a real button. */
+.btn-3d {
+  box-shadow: 0 3px 0 var(--btn-shadow, rgb(0 0 0 / 18%));
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+.btn-3d:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--btn-shadow, rgb(0 0 0 / 18%));
+}
+
+/* The stage every dog stands on: a strip of sky and a strip of grass. */
+.stage {
+  background: linear-gradient(180deg, #dcf1ff 0%, #f3faff 64%, #c7ea9c 64.5%, #a6d982 100%);
+}
+@media (prefers-color-scheme: dark) {
+  .stage {
+    background: linear-gradient(180deg, #2c3766 0%, #1f2749 64%, #3f6f3f 64.5%, #2f5a33 100%);
+  }
 }
 
 /* Smooth entry for bottom sheets. */
