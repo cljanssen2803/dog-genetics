@@ -68,6 +68,9 @@ const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }
   bull: { eye: [86.5, 26.0], nose: [91.5, 29.7] },
   heavy: { eye: [83.3, 23.4], nose: [91.1, 27.6] },
   spitz: { eye: [81.5, 21.3], nose: [89.5, 25.0] },
+  lowSmooth: { eye: [82.8, 28.0], nose: [90.9, 32.6] },
+  lowHeavy: { eye: [82.9, 28.0], nose: [91.2, 32.7] },
+  flatLong: { eye: [84.5, 23.6], nose: [89.5, 24.5] },
   smooth: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
   short: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
   silky: { eye: [83.2, 21.7], nose: [91.3, 24.6] },
@@ -85,12 +88,17 @@ const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }
  * stretched the right way. When a file arrives, add it to HAVE below and the
  * sprite starts using it.
  */
-const SILHOUETTE_SRC: Record<'sighthound' | 'bull' | 'heavy' | 'spitz', { file: string; fallback: CoatKind }> = {
+type BuildSilhouette = 'sighthound' | 'bull' | 'heavy' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'flatLong';
+const SILHOUETTE_SRC: Record<BuildSilhouette, { file: string; fallback: CoatKind }> = {
   sighthound: { file: 'body-sighthound.png', fallback: 'smooth' },
   bull: { file: 'body-bull.png', fallback: 'smooth' },
   heavy: { file: 'body-heavy.png', fallback: 'smooth' },
   spitz: { file: 'body-spitz.png', fallback: 'doubleThick' },
+  lowSmooth: { file: 'body-lowsmooth.png', fallback: 'smooth' },
+  lowHeavy: { file: 'body-lowheavy.png', fallback: 'smooth' },
+  flatLong: { file: 'body-flatlong.png', fallback: 'silky' },
 };
+const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'bull', 'heavy', 'spitz', 'lowSmooth', 'lowHeavy', 'flatLong'];
 
 /**
  * Where the ears and tail attach on each body, as percentages of the canvas.
@@ -103,6 +111,9 @@ const RIG: Partial<Record<Silhouette, { ear: [number, number]; tail: [number, nu
   bull: { ear: [79.5, 24], tail: [28, 52] },
   heavy: { ear: [76.5, 21], tail: [29, 50] },
   spitz: { ear: [75, 19], tail: [28, 49] },
+  lowSmooth: { ear: [78, 27], tail: [25.5, 50] },
+  lowHeavy: { ear: [77, 26], tail: [22, 48] },
+  flatLong: { ear: [78.5, 20.5], tail: [22, 41] },
 };
 
 const TAIL_SRC: Record<TailType, string> = {
@@ -130,6 +141,10 @@ const HAVE = new Set<string>([
   'tail-sickle.png',
   'tail-curled.png',
   'tail-screw.png',
+  'body-lowsmooth.png',
+  'body-lowheavy.png',
+  'body-flatlong.png',
+  'ear-hound.png',
 ]);
 
 /**
@@ -183,6 +198,8 @@ interface Fit {
  */
 /** The Chow's rounded bear ear: its base is bottom-left of the artwork. */
 const ROUND_EAR_FIT: Fit = { anchor: [72, 41], target: [74.5, 19], scale: 0.42 };
+/** The long hound ear: hangs from its top edge, past the jaw. */
+const HOUND_EAR_FIT: Fit = { anchor: [70, 29], target: [75.5, 17], scale: 0.5 };
 
 const EAR_FIT: Record<EarType, Fit> = {
   erect: { anchor: [65.8, 77.2], target: [74.5, 19], scale: 0.27 },
@@ -363,6 +380,9 @@ const BODY_BOX: Record<string, [number, number, number, number]> = {
   'body-spitz.png': [20.9, 12.9, 91.2, 91.0],
   'body-wavy.png': [18.9, 13.1, 91.6, 89.5],
   'body-wire.png': [18.2, 13.3, 92.4, 90.1],
+  'body-lowheavy.png': [17.1, 20.1, 92.7, 87.5],
+  'body-lowsmooth.png': [19.2, 21.0, 92.4, 87.1],
+  'body-flatlong.png': [16.9, 14.7, 91.0, 87.5],
 };
 
 /** The CSS transform that maps the smooth body's box onto another body's. */
@@ -504,13 +524,13 @@ function describe(dog: Dog, drawLbs?: number) {
 
   // Which body. The coat, unless the build or head is distinctive enough to
   // deserve its own silhouette. Without the artwork, stretch the fallback.
-  const silhouette = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight);
+  const silhouette = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight, shortLegs);
   let bodySrc = BODY_SRC[coat.kind];
   let standinStretch = '';
   let rig: { ear: [number, number]; tail: [number, number] } | undefined;
   let face = FACE[coat.kind];
-  if (silhouette === 'sighthound' || silhouette === 'bull' || silhouette === 'heavy' || silhouette === 'spitz') {
-    const want = SILHOUETTE_SRC[silhouette];
+  if ((BUILD_SILHOUETTES as string[]).includes(silhouette)) {
+    const want = SILHOUETTE_SRC[silhouette as BuildSilhouette];
     if (HAVE.has(want.file)) {
       bodySrc = want.file;
       rig = RIG[silhouette];
@@ -524,6 +544,9 @@ function describe(dog: Dog, drawLbs?: number) {
   // A heavy, plush, curl-tailed Spitz with pricked ears is a Chow or an
   // Akita, and those carry small rounded bear ears rather than points.
   const roundEars = silhouette === 'spitz' && ears === 'erect' && dog.observed.substance > 68 && tail === 'curled';
+  // Long-muzzled smooth dogs with drop ears and no undercoat are hounds, and
+  // hounds have the long pendulous ear: Basset, Bloodhound, Dachshund.
+  const houndEars = ears === 'drop' && (coat.kind === 'smooth' || coat.kind === 'short') && !coat.undercoat && dog.observed.muzzle > 55 && silhouette !== 'sighthound';
 
   // The tail: the real file if it exists, else a stand-in built from one we have.
   const standin = HAVE.has(TAIL_SRC[tail]) ? undefined : TAIL_STANDIN[tail];
@@ -571,7 +594,10 @@ function describe(dog: Dog, drawLbs?: number) {
   // as wide as a 50 lb Basset, which reads as a big dog rather than a low one.
   // No stretch at all for short legs: squashing the height already makes
   // the dog read as long, and a Scottie is low without being a sausage.
-  const legSquash = shortLegs === 2 ? 0.66 : shortLegs === 1 ? 0.82 : shepherd ? 0.93 : 1;
+  // Dogs drawn on a purpose-made low body need no squash; coated
+  // short-legged dogs (a Scottie, a Pekingese) still borrow a normal body.
+  const lowBody = silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'flatLong';
+  const legSquash = lowBody ? 1 : shortLegs === 2 ? 0.66 : shortLegs === 1 ? 0.82 : shepherd ? 0.93 : 1;
   const stretch = shepherd ? 1.1 : 1;
 
   const bodyTransform = `scale(${(sizeScale * substance * stretch).toFixed(3)}, ${(sizeScale * legSquash).toFixed(3)})${standinStretch}`;
@@ -581,7 +607,7 @@ function describe(dog: Dog, drawLbs?: number) {
 
   return {
     bodySrc,
-    earSrc: roundEars ? 'ear-round.png' : EAR_SRC[ears],
+    earSrc: roundEars ? 'ear-round.png' : houndEars ? 'ear-hound.png' : EAR_SRC[ears],
     tailSrc: TAIL_SRC[tailKey],
     tailStandin: standin?.transform,
     earFit: retarget(
@@ -591,6 +617,8 @@ function describe(dog: Dog, drawLbs?: number) {
           ? { ...EAR_FIT[ears], scale: EAR_FIT[ears].scale * 0.7 }
           : roundEars
             ? ROUND_EAR_FIT
+            : houndEars
+              ? HOUND_EAR_FIT
             : silhouette === 'spitz' && ears === 'erect'
               // Spitz ears are small, thick triangles, not Shepherd sails.
               ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * (shortLegs > 0 ? 0.6 : 0.72) }

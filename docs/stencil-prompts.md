@@ -145,3 +145,12 @@ drawn on the long-coated body, which has a normal snout.
 > down to the ground, and feathered legs. NO ears and NO tail — those are
 > separate pieces. No background, no scenery, no ground shadow, no text.
 > Children's picture-book style, warm and appealing, not photorealistic.
+
+### DELIVERED 2026-09-13 (afternoon)
+
+`body-lowsmooth.png` (Dachshund frame), `body-lowheavy.png` (Basset / Corgi
+frame), `body-flatlong.png` (Pekingese / Shih Tzu) and `ear-hound.png` (long
+pendulous hound ear). All wired in: short-legged smooth dogs use a low body
+by build, flat-faced long-coated dogs use the flat-long body, and drop-eared
+smooth hounds get the hound ear. The unused third short-legged body was near
+identical to the Dachshund frame and was not installed.

@@ -537,7 +537,7 @@ export const TAIL_BLURB: Record<TailType, string> = {
  * flat-faced bull type. A thick double coat with pricked ears and a tail over
  * the back is a Spitz, and gets its own too.
  */
-export type Silhouette = CoatKind | 'sighthound' | 'bull' | 'heavy' | 'spitz';
+export type Silhouette = CoatKind | 'sighthound' | 'bull' | 'heavy' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'flatLong';
 
 export function resolveSilhouette(
   coat: CoatProfile,
@@ -545,8 +545,15 @@ export function resolveSilhouette(
   muzzle: number,
   earSet: number,
   sizeLbs: number,
+  shortLegs = 0,
 ): Silhouette {
   const plain = coat.kind === 'smooth' || coat.kind === 'short' || coat.kind === 'doubleThick';
+  // Short-legged smooth dogs have their own bodies: a Dachshund frame and a
+  // heavier Basset/Corgi one. A flat face under a long coat is a Pekingese.
+  if (shortLegs > 0 && (coat.kind === 'smooth' || coat.kind === 'short')) {
+    return substance > 60 ? 'lowHeavy' : 'lowSmooth';
+  }
+  if (muzzle < 30 && (coat.kind === 'long' || coat.kind === 'silky' || coat.kind === 'doubleThick')) return 'flatLong';
   // Thresholds are loose on purpose: a dog's visible build wanders a good
   // twenty points either side of its breed's average.
   if (plain && coat.undercoat && earSet > 68) return 'spitz';

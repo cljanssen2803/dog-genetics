@@ -11,7 +11,7 @@ import { DogSprite, SpriteFilters } from './ui/DogSprite';
 import { createFounder } from './engine/dog';
 import { Rng } from './engine/rng';
 import { BREED_BY_KEY } from './engine/breeds';
-import { TAIL_LABEL, resolveCoat, resolveColor, resolveSilhouette, resolveTail } from './engine/phenotype';
+import { TAIL_LABEL, legShortening, resolveCoat, resolveColor, resolveSilhouette, resolveTail } from './engine/phenotype';
 import { sizeToPounds } from './engine/traits';
 
 const SHOWCASE = [
@@ -41,7 +41,7 @@ function Gallery() {
           const coat = resolveCoat(dog.genotype, lbs);
           const colour = resolveColor(dog.genotype);
           const tail = TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind)];
-          const body = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, lbs);
+          const body = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, lbs, legShortening(dog.genotype));
           return (
             <div key={key} className="card p-2">
               <DogSprite dog={dog} size={size} />
