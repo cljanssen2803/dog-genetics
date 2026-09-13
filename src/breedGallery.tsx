@@ -19,7 +19,7 @@ const SHOWCASE = [
   'husky', 'akita', 'samoyed', 'pomeranian', 'shiba', 'chow',
   'greatDane', 'mastiff', 'labrador', 'golden', 'borderCollie', 'gsd',
   'poodleStandard', 'miniSchnauzer', 'westie', 'bichon', 'yorkie', 'afghan',
-  'chineseCrested', 'bloodhound', 'boxer', 'dalmatian',
+  'chineseCrested', 'bloodhound', 'boxer', 'dalmatian', 'ausShepherd', 'rottweiler', 'beagle', 'bernese', 'springer', 'cattleDog',
 ];
 
 function Gallery() {

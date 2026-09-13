@@ -321,3 +321,16 @@ rotated in code (`TAIL_FIT` in DogSprite.tsx) rather than redrawn.
 
 Still wanted, at leisure: **29. Screw tail** as briefed above, and the
 ROUND THREE pattern stencils.
+
+### ROUND THREE + SCREW TAIL RESULT — delivered 2026-09-13
+
+Seven marking stencils and the screw tail arrived. Instead of one piebald,
+three levels of Irish white came back (minimal, collar, extended); the code
+uses them as the 18% / 35% / 55% white levels and the extended one stands in
+for piebald. Tan points, merle, brindle and extreme white all landed on the
+smooth body's pose accurately and are wired straight in (`Stencil` in
+DogSprite.tsx). The code-drawn white/tan/merle/brindle shapes are gone;
+ticking, the Dalmatian spots and the black mask are still drawn by code.
+
+Optional later: a true **piebald** (large irregular patches, roughly half
+white) to replace the extended-Irish stand-in.

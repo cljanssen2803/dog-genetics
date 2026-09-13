@@ -128,9 +128,9 @@ export const BREED_COLOURS: Record<string, Table> = {
   dalmatian: { locusE: E_SOLID, locusK: K_BLACK, locusS: S_PIED, ticking: T_ALL, locusB: B(0.2), locusD: D_FULL },
   vizsla: { locusE: E_RED, locusK: K_BLACK, ...NO_WHITE, locusB: B_BROWN, locusD: D_FULL, intensity: I_DEEP },
   weimaraner: { locusE: E_SOLID, locusK: K_BLACK, ...NO_WHITE, locusB: B_BROWN, locusD: D_DILUTE },
-  springer: { locusE: E_SOLID, locusK: K_BLACK, locusS: S_PIED, ticking: T(0.6), locusB: B(0.5), locusD: D_FULL },
+  springer: { locusE: E_SOLID, locusK: K_BLACK, locusS: S_PIED, ticking: T(0.4), locusB: B(0.5), locusD: D_FULL },
   // Blue (black ticked through white) or red speckle.
-  cattleDog: { locusE: E_SOLID, locusK: K(0.5, 0), locusA: A(0.5, 0, 0.5), locusS: S_PIED, ticking: T_ALL, locusB: B_BLACK, locusD: D_FULL, intensity: I_DEEP },
+  cattleDog: { locusE: E_SOLID, locusK: K(0.5, 0), locusA: A(0.5, 0, 0.5), locusS: S_PIED, ticking: T(0.5), locusB: B_BLACK, locusD: D_FULL, intensity: I_DEEP },
   sheltie: { locusE: E_SOLID, locusK: K(0.2, 0), locusA: A(0.55, 0, 0.45), locusS: S(0.55), ticking: T_NONE, locusB: B_BLACK, locusD: D_FULL, merle: M(0.2), intensity: I_DEEP },
   roughCollie: { locusE: E_SOLID, locusK: K(0.2, 0), locusA: A(0.55, 0, 0.45), locusS: S(0.55), ticking: T_NONE, locusB: B_BLACK, locusD: D_FULL, merle: M(0.2), intensity: I_DEEP },
   oes: { locusE: E_SOLID, locusK: K_BLACK, locusS: S_PIED, ticking: T_NONE, locusB: B_BLACK, locusD: D(0.6) },

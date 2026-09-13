@@ -139,7 +139,9 @@ export function resolveColor(g: Genotype): CoatColor {
   const ticked = copies(g, 'ticking', 'T') >= 1 && white > 0.1;
   // Ticking on a piebald dog is the Dalmatian pattern: the white takes over
   // the whole coat and the colour survives only as spots.
-  const spotted = ticked && whiteCopies === 2 && !merle;
+  // Two ticking copies on a piebald dog: the spots take over. One copy is
+  // ordinary ticking or roan in the white.
+  const spotted = copies(g, 'ticking', 'T') === 2 && whiteCopies === 2 && !merle;
   if (spotted) white = 0.9;
 
   let base = dark.hex;

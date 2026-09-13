@@ -129,6 +129,7 @@ const HAVE = new Set<string>([
   'tail-plume.png',
   'tail-sickle.png',
   'tail-curled.png',
+  'tail-screw.png',
 ]);
 
 /**
@@ -142,7 +143,6 @@ const TAIL_STANDIN: Partial<Record<TailType, { src: TailType; transform: string 
   sickle: { src: 'full', transform: 'rotate(-80deg) scale(0.9)' },
   whip: { src: 'full', transform: 'rotate(22deg) scale(1.05, 0.55)' },
   plume: { src: 'full', transform: 'rotate(-18deg) scale(1.08, 1.35)' },
-  screw: { src: 'bobtail', transform: 'scale(0.8)' },
 };
 
 /**
@@ -194,8 +194,8 @@ const TAIL_FIT: Record<TailType, Fit> = {
   // join can never open into a gap on a body whose rump sits differently.
   full: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
   bobtail: { anchor: [26, 43], target: [27.5, 45.5], scale: 1.1 },
-  // No screw-tail art yet: the bobtail, a touch smaller, stands in.
-  screw: { anchor: [26, 43], target: [27.5, 45.5], scale: 0.85 },
+  // The screw was drawn floating mid-canvas; its top is the root.
+  screw: { anchor: [50, 36], target: [28, 45.5], scale: 0.42 },
   // The whip was drawn trailing straight back; swung down so it hangs
   // between the hocks like a real sighthound's.
   whip: { anchor: [52, 46.5], target: [27.5, 47.5], scale: 0.75, rotate: -30 },
@@ -245,17 +245,11 @@ export interface DogSpriteProps {
 
 export function DogSprite({ dog, size = 120, className = '', framed = true }: DogSpriteProps) {
   const height = (size * 1086) / 1448;
-  // Just enough to take the hard edge off. Any more and white markings turn
-  // into a glow, as though the dog were lit from inside.
-  // Markings get a ragged "fur" edge from an SVG displacement filter. The
-  // filter's strength is in pixels, so a small card and a large portrait use
-  // different ones or the small one turns to mush.
-  const furFilter = size < 110 ? 'fur-edge-s' : size < 170 ? 'fur-edge-m' : 'fur-edge-l';
   // Puppies are drawn at their CURRENT weight, so a litter of newborns is
   // visibly a litter of newborns and a dog grows on screen as the months pass.
   const game = useGameMaybe();
   const nowLbs = game ? currentWeight(dog, game.project.month) : sizeToPounds(dog.observed.size);
-  const art = useMemo(() => describe(dog, Math.max(0.6, size * 0.005), furFilter, nowLbs), [dog, size, furFilter, nowLbs]);
+  const art = useMemo(() => describe(dog, nowLbs), [dog, nowLbs]);
 
   // Tap the dog and it wags. Purely for the pleasure of it.
   const [wagging, setWagging] = useState(false);
@@ -347,6 +341,35 @@ function Face({
 }
 
 /**
+ * A marking stencil: a white-on-transparent shape drawn on the smooth body's
+ * pose, used as a mask and filled with one colour. The body layer clips it,
+ * so it cannot spill outside whichever body the dog actually has.
+ */
+function Stencil({ src, colour, opacity, transform }: { src: string; colour: string; opacity: number; transform?: string }) {
+  const url = `url("${BASE}${src}")`;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundColor: colour,
+        opacity,
+        transform,
+        transformOrigin: '50% 50%',
+        WebkitMaskImage: url,
+        maskImage: url,
+        WebkitMaskSize: 'contain',
+        maskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskPosition: 'center',
+      }}
+    />
+  );
+}
+
+/**
  * One masked, tinted, shaded layer.
  */
 function Layer({
@@ -433,12 +456,7 @@ function forShading(hex: string): string {
   return shade(hex, (96 - light) * 0.72);
 }
 
-/** A colour guaranteed to be visible against the given one. */
-function contrastInk(hex: string, strength = 58): string {
-  return shade(hex, luminance(hex) < 120 ? strength : -strength);
-}
-
-function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: number) {
+function describe(dog: Dog, drawLbs?: number) {
   const weight = sizeToPounds(dog.observed.size);
   const visual = drawLbs ?? weight;
   const coat = resolveCoat(dog.genotype, weight);
@@ -546,8 +564,6 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: 
         accent={forShading(colour.accent)}
         noise={noise}
         face={face}
-        blurPx={blurPx}
-        furFilter={furFilter}
       />
     ),
   };
@@ -567,22 +583,16 @@ function Markings({
   base,
   accent,
   noise,
-  blurPx,
-  furFilter,
   face,
 }: {
   colour: ReturnType<typeof resolveColor>;
   base: string;
   accent: string;
   noise: () => number;
-  /** Softening for the white markings, scaled to how big the dog is drawn. */
-  blurPx: number;
-  furFilter: string;
   /** Where this body's eye and nose are, so head markings land on the head. */
   face: { eye: [number, number]; nose: [number, number] };
 }) {
   const shapes: React.ReactNode[] = [];
-  const fleck = contrastInk(base);
   const light = shade(base, 40);
   // Head markings were measured on the smooth body. Other bodies carry their
   // heads elsewhere, so everything on the face is shifted by the difference.
@@ -613,160 +623,42 @@ function Markings({
     />
   );
 
-  /**
-   * A patch of colour with an irregular outline: a cluster of overlapping
-   * ellipses, each nudged and resized by the dog's own noise. One ellipse reads
-   * as a sticker; four jostling ellipses read as a marking.
-   */
-  const patch = (key: string, x: number, y: number, w: number, h: number, fill: string, opacity = 1) => {
-    const parts: React.ReactNode[] = [];
-    for (let i = 0; i < 4; i++) {
-      const dx = (noise() - 0.5) * w * 0.55;
-      const dy = (noise() - 0.5) * h * 0.55;
-      const sw = w * (0.55 + noise() * 0.5);
-      const sh = h * (0.55 + noise() * 0.5);
-      parts.push(blob(key + '-' + i, x + w / 2 - sw / 2 + dx, y + h / 2 - sh / 2 + dy, sw, sh, fill, opacity));
-    }
-    return parts;
-  };
-
-  // --- Brindle: soft tiger striping across the barrel ----------------------
-  // Confined to the body and kept translucent. Hard black bars running over the
-  // head and legs read as a zebra rather than a dog.
+  // --- Brindle -------------------------------------------------------------
+  // A hand-drawn stripe stencil, tinted with the dark pigment and kept
+  // translucent so it sits in the coat rather than on top of it.
   if (colour.brindle) {
-    const stripes: React.ReactNode[] = [];
-    for (let i = 0; i < 11; i++) {
-      stripes.push(
-        <div
-          key={`br${i}`}
-          style={{
-            position: 'absolute',
-            left: `${i * 9.5 + noise() * 3}%`,
-            top: '-14%',
-            // Wide, soft-edged and faint. Real brindle is a shadow in the coat,
-            // not a painted stripe.
-            width: `${5 + noise() * 4}%`,
-            height: '128%',
-            background: accent,
-            opacity: 0.2 + noise() * 0.12,
-            borderRadius: '50%',
-            transform: `rotate(${-8 + noise() * 10}deg)`,
-          }}
-        />,
-      );
-    }
-    shapes.push(
-      <div
-        key="brindle"
-        style={{ position: 'absolute', left: '16%', top: '20%', width: '62%', height: '58%', overflow: 'hidden' }}
-      >
-        {stripes}
-      </div>,
-    );
+    shapes.push(<Stencil key="brindle" src="mark-brindle.png" colour={accent} opacity={0.42} />);
   }
 
-  // --- Tan points: legs, muzzle, eyebrows, chest ---------------------------
+  // --- Tan points ------------------------------------------------------------
   if (colour.tanPoints) {
-    const tan: React.ReactNode[] = [];
-    tan.push(
-      blob('tp-leg1', 24, 66, 9, 26, accent, 0.95),
-      blob('tp-leg2', 36, 68, 9, 24, accent, 0.95),
-      blob('tp-leg3', 62, 66, 9, 26, accent, 0.95),
-      blob('tp-leg4', 72, 68, 9, 24, accent, 0.95),
-      blob('tp-muzzle', 84 + hx, 20 + hy, 10, 10, accent, 0.9),
-      blob('tp-brow', 80 + hx, 13 + hy, 5, 4, accent, 0.85),
-      blob('tp-chest', 72, 44, 10, 14, accent, 0.8),
-    );
-    shapes.push(
-      <div key="tan" style={{ position: 'absolute', inset: 0, filter: `url(#${furFilter})` }}>
-        {tan}
-      </div>,
-    );
+    shapes.push(<Stencil key="tan" src="mark-tan.png" colour={accent} opacity={0.95} />);
   }
 
-  // --- Merle: torn patches of diluted pigment ------------------------------
+  // --- Merle ---------------------------------------------------------------
+  // Merle dilutes the BODY and leaves torn patches at full strength, so the
+  // stencil paints the dark patches. A sable merle has almost no black
+  // pigment for merle to act on, so its patches are faint. Double merle has
+  // lost most of its patches; harlequin has bleached the base to white and
+  // keeps only black.
   if (colour.merle) {
-    // Real merle is torn, not spotted: many patches of very different sizes,
-    // a few large and most small, so the eye reads marbling rather than dots.
-    const count = colour.doubleMerle ? 6 : 22;
-    const spots: React.ReactNode[] = [];
-    for (let i = 0; i < count; i++) {
-      const big = i < 5;
-      spots.push(
-        blob(
-          `m${i}`,
-          16 + noise() * 72,
-          10 + noise() * 72,
-          big ? 8 + noise() * 12 : 2.5 + noise() * 6,
-          big ? 7 + noise() * 12 : 2.5 + noise() * 6,
-          // Merle dilutes the BODY and leaves patches at full strength, so the
-          // patches are the dark ones. On a sable merle the patches are faint,
-          // because a fawn coat has almost no black pigment for merle to act on.
-          colour.harlequin
-            ? '#1d1a17'
-            : colour.doubleMerle
-              ? shade(base, 40)
-              : forShading(colour.merlePatch),
-          colour.harlequin ? 0.96 : colour.merleSubtle ? 0.22 : 0.9,
-        ),
-      );
-    }
-    shapes.push(
-      <div key="merle" style={{ position: 'absolute', inset: 0, filter: `url(#${furFilter})` }}>
-        {spots}
-      </div>,
-    );
+    const patchColour = colour.harlequin ? '#1d1a17' : colour.doubleMerle ? shade(base, 40) : forShading(colour.merlePatch);
+    const opacity = colour.harlequin ? 0.96 : colour.merleSubtle ? 0.22 : colour.doubleMerle ? 0.35 : 0.9;
+    shapes.push(<Stencil key="merle" src="mark-merle.png" colour={patchColour} opacity={opacity} />);
   }
 
   // --- White markings ------------------------------------------------------
-  // White does not land at random on a real dog. It creeps inward in a fixed
-  // order from the extremities: chest and toes first, then a collar and blaze,
-  // then up the flanks until only islands of colour remain. Following that
-  // order is what makes a marked dog read as a dog rather than a cow.
-  //
-  // The whole group is softened at the end. A hard-edged ellipse reads as a
-  // sticker on the dog; real white breaks into the surrounding coat.
+  // Four hand-drawn stencils, one per level of white. White creeps inward in
+  // a fixed order on a real dog — feet and chest first, then collar and
+  // blaze, then up the flanks — and the stencils follow that order.
   if (colour.white > 0.08) {
     const w = colour.white;
     const white = '#f7f2e8';
-    const marks: React.ReactNode[] = [];
-
-    // The chest marking runs down the FRONT of the chest, between the forelegs.
-    // Seen from the side that is a narrow strip at the leading edge, not a
-    // patch on the shoulder.
-    // A ticked, mostly-white dog is white everywhere: the spots come later.
-    if (colour.ticked && w >= 0.85) marks.push(blob('w-all', 12, 6, 84, 90, white));
-    marks.push(...patch('w-chest', 73, 43, 8, 21, white));
-    marks.push(blob('w-toe1', 24, 85, 7, 9, white));
-    marks.push(blob('w-toe2', 36, 87, 7, 8, white));
-    marks.push(blob('w-toe3', 62, 85, 7, 9, white));
-    marks.push(blob('w-toe4', 72, 87, 7, 8, white));
-
-    if (w > 0.25) {
-      marks.push(blob('w-throat', 77 + hx, 30 + hy, 7, 13, white));
-      marks.push(blob('w-blaze', 85 + hx, 11 + hy, 4, 12, white, 0.95));
-      marks.push(blob('w-tailtip', 7, 43, 10, 10, white, 0.9));
-      marks.push(blob('w-sock1', 24, 74, 8, 16, white));
-      marks.push(blob('w-sock2', 62, 74, 8, 16, white));
-    }
-
-    if (w > 0.4) {
-      // A collar across the shoulders, which is where piebald goes next. Kept
-      // clear of the skull so it does not look like the head has come off.
-      marks.push(...patch('w-collar', 57, 28, 14, 30, white, 0.96));
-      marks.push(...patch('w-belly', 28, 58, 42, 20, white));
-    }
-
-    if (w > 0.55) {
-      marks.push(...patch('w-flank', 22, 34, 40, 34, white, 0.95));
-      marks.push(...patch('w-neck', 55, 18, 16, 26, white, 0.9));
-    }
-
-    shapes.push(
-      <div key="white" style={{ position: 'absolute', inset: 0, filter: `url(#${furFilter}) blur(${blurPx * 0.6}px)` }}>
-        {marks}
-      </div>,
-    );
+    const src = w >= 0.8 ? 'mark-extreme.png' : w >= 0.5 ? 'mark-piebald.png' : w >= 0.3 ? 'mark-collar.png' : 'mark-irish.png';
+    // The extreme-white stencil was drawn a whisker inside the body; grown a
+    // touch so no coloured rim shows along the back.
+    const transform = w >= 0.8 ? 'scale(1.035)' : undefined;
+    shapes.push(<Stencil key="white" src={src} colour={white} opacity={1} transform={transform} />);
   }
 
   // --- Ticking -------------------------------------------------------------
@@ -787,7 +679,7 @@ function Markings({
     // Ticking proper: a peppering of small flecks in the white.
     for (let i = 0; i < 40; i++) {
       const s = 0.9 + noise() * 0.9;
-      shapes.push(blob(`t${i}`, 20 + noise() * 60, 40 + noise() * 50, s, s * 1.3, fleck, 0.6));
+      shapes.push(blob(`t${i}`, 20 + noise() * 60, 40 + noise() * 50, s, s * 1.3, colour.base, 0.75));
     }
   }
 
