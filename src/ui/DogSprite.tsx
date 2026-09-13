@@ -181,6 +181,9 @@ interface Fit {
  * The scales look drastic because they are: the erect ear was drawn nearly as
  * tall as the whole dog.
  */
+/** The Chow's rounded bear ear: its base is bottom-left of the artwork. */
+const ROUND_EAR_FIT: Fit = { anchor: [72, 41], target: [74.5, 19], scale: 0.42 };
+
 const EAR_FIT: Record<EarType, Fit> = {
   erect: { anchor: [65.8, 77.2], target: [74.5, 19], scale: 0.27 },
   semiErect: { anchor: [57.6, 72.7], target: [74.5, 19], scale: 0.25 },
@@ -518,6 +521,10 @@ function describe(dog: Dog, drawLbs?: number) {
     }
   }
 
+  // A heavy, plush, curl-tailed Spitz with pricked ears is a Chow or an
+  // Akita, and those carry small rounded bear ears rather than points.
+  const roundEars = silhouette === 'spitz' && ears === 'erect' && dog.observed.substance > 68 && tail === 'curled';
+
   // The tail: the real file if it exists, else a stand-in built from one we have.
   const standin = HAVE.has(TAIL_SRC[tail]) ? undefined : TAIL_STANDIN[tail];
   let tailKey: TailType = standin ? standin.src : tail;
@@ -558,8 +565,10 @@ function describe(dog: Dog, drawLbs?: number) {
   // Short-legged dogs read as longer and lower rather than simply smaller.
   // Short-legged dogs read as longer and lower; so does a shepherd type,
   // which is a longer, leaner animal than the Spitz whose body it borrows.
-  const legSquash = shortLegs === 2 ? 0.82 : shortLegs === 1 ? 0.91 : shepherd ? 0.93 : 1;
-  const stretch = shortLegs > 0 ? 1.1 : shepherd ? 1.1 : 1;
+  // The whole body is squashed, not just the legs (there is one body image),
+  // so the stretch widens it back into a long, low dog rather than a small one.
+  const legSquash = shortLegs === 2 ? 0.62 : shortLegs === 1 ? 0.8 : shepherd ? 0.93 : 1;
+  const stretch = shortLegs === 2 ? 1.26 : shortLegs === 1 ? 1.15 : shepherd ? 1.1 : 1;
 
   const bodyTransform = `scale(${(sizeScale * substance * stretch).toFixed(3)}, ${(sizeScale * legSquash).toFixed(3)})${standinStretch}`;
 
@@ -568,7 +577,7 @@ function describe(dog: Dog, drawLbs?: number) {
 
   return {
     bodySrc,
-    earSrc: EAR_SRC[ears],
+    earSrc: roundEars ? 'ear-round.png' : EAR_SRC[ears],
     tailSrc: TAIL_SRC[tailKey],
     tailStandin: standin?.transform,
     earFit: retarget(
@@ -576,10 +585,12 @@ function describe(dog: Dog, drawLbs?: number) {
         ? { ...EAR_FIT.drop, scale: EAR_FIT.drop.scale * 0.8 }
         : silhouette === 'sighthound'
           ? { ...EAR_FIT[ears], scale: EAR_FIT[ears].scale * 0.7 }
-          : silhouette === 'spitz' && ears === 'erect'
-            // Spitz ears are small, thick triangles, not Shepherd sails.
-            ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * 0.72 }
-            : EAR_FIT[ears],
+          : roundEars
+            ? ROUND_EAR_FIT
+            : silhouette === 'spitz' && ears === 'erect'
+              // Spitz ears are small, thick triangles, not Shepherd sails.
+              ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * 0.72 }
+              : EAR_FIT[ears],
       rig?.ear,
       SHARED_EAR,
     ),
@@ -726,7 +737,23 @@ function Markings({
 
   // --- Dark mask over the muzzle -------------------------------------------
   if (colour.mask) {
-    shapes.push(blob('mask', 82 + hx, 16 + hy, 14, 16, accent, 0.85));
+    // From just in front of the eye to past the nose, and down over the
+    // mouth. A rounded box rather than an ellipse, so the lips are covered.
+    shapes.push(
+      <div
+        key="mask"
+        style={{
+          position: 'absolute',
+          left: `${face.eye[0] - 1.5}%`,
+          top: `${face.eye[1] - 5}%`,
+          width: `${face.nose[0] - face.eye[0] + 10}%`,
+          height: `${face.nose[1] - face.eye[1] + 16}%`,
+          background: accent,
+          opacity: 0.85,
+          borderRadius: '45% 50% 50% 40% / 55% 50% 50% 45%',
+        }}
+      />,
+    );
   }
 
   // Soft highlight along the topline, which stops flat colours looking dead.

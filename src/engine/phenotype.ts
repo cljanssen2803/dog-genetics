@@ -185,10 +185,10 @@ export function resolveColor(g: Genotype): CoatColor {
         // than life so it is visibly a different dog.
         if (dilute && !brown) {
           name = 'Blue fawn';
-          base = blend(red.hex, '#b9bcc4', 0.45);
+          base = blend(red.hex, '#9aa4b4', 0.6);
         } else if (dilute && brown) {
           name = 'Lilac fawn';
-          base = blend(red.hex, '#cbbfc2', 0.45);
+          base = blend(red.hex, '#c4b3ba', 0.6);
         }
         break;
       case 'aw':
@@ -197,7 +197,7 @@ export function resolveColor(g: Genotype): CoatColor {
         name = 'Wolf sable';
         if (dilute && !brown) {
           name = 'Blue wolf sable';
-          base = blend(red.hex, '#b9bcc4', 0.45);
+          base = blend(red.hex, '#9aa4b4', 0.6);
         }
         break;
       case 'at':

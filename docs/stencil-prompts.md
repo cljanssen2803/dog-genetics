@@ -113,8 +113,8 @@ stencils one pattern at a time, checking the breed gallery as I go.
 
 ## Still wanted
 
-**9 — Round bear ear** (`ear-round.png`) — for Chow Chows, and useful for
-Akitas and Samoyeds.
+**9 — Round bear ear** (`ear-round.png`) — DELIVERED 2026-09-13, in use for
+heavy curl-tailed Spitz types (Chow, Akita).
 
 > Flat vector illustration of just one dog's ear, alone on a fully
 > transparent background, 1448 × 1086 canvas. Pure white fur with soft
