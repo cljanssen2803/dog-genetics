@@ -19,6 +19,7 @@
 
 import type { PolyTrait } from './traits';
 import { BREED_COLOURS, SINGLE_COATED } from './breedColours';
+import { LOCI } from './loci';
 
 export interface BreedProfile {
   key: string;
@@ -64,6 +65,7 @@ export const DEFAULT_ALLELES: Record<string, Record<string, number>> = {
   ticking: { T: 0.05, t: 0.95 },
   blueEyes: { Be: 0, be: 1 },
   bobtail: { Bt: 0, bt: 1 },
+  rainbow: { Rb: 0, rb: 1 },
 };
 
 // Shorthand used all through the table below.
@@ -1301,8 +1303,267 @@ export const BREEDS: BreedProfile[] = [
     alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, locusE: { Em: 0, E: 0.02, e: 0.98 }, intensity: { I: 0.9, i: 0.1 }, locusB: { B: 0.85, b: 0.15 }, locusS: { S: 0.3, sp: 0.7 } },
     diseases: { prcdPRA: 0.08, cea: 0.05 },
     blurb: 'The smallest retriever: fox-red, white-trimmed, quick-witted, and a screamer when excited.',
+  },  // ============================================================ ADDED 2026-09-13 ===
+  {
+    key: 'irishSetter', name: 'Irish Setter', group: 'Gundog', weight: 65,
+    traits: { biddability: 70, sociability: 88, energy: 88, stability: 50, preyDrive: 72, persistence: 66, independence: 44, alertness: 62, vocality: 50, handling: 78, structure: 62, longevity: 60, fertility: 70, substance: 46, muzzle: 80, earSet: 4, tailSet: 44 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { prcdPRA: 0.08 },
+    blurb: 'A mahogany red, silky, exuberant gundog that never entirely grows up.',
+  },
+  {
+    key: 'englishSetter', name: 'English Setter', group: 'Gundog', weight: 60,
+    traits: { biddability: 74, sociability: 86, energy: 74, stability: 66, preyDrive: 72, persistence: 68, independence: 40, alertness: 60, vocality: 44, handling: 82, structure: 64, longevity: 62, fertility: 68, substance: 50, muzzle: 74, earSet: 4, tailSet: 44 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'The "belton" setter: white flecked all over with blue, orange or lemon. Gentle, elegant, and a little dreamy.',
+  },
+  {
+    key: 'gsp', name: 'German Shorthaired Pointer', group: 'Gundog', weight: 55,
+    traits: { biddability: 76, sociability: 72, energy: 94, stability: 58, preyDrive: 90, persistence: 80, independence: 44, alertness: 82, vocality: 50, handling: 66, structure: 74, longevity: 70, fertility: 74, substance: 50, muzzle: 78, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { vwd: 0.04 },
+    blurb: 'Liver and white, ticked all over, and built to run all day. Bored within a minute of sitting still.',
+  },
+  {
+    key: 'pointer', name: 'Pointer', group: 'Gundog', weight: 58,
+    traits: { biddability: 66, sociability: 70, energy: 92, stability: 60, preyDrive: 92, persistence: 78, independence: 50, alertness: 84, vocality: 40, handling: 62, structure: 74, longevity: 72, fertility: 70, substance: 46, muzzle: 82, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'The classic English pointer: lean, statuesque, and frozen mid-stride the instant it scents a bird.',
+  },
+  {
+    key: 'flatCoat', name: 'Flat-Coated Retriever', group: 'Gundog', weight: 65,
+    traits: { biddability: 86, sociability: 92, energy: 82, stability: 62, preyDrive: 60, persistence: 74, independence: 30, alertness: 60, vocality: 46, handling: 88, structure: 66, longevity: 44, fertility: 72, substance: 52, muzzle: 74, earSet: 4, tailSet: 44 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { prcdPRA: 0.04 },
+    blurb: 'The Peter Pan of retrievers: glossy black, endlessly cheerful, and tragically prone to cancer.',
+  },
+  {
+    key: 'clumber', name: 'Clumber Spaniel', group: 'Gundog', weight: 70,
+    traits: { biddability: 66, sociability: 74, energy: 38, stability: 74, preyDrive: 56, persistence: 70, independence: 48, alertness: 44, vocality: 30, handling: 76, structure: 48, longevity: 56, fertility: 62, substance: 92, muzzle: 60, earSet: 2, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, chondro: { Cd: 0.6, cd: 0.4 } },
+    diseases: {},
+    blurb: 'A heavy, low, slow white spaniel with lemon freckles and a profound talent for snoring.',
+  },
+  {
+    key: 'irishWaterSpaniel', name: 'Irish Water Spaniel', group: 'Gundog', weight: 58,
+    traits: { biddability: 72, sociability: 56, energy: 78, stability: 60, preyDrive: 70, persistence: 76, independence: 54, alertness: 70, vocality: 40, handling: 62, structure: 66, longevity: 64, fertility: 66, substance: 56, muzzle: 66, earSet: 4, tailSet: 36 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: curly, furnishings: bearded, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'Liver curls, a topknot, and a bare "rat tail". The clown of the spaniels, and a serious water dog.',
+  },
+  {
+    key: 'borzoi', name: 'Borzoi', group: 'Hound', weight: 85,
+    traits: { biddability: 34, sociability: 48, energy: 54, stability: 66, preyDrive: 96, persistence: 50, independence: 84, alertness: 60, vocality: 14, handling: 56, structure: 68, longevity: 58, fertility: 58, substance: 22, muzzle: 98, earSet: 40, tailSet: 12 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.3, cu: 0.7 }, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { dcm: 0.04 },
+    blurb: 'The Russian wolfhound: a silk-coated sighthound with a face like a letter opener and the manners of a duchess.',
+  },
+  {
+    key: 'saluki', name: 'Saluki', group: 'Hound', weight: 50,
+    traits: { biddability: 36, sociability: 44, energy: 62, stability: 60, preyDrive: 96, persistence: 54, independence: 88, alertness: 66, vocality: 12, handling: 52, structure: 74, longevity: 74, fertility: 56, substance: 14, muzzle: 92, earSet: 6, tailSet: 10 },
+    alleles: { undercoat: singleCoat, coatLength: { L: 0.5, l: 0.5 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'One of the oldest breeds on earth. Feathered ears, a whip tail, and a mind entirely its own.',
+  },
+  {
+    key: 'pharaoh', name: 'Pharaoh Hound', group: 'Hound', weight: 48,
+    traits: { biddability: 48, sociability: 60, energy: 76, stability: 62, preyDrive: 92, persistence: 62, independence: 70, alertness: 84, vocality: 34, handling: 58, structure: 78, longevity: 76, fertility: 64, substance: 28, muzzle: 84, earSet: 96, tailSet: 22 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'Red, sleek, with enormous upright ears — and it blushes, nose and ears flushing pink when excited.',
+  },
+  {
+    key: 'redbone', name: 'Redbone Coonhound', group: 'Hound', weight: 60,
+    traits: { biddability: 50, sociability: 76, energy: 74, stability: 62, preyDrive: 92, persistence: 90, independence: 66, alertness: 78, vocality: 96, handling: 66, structure: 72, longevity: 70, fertility: 74, substance: 54, muzzle: 80, earSet: 2, tailSet: 46 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'A solid red American treeing hound with a bay you can hear across a county.',
+  },
+  {
+    key: 'bluetick', name: 'Bluetick Coonhound', group: 'Hound', weight: 62,
+    traits: { biddability: 48, sociability: 72, energy: 74, stability: 60, preyDrive: 94, persistence: 92, independence: 68, alertness: 80, vocality: 98, handling: 64, structure: 72, longevity: 70, fertility: 74, substance: 56, muzzle: 80, earSet: 2, tailSet: 46 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'Black and tan under a dense blue ticking. Loud, stubborn, sweet, and never entirely off the trail.',
+  },
+  {
+    key: 'bullmastiff', name: 'Bullmastiff', group: 'Working', weight: 120,
+    traits: { biddability: 54, sociability: 56, energy: 36, stability: 72, preyDrive: 40, persistence: 74, independence: 60, alertness: 74, vocality: 24, handling: 60, structure: 44, longevity: 34, fertility: 54, substance: 96, muzzle: 22, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { dm: 0.06, cystinuria: 0.04 },
+    blurb: 'The gamekeeper\'s night dog: bred to knock a poacher down and hold him. Quiet, massive, devoted.',
+  },
+  {
+    key: 'tibetanMastiff', name: 'Tibetan Mastiff', group: 'Working', weight: 120,
+    traits: { biddability: 28, sociability: 34, energy: 40, stability: 66, preyDrive: 56, persistence: 82, independence: 94, alertness: 90, vocality: 66, handling: 44, structure: 56, longevity: 58, fertility: 40, substance: 92, muzzle: 48, earSet: 4, tailSet: 88 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'A lion-maned guardian from the roof of the world. Sleeps all day, patrols all night, obeys no one.',
+  },
+  {
+    key: 'dogo', name: 'Dogo Argentino', group: 'Working', weight: 95,
+    traits: { biddability: 60, sociability: 52, energy: 74, stability: 66, preyDrive: 86, persistence: 92, independence: 60, alertness: 82, vocality: 30, handling: 58, structure: 72, longevity: 60, fertility: 66, substance: 88, muzzle: 40, earSet: 8, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'A pure white big-game hound, all muscle. Deafness rides along with the white.',
+  },
+  {
+    key: 'swissMountain', name: 'Greater Swiss Mountain Dog', group: 'Working', weight: 115,
+    traits: { biddability: 66, sociability: 80, energy: 50, stability: 74, preyDrive: 40, persistence: 70, independence: 44, alertness: 70, vocality: 44, handling: 78, structure: 52, longevity: 42, fertility: 62, substance: 90, muzzle: 56, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { pll: 0.02 },
+    blurb: 'The Bernese\'s short-coated big brother: a tricolour draft dog that pulls carts and hearts.',
+  },
+  {
+    key: 'beardedCollie', name: 'Bearded Collie', group: 'Herding', weight: 50,
+    traits: { biddability: 76, sociability: 84, energy: 80, stability: 62, preyDrive: 62, persistence: 70, independence: 44, alertness: 74, vocality: 62, handling: 76, structure: 70, longevity: 72, fertility: 70, substance: 48, muzzle: 66, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: bearded, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'A bouncing, shaggy Scottish drover that fades from black to slate, or brown to sandy, as it grows.',
+  },
+  {
+    key: 'cardigan', name: 'Cardigan Welsh Corgi', group: 'Herding', weight: 32,
+    traits: { biddability: 76, sociability: 66, energy: 66, stability: 66, preyDrive: 60, persistence: 74, independence: 50, alertness: 84, vocality: 76, handling: 70, structure: 60, longevity: 72, fertility: 68, substance: 72, muzzle: 62, earSet: 94, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, chondro: { Cd: 1, cd: 0 } },
+    diseases: { prcdPRA: 0.08, dm: 0.1 },
+    blurb: 'The Corgi with the tail — and the merle. Older, heavier and rounder-eared than the Pembroke.',
+  },
+  {
+    key: 'bouvier', name: 'Bouvier des Flandres', group: 'Herding', weight: 90,
+    traits: { biddability: 72, sociability: 52, energy: 60, stability: 74, preyDrive: 54, persistence: 84, independence: 56, alertness: 84, vocality: 40, handling: 62, structure: 62, longevity: 56, fertility: 62, substance: 90, muzzle: 56, earSet: 40, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: bearded, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'A rough-coated Belgian cattle dog, built like a barrel with a beard. Calm, formidable, and slow to warm up.',
+  },
+  {
+    key: 'kelpie', name: 'Australian Kelpie', group: 'Herding', weight: 40,
+    traits: { biddability: 84, sociability: 54, energy: 98, stability: 58, preyDrive: 84, persistence: 92, independence: 56, alertness: 92, vocality: 40, handling: 60, structure: 84, longevity: 78, fertility: 74, substance: 40, muzzle: 72, earSet: 96, tailSet: 34 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { cea: 0.03 },
+    blurb: 'Runs along the backs of sheep in a packed yard. The hardest-working dog in the world, and it knows it.',
+  },
+  {
+    key: 'dutchShepherd', name: 'Dutch Shepherd', group: 'Herding', weight: 62,
+    traits: { biddability: 86, sociability: 54, energy: 92, stability: 66, preyDrive: 82, persistence: 90, independence: 46, alertness: 92, vocality: 44, handling: 64, structure: 80, longevity: 72, fertility: 72, substance: 50, muzzle: 74, earSet: 96, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'A brindle Malinois, more or less: rarer, a shade steadier, every bit as intense.',
+  },
+  {
+    key: 'tervuren', name: 'Belgian Tervuren', group: 'Herding', weight: 60,
+    traits: { biddability: 86, sociability: 52, energy: 90, stability: 60, preyDrive: 78, persistence: 88, independence: 42, alertness: 94, vocality: 52, handling: 64, structure: 80, longevity: 72, fertility: 70, substance: 46, muzzle: 76, earSet: 96, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'The long-coated Belgian: a mahogany-and-black cloud of fur with a Malinois inside it.',
+  },
+  {
+    key: 'elkhound', name: 'Norwegian Elkhound', group: 'Spitz', weight: 50,
+    traits: { biddability: 52, sociability: 66, energy: 74, stability: 68, preyDrive: 80, persistence: 84, independence: 70, alertness: 88, vocality: 84, handling: 66, structure: 76, longevity: 72, fertility: 66, substance: 62, muzzle: 60, earSet: 96, tailSet: 92 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { prcdPRA: 0.05 },
+    blurb: 'A silver-grey Viking spitz that held moose at bay by barking. Still barks. A lot.',
+  },
+  {
+    key: 'americanEskimo', name: 'American Eskimo Dog', group: 'Spitz', weight: 22,
+    traits: { biddability: 80, sociability: 66, energy: 72, stability: 58, preyDrive: 54, persistence: 64, independence: 50, alertness: 86, vocality: 82, handling: 62, structure: 70, longevity: 76, fertility: 66, substance: 42, muzzle: 60, earSet: 94, tailSet: 92 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: { prcdPRA: 0.06 },
+    blurb: 'A snow-white circus spitz with a fox face, a plume tail and a trick for every treat.',
+  },
+  {
+    key: 'finnishSpitz', name: 'Finnish Spitz', group: 'Spitz', weight: 30,
+    traits: { biddability: 52, sociability: 62, energy: 78, stability: 62, preyDrive: 82, persistence: 74, independence: 68, alertness: 92, vocality: 98, handling: 60, structure: 78, longevity: 78, fertility: 68, substance: 40, muzzle: 66, earSet: 96, tailSet: 92 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },
+    diseases: {},
+    blurb: 'A fox-red bark-pointer: it finds a bird and yodels at it until the hunter arrives. Finland\'s national dog.',
+  },
+  {
+    key: 'wireFox', name: 'Wire Fox Terrier', group: 'Terrier', weight: 17,
+    traits: { biddability: 56, sociability: 62, energy: 90, stability: 46, preyDrive: 94, persistence: 92, independence: 66, alertness: 92, vocality: 80, handling: 56, structure: 78, longevity: 78, fertility: 70, substance: 44, muzzle: 74, earSet: 40, tailSet: 62 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: bearded, shedding: shedsLittle },
+    diseases: { pll: 0.04 },
+    blurb: 'The most terrier of terriers: white, wiry, wired. Wins Westminster more than any other breed.',
+  },
+  {
+    key: 'kerryBlue', name: 'Kerry Blue Terrier', group: 'Terrier', weight: 36,
+    traits: { biddability: 64, sociability: 56, energy: 78, stability: 54, preyDrive: 84, persistence: 90, independence: 62, alertness: 84, vocality: 60, handling: 60, structure: 72, longevity: 72, fertility: 66, substance: 54, muzzle: 74, earSet: 40, tailSet: 62 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.6, cu: 0.4 }, furnishings: bearded, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'Born black, fades to slate blue by two. Soft wavy coat, hard Irish head.',
+  },
+  {
+    key: 'wheaten', name: 'Soft-Coated Wheaten Terrier', group: 'Terrier', weight: 38,
+    traits: { biddability: 66, sociability: 84, energy: 80, stability: 56, preyDrive: 72, persistence: 76, independence: 52, alertness: 78, vocality: 62, handling: 72, structure: 70, longevity: 70, fertility: 68, substance: 52, muzzle: 66, earSet: 40, tailSet: 62 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.5, cu: 0.5 }, furnishings: bearded, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'The Irish farm terrier that greets everyone with a leap. Wheat-gold, silky, low-shedding.',
+  },
+  {
+    key: 'bedlington', name: 'Bedlington Terrier', group: 'Terrier', weight: 20,
+    traits: { biddability: 62, sociability: 66, energy: 72, stability: 58, preyDrive: 86, persistence: 80, independence: 60, alertness: 80, vocality: 56, handling: 64, structure: 72, longevity: 76, fertility: 66, substance: 30, muzzle: 80, earSet: 4, tailSet: 20 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: curly, furnishings: smoothFace, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'Looks like a lamb, fights like a lion. Arched back, tasselled ears, a coat of linty curls.',
+  },
+  {
+    key: 'standardSchnauzer', name: 'Standard Schnauzer', group: 'Working', weight: 40,
+    traits: { biddability: 76, sociability: 56, energy: 78, stability: 66, preyDrive: 70, persistence: 84, independence: 56, alertness: 92, vocality: 66, handling: 62, structure: 78, longevity: 76, fertility: 70, substance: 54, muzzle: 70, earSet: 40, tailSet: 60 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: bearded, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'The original Schnauzer, the middle size: a bearded ratter and guard dog with a long memory.',
+  },
+  {
+    key: 'affenpinscher', name: 'Affenpinscher', group: 'Companion', weight: 8,
+    traits: { biddability: 50, sociability: 56, energy: 66, stability: 52, preyDrive: 70, persistence: 76, independence: 64, alertness: 88, vocality: 70, handling: 50, structure: 66, longevity: 76, fertility: 44, substance: 40, muzzle: 14, earSet: 60, tailSet: 70 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: bearded, shedding: shedsLittle },
+    diseases: {},
+    blurb: '"Monkey dog": a black wiry gremlin with a pushed-in face and the confidence of a much bigger animal.',
+  },
+  {
+    key: 'silky', name: 'Silky Terrier', group: 'Companion / Terrier', weight: 10,
+    traits: { biddability: 56, sociability: 58, energy: 72, stability: 44, preyDrive: 80, persistence: 72, independence: 56, alertness: 88, vocality: 84, handling: 46, structure: 68, longevity: 78, fertility: 46, substance: 32, muzzle: 60, earSet: 88, tailSet: 62 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'A Yorkie crossed with an Australian Terrier, a hundred years ago: bigger, tougher, still blue and tan.',
+  },
+  {
+    key: 'toyPoodle', name: 'Toy Poodle', group: 'Companion', weight: 6,
+    traits: { biddability: 86, sociability: 66, energy: 66, stability: 50, preyDrive: 46, persistence: 66, independence: 40, alertness: 84, vocality: 74, handling: 60, structure: 60, longevity: 82, fertility: 40, substance: 30, muzzle: 66, earSet: 12, tailSet: 62 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: curly, furnishings: bearded, shedding: shedsLittle },
+    diseases: { prcdPRA: 0.1, pll: 0.02 },
+    blurb: 'All the Poodle brain in six pounds. Lives to be twenty and remembers every slight.',
   },
 ];
+
+/**
+ * LEGENDARY BREEDS
+ *
+ * Not in the pickers, not in the Lab. They turn up, very occasionally, among
+ * the outside dogs — a gift. The Sparkly Rainbow Spaniel scores a perfect 100
+ * against any standard, wins every show it enters, and passes its rainbow
+ * gene on as a recessive: its puppies carry it, and two carriers together
+ * have a one-in-four chance of a rainbow of their own.
+ */
+export const LEGENDARY_BREEDS: BreedProfile[] = [
+  {
+    key: 'rainbowSpaniel', name: 'Sparkly Rainbow Spaniel', group: 'Legendary', weight: 30, weightSpread: 0.06,
+    traits: { biddability: 96, sociability: 98, energy: 66, stability: 94, preyDrive: 30, persistence: 70, independence: 20, alertness: 70, vocality: 30, handling: 98, structure: 96, longevity: 96, fertility: 88, substance: 46, muzzle: 62, earSet: 4, tailSet: 46 },
+    alleles: {
+      undercoat: singleCoat, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsLittle,
+      rainbow: { Rb: 1, rb: 0 }, locusE: { Em: 0, E: 1, e: 0 }, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 },
+      locusS: { S: 0.5, sp: 0.5 }, ticking: { T: 0, t: 1 }, merle: { M: 0, m: 1 }, chondro: { Cd: 0, cd: 1 },
+    },
+    diseases: {},
+    blurb: 'Nobody knows where they come from. A spaniel whose coat shimmers through every colour at once and sheds a little glitter on the sofa. Perfect, by definition.',
+  },
+];
+for (const breed of LEGENDARY_BREEDS) {
+  for (const locus of LOCI) {
+    if (locus.category === 'disease') breed.diseases = { ...breed.diseases, [locus.key]: 0 };
+  }
+}
 
 // The breed-standard colour tables (breedColours.ts) win over whatever colour
 // genes the entries above carry, so every breed looks like its standard.
@@ -1313,7 +1574,7 @@ for (const breed of BREEDS) {
 }
 
 export const BREED_BY_KEY: Record<string, BreedProfile> = Object.fromEntries(
-  BREEDS.map((b) => [b.key, b]),
+  [...BREEDS, ...LEGENDARY_BREEDS].map((b) => [b.key, b]),
 );
 
 export const BREED_GROUPS = Array.from(new Set(BREEDS.map((b) => b.group))).sort();

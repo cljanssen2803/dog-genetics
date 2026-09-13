@@ -77,9 +77,14 @@ export interface PairingPreview {
 
 const SIM_COUNT = 30;
 
-/** A stable private generator for one specific pairing. */
-function previewRng(project: Project, sireId: string, damId: string): Rng {
-  return new Rng(hashString(`${project.seed}:${sireId}:${damId}`));
+/**
+ * A stable private generator for one specific pairing. Seeded from the dogs'
+ * own seed numbers rather than their ids, because ids count up across every
+ * project ever opened in a session and would make the same pairing preview
+ * differently in two saves with the same seed.
+ */
+function previewRng(project: Project, sire: Dog, dam: Dog): Rng {
+  return new Rng(hashString(`${project.seed}:${sire.seedValue}:${dam.seedValue}`));
 }
 
 /**
@@ -90,7 +95,7 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
   const coi = kinship.projectedCoi(sire.id, dam.id);
   const coiInfo = describeCoi(coi);
 
-  const rng = previewRng(project, sire.id, dam.id);
+  const rng = previewRng(project, sire, dam);
 
   // --- Simulate a run of litters -----------------------------------------
   const simulated: Dog[] = [];

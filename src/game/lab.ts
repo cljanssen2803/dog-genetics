@@ -970,7 +970,7 @@ export function matchBreeds(selected: string[]): BreedMatch[] {
   if (features.length === 0) return [];
   const weights = rarityWeights(features);
   const weightTotal = features.reduce((sum, f) => sum + weights[f.key], 0);
-  const matches = BREEDS.map((breed) => {
+  const matches = BREEDS.filter((b) => b.group !== 'Legendary').map((breed) => {
     const perFeature: Record<string, number> = {};
     const brings: string[] = [];
     const carries: string[] = [];

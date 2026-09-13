@@ -901,6 +901,24 @@ export function searchOutsideDogs(project: Project, search: OutsideSearch, count
     results.push(dog);
   }
 
+  // Very occasionally, a legend. One search in forty brings a Sparkly
+  // Rainbow Spaniel — a perfect dog, offered like any other.
+  if (results.length > 0 && rng.chance(1 / 40)) {
+    const sex: Sex = rng.chance(0.5) ? 'M' : 'F';
+    const legend = createFounder(rng, {
+      breedKey: 'rainbowSpaniel',
+      sex,
+      name: pickName(project.names, sex, rng),
+      currentMonth: project.month,
+      ageMonths: rng.int(14, 30),
+      wildcards: false,
+    });
+    legend.status = 'outside';
+    legend.tests.dna = true;
+    results[rng.int(0, results.length - 1)] = legend;
+    addLog(project, 'milestone', `A ${legend.name} appeared among the outside dogs. A Sparkly Rainbow Spaniel. Nobody knows where they come from.`);
+  }
+
   commitRng(project, rng);
   project.candidates = results;
   project.updatedAt = Date.now();

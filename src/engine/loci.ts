@@ -231,6 +231,17 @@ export const LOCI: LocusDef[] = [
     ],
   },
   {
+    key: 'rainbow',
+    name: 'Rainbow',
+    gene: '✨',
+    category: 'color',
+    alleles: [
+      { code: 'Rb', symbol: 'Rb', label: 'Rainbow' },
+      { code: 'rb', symbol: 'rb', label: 'Ordinary' },
+    ],
+    note: 'Two copies and the coat shimmers through every colour at once. Nobody has found it in the wild. Nobody is looking very hard.',
+  },
+  {
     key: 'merle',
     name: 'Merle',
     gene: 'PMEL17',

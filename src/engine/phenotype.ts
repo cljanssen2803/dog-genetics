@@ -36,6 +36,8 @@ export interface CoatColor {
   /** Plain words for the export and the detail sheet. */
   noseName: string;
   eyeName: string;
+  /** The legendary coat: every colour at once. */
+  rainbow: boolean;
   merle: boolean;
   doubleMerle: boolean;
   harlequin: boolean;
@@ -100,6 +102,7 @@ export function resolveColor(g: Genotype): CoatColor {
       eye: '#c9b8d8',
       noseName: 'pink',
       eyeName: 'pale lilac',
+      rainbow: false,
       merle: false,
       doubleMerle: false,
       harlequin: false,
@@ -301,16 +304,25 @@ export function resolveColor(g: Genotype): CoatColor {
     : dark.name === 'Chocolate' || dark.name === 'Cocoa' ? (clearRed ? 'liver-pink (Dudley)' : 'brown')
     : 'pale lilac';
 
+  // The legendary coat overrides everything else.
+  const rainbow = copies(g, 'rainbow', 'Rb') === 2;
+  if (rainbow) {
+    name = 'Sparkling rainbow';
+    base = '#c9a3ff';
+    accent = '#ff9ad5';
+  }
+
   return {
     name,
     base,
     accent,
+    rainbow,
     // A Dudley nose is pinker than a chocolate dog's, because there is no
     // dark hair around it to make it read as brown.
-    nose: clearRed && brown && !dilute ? '#a87a6c' : dark.nose,
-    eye,
-    noseName,
-    eyeName,
+    nose: rainbow ? '#b98cff' : clearRed && brown && !dilute ? '#a87a6c' : dark.nose,
+    eye: rainbow ? '#8f6cff' : eye,
+    noseName: rainbow ? 'lilac' : noseName,
+    eyeName: rainbow ? 'violet' : eyeName,
     merle,
     doubleMerle,
     harlequin,
@@ -770,6 +782,11 @@ export function findRarities(g: Genotype, coat: CoatProfile, color: CoatColor): 
   }
   if (copies(g, 'hairlessDom', 'Hd') === 1) {
     add('hairlessDom', 'Crested hairless', 'rare', 'The dominant hairless gene. Striking, but it kills any puppy that inherits two copies.');
+  }
+  if (copies(g, 'rainbow', 'Rb') === 2) {
+    add('rainbow', 'Sparkling rainbow', 'legendary', 'Every colour at once, and a little glitter on the sofa. A perfect dog, by definition.');
+  } else if (copies(g, 'rainbow', 'Rb') === 1) {
+    add('rainbowCarrier', 'Rainbow carrier', 'legendary', 'Carries one copy of the rainbow gene. Two carriers together: one puppy in four is a rainbow.');
   }
   if (copies(g, 'albino', 'al') === 2) {
     add('albino', 'Albino', 'legendary', 'True albinism. Breathtaking, genuinely fragile, and ethically loaded.');

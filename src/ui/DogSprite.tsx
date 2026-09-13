@@ -306,12 +306,12 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
           style={{ position: 'absolute', inset: 0, transformOrigin: `${art.tailFit.target[0]}% ${art.tailFit.target[1]}%` }}
         >
           <div style={{ position: 'absolute', inset: 0, transform: art.tailStandin, transformOrigin: `${art.tailFit.target[0]}% ${art.tailFit.target[1]}%` }}>
-            <Layer src={art.tailSrc} colour={art.base} fit={art.tailFit} />
+            <Layer src={art.tailSrc} colour={art.fill} fit={art.tailFit} />
           </div>
         </div>
 
         {/* The dog itself, carrying all the markings. */}
-        <Layer src={art.bodySrc} colour={art.base}>
+        <Layer src={art.bodySrc} colour={art.fill}>
           {art.markings}
         </Layer>
 
@@ -412,7 +412,7 @@ function Stencil({ src, colour, opacity, transform }: { src: string; colour: str
       style={{
         position: 'absolute',
         inset: 0,
-        backgroundColor: colour,
+        background: colour,
         opacity,
         transform,
         transformOrigin: '0 0',
@@ -449,7 +449,7 @@ function Layer({
     position: 'absolute',
     inset: 0,
     ...placement,
-    backgroundColor: colour,
+    background: colour,
     isolation: 'isolate',
     WebkitMaskImage: url,
     maskImage: url,
@@ -613,9 +613,13 @@ function describe(dog: Dog, drawLbs?: number) {
 
   const trueColour = coat.hairless ? shade(colour.base, 26) : colour.base;
   const base = forShading(trueColour);
+  // The legendary coat is painted with a gradient rather than a colour.
+  const RAINBOW = 'linear-gradient(105deg, #ff8a8a 0%, #ffc07a 20%, #fff29a 40%, #9ee8a8 60%, #8ccfff 80%, #d3a6ff 100%)';
+  const fill = colour.rainbow ? RAINBOW : base;
 
   return {
     bodySrc,
+    fill,
     earSrc: roundEars ? 'ear-round.png' : houndEars ? 'ear-hound.png' : spanielEars ? 'ear-spaniel.png' : EAR_SRC[ears],
     tailSrc: TAIL_SRC[tailKey],
     tailStandin: standin?.transform,
@@ -642,7 +646,7 @@ function describe(dog: Dog, drawLbs?: number) {
     base,
     // Ear leather is genuinely darker than body coat, and the contrast is what
     // makes an ear read as an ear rather than a bump on the skull.
-    earColour: shade(base, -32),
+    earColour: colour.rainbow ? 'linear-gradient(105deg, #ff9ad5, #b98cff)' : shade(base, -32),
     face,
     eyeColour: colour.eye,
     noseColour: colour.nose,
@@ -689,6 +693,30 @@ function Markings({
 }) {
   const shapes: React.ReactNode[] = [];
   const light = shade(base, 40);
+
+  // A rainbow dog wears no markings, only sparkles.
+  if (colour.rainbow) {
+    const stars: React.ReactNode[] = [];
+    for (let i = 0; i < 14; i++) {
+      const s = 1.2 + noise() * 1.6;
+      stars.push(
+        <div
+          key={`s${i}`}
+          style={{
+            position: 'absolute',
+            left: `${22 + noise() * 66}%`,
+            top: `${14 + noise() * 66}%`,
+            width: `${s}%`,
+            height: `${s * 1.33}%`,
+            background: 'white',
+            opacity: 0.85,
+            clipPath: 'polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%)',
+          }}
+        />,
+      );
+    }
+    return <>{stars}</>;
+  }
   // Head markings were measured on the smooth body. Other bodies carry their
   // heads elsewhere, so everything on the face is shifted by the difference.
   const hx = face.eye[0] - 80.6;

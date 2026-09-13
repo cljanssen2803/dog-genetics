@@ -151,6 +151,13 @@ export function scoreDog(
 ): DogScore {
   const values = useBreedingValue ? dog.bv : dog.observed;
   const breakdown: ScoreBreakdown[] = [];
+
+  // The legendary coat scores a perfect hundred against any standard. That
+  // is the whole point of it.
+  if (dog.genotype.rainbow && dog.genotype.rainbow[0] === 'Rb' && dog.genotype.rainbow[1] === 'Rb') {
+    const perfect: ScoreBreakdown = { key: 'rainbow', label: 'Sparkling rainbow', actual: 'Perfect, by definition', score: 1, priority: 4, weight: 7 };
+    return { total: 100, meetsStandard: true, breakdown: [perfect], weaknesses: [], strengths: [perfect], healthPenalty: 0, healthNotes: [] };
+  }
   let weightedSum = 0;
   let weightTotal = 0;
   let meets = true;
