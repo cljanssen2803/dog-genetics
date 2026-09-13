@@ -191,3 +191,54 @@ Save them anywhere and tell me the folder. I will build the compositing layer,
 tune each piece's offset and scale so everything registers, and wire it to the
 genetics. Colour, markings, merle, brindle, white patches and body size are all
 applied in code on top — they are not part of the artwork.
+
+---
+
+## ROUND THREE — pattern stencils (optional, 7 images)
+
+The colours and markings are currently drawn by code as shapes clipped to the
+dog. Code has been pushed as far as it usefully goes: ragged edges, irregular
+patches. It will always look a little constructed, because it is.
+
+The fix is the same trick that fixed the dogs themselves: hand-drawn stencils.
+Each image is a **marking pattern**, drawn as **pure white shapes on a
+transparent background**, in the **same pose and canvas as the pilot body**.
+The code will clip each one to whatever coat body the dog has, then colour it.
+Because the body mask does the clipping, the pattern only has to be roughly the
+right shape — it does not need to match any one coat outline.
+
+Style preamble, paste at the front of every prompt:
+
+> Flat vector illustration. The SAME dog as before — medium build, side profile
+> facing right, standing square, no ears, no tail — but this image shows ONLY
+> the white markings, drawn as solid pure-white shapes with soft slightly
+> feathered edges, on a fully transparent background. Draw nothing else: no
+> body outline, no shading, no colour, no eyes or nose. The white shapes must
+> sit exactly where they would fall on that dog. 1448×1086 canvas, transparent
+> PNG.
+
+Generate these seven:
+
+15. **Irish white** — a white blaze down the chest and throat, white on all
+    four feet up to the pastern, and a white tail tip. Nothing else. This is
+    the classic Border Collie / Boston Terrier pattern.
+16. **Irish white, extended** — as above, plus a full white collar right
+    round the neck and a narrow white blaze up the centre of the face.
+17. **Piebald** — white over roughly half the dog: the whole chest, belly,
+    legs, neck and muzzle, leaving large coloured patches on the back, over
+    the ears, and around one eye. Like a Springer Spaniel.
+18. **Extreme white** — almost the entire dog white, with only one small
+    coloured patch over one ear and one at the root of the tail. Like a
+    mostly-white Bull Terrier.
+19. **Tan points** — draw the TAN areas as the white shapes: both eyebrows,
+    the sides of the muzzle, a patch on each side of the chest, the lower half
+    of all four legs, and under the tail. Like a Rottweiler or Doberman.
+20. **Merle** — torn, ragged, irregular patches scattered over the entire
+    body, head and legs, each with jagged edges, covering roughly forty
+    percent of the dog. Like an Australian Shepherd's merle patches.
+21. **Brindle** — soft vertical stripes across the body barrel, neck and upper
+    legs, each stripe slightly wavy and tapering, as on a brindle Boxer. Draw
+    the STRIPES as the white shapes.
+
+Save them anywhere and tell me the folder. I will run the cleaner, wire each to
+the genetics, and the code-drawn shapes go away.
