@@ -620,7 +620,9 @@ function OutsideCard({
   return (
     <Card className={`mb-3 ${rank === 1 ? 'border-[var(--brand)]' : ''}`}>
       <div className="flex gap-3 mb-2">
-        <DogPortrait dog={dog} size={86} />
+        <div className="walk-on" key={dog.id} style={{ animationDelay: `${Math.min(rank - 1, 6) * 0.12}s` }}>
+          <DogPortrait dog={dog} size={86} />
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <NameLine f={f} />

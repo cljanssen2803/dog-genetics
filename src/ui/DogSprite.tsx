@@ -20,7 +20,7 @@
  * would be impossible, whereas fourteen stencils cover every one of them.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { type Dog, ageMonths, currentWeight } from '../engine/dog';
 import { useGameMaybe } from './GameContext';
 import { sizeToPounds } from '../engine/traits';
@@ -310,10 +310,21 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
   const phase = ((dog.seedValue ?? 0) % 1000) / 1000;
   const newborn = !!game && ageMonths(dog, game.project.month) < 1 && dog.status !== 'placed';
 
-  // Tap the dog and it wags. Purely for the pleasure of it.
+  // Tap the dog and it wags. Three quick taps and it shakes itself off.
+  // Purely for the pleasure of it.
   const [wagging, setWagging] = useState(false);
+  const [shaking, setShaking] = useState(false);
+  const taps = useRef<number[]>([]);
   const wag = () => {
-    if (wagging) return;
+    const now = Date.now();
+    taps.current = [...taps.current.filter((t) => now - t < 700), now];
+    if (taps.current.length >= 3 && !shaking) {
+      taps.current = [];
+      setShaking(true);
+      window.setTimeout(() => setShaking(false), 720);
+      return;
+    }
+    if (wagging || shaking) return;
     setWagging(true);
     window.setTimeout(() => setWagging(false), 720);
   };
@@ -336,7 +347,7 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
       {/* Scaled about the feet, so a small dog stands on the same ground as a big
           one instead of floating in the middle of the box. */}
       <div style={{ position: 'absolute', inset: 0, transform: art.bodyTransform, transformOrigin: '50% 88%' }}>
-       <div className="breathing" style={{ position: 'absolute', inset: 0, animationDelay: `${(-phase * 3.4).toFixed(2)}s` }}>
+       <div className={shaking ? 'shaking' : 'breathing'} style={{ position: 'absolute', inset: 0, animationDelay: shaking ? '0s' : `${(-phase * 3.4).toFixed(2)}s` }}>
         {/* Tail sits behind the body. The wrapper wags about the tail root. */}
         <div
           className={wagging ? 'wagging' : undefined}
@@ -355,7 +366,7 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
         {/* Ear in front. Slightly darker, as ear leather usually is. It flicks
             with the wag, pivoting where it joins the skull. */}
         <div
-          className={wagging ? 'flicking' : undefined}
+          className={wagging || shaking ? 'flicking' : undefined}
           style={{ position: 'absolute', inset: 0, transformOrigin: `${art.earFit.target[0]}% ${art.earFit.target[1]}%` }}
         >
           <Layer src={art.earSrc} colour={art.earColour} fit={art.earFit} />

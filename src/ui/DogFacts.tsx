@@ -225,7 +225,12 @@ export function NameLine({ f }: { f: DogFacts }) {
   return (
     <div className="flex items-baseline gap-1.5 min-w-0">
       {f.titles.length > 0 && (
-        <span className="text-rust text-[12px] font-semibold">{f.titles[f.titles.length - 1]}</span>
+        <span className="text-rust text-[12px] font-semibold">
+          <span className="gleam" aria-hidden="true">
+            {f.titles[f.titles.length - 1].startsWith('Gr') ? '👑' : '🏆'}
+          </span>{' '}
+          {f.titles[f.titles.length - 1]}
+        </span>
       )}
       <span className="display font-semibold text-[15px] truncate">{f.name}</span>
       <span className="text-[13px] text-[var(--text-faint)]">{f.sexSymbol}</span>

@@ -170,7 +170,9 @@ export function DogDetailSheet({
     >
       <div className="flex justify-center mb-2 relative">
         <div className="trot-in" key={dog.id}>
-          <DogPortrait dog={dog} size={200} />
+          <div className={tab === 'decide' ? 'tilting' : undefined}>
+            <DogPortrait dog={dog} size={200} />
+          </div>
         </div>
         {hearts.map((h) => (
           <span key={h} className="heart-float" style={{ top: '40%' }}>
