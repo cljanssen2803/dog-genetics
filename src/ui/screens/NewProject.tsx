@@ -18,7 +18,7 @@ import {
   blankStandard,
   designerCrossStandard,
 } from '../../engine/standard';
-import { BREEDS, BREED_GROUPS } from '../../engine/breeds';
+import { BREEDS, BREED_GROUPS, breedFamily } from '../../engine/breeds';
 import type { CoatKind } from '../../engine/phenotype';
 import { createProject } from '../../game/project';
 import { saveProject } from '../../game/storage';
@@ -321,7 +321,7 @@ export function BreedPicker({
   const [group, setGroup] = useState<string>('All');
 
   const filtered = BREEDS.filter((b) => {
-    if (group !== 'All' && b.group !== group) return false;
+    if (group !== 'All' && breedFamily(b) !== group) return false;
     if (!query.trim()) return true;
     return b.name.toLowerCase().includes(query.trim().toLowerCase());
   });

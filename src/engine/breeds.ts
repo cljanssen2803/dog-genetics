@@ -1591,7 +1591,18 @@ export const BREED_BY_KEY: Record<string, BreedProfile> = Object.fromEntries(
   [...BREEDS, ...LEGENDARY_BREEDS].map((b) => [b.key, b]),
 );
 
-export const BREED_GROUPS = Array.from(new Set(BREEDS.map((b) => b.group))).sort();
+/**
+ * The family a breed sits in, for filtering. Groups in the table are
+ * descriptive ("Companion / Sighthound", "Giant / Guardian"); the family is
+ * the first word, with the giants and guardians folded into Working so the
+ * filter row stays short enough for a phone.
+ */
+export function breedFamily(breed: BreedProfile): string {
+  const first = breed.group.split(' / ')[0];
+  return first === 'Giant' || first === 'Guardian' ? 'Working' : first;
+}
+
+export const BREED_GROUPS = Array.from(new Set(BREEDS.map(breedFamily))).sort();
 
 /**
  * Occasionally the outside world hands you something nobody knew was there.
