@@ -36,6 +36,13 @@ export interface CoatColor {
   merle: boolean;
   doubleMerle: boolean;
   harlequin: boolean;
+  /** The full-strength colour left in the patches a merle dog keeps. */
+  merlePatch: string;
+  /**
+   * True on a sable or brindle merle. Merle only dilutes black pigment, so on
+   * a fawn dog it barely shows — the coat stays blond with faint marbling.
+   */
+  merleSubtle: boolean;
   brindle: boolean;
   /** 0 = no white, 1 = almost entirely white. */
   white: number;
@@ -52,6 +59,16 @@ const EUMELANIN = {
   lilac: { name: 'Lilac', hex: '#a08d86', nose: '#a4908a' },
   cocoa: { name: 'Cocoa', hex: '#6b4630', nose: '#77543c' },
   cocoaDilute: { name: 'Cocoa lilac', hex: '#ad9b91', nose: '#b09c93' },
+};
+
+/** What each dark pigment fades to across the diluted body of a merle. */
+const MERLE_DILUTE: Record<string, string> = {
+  Black: '#8e8f97',
+  Blue: '#b3b4bb',
+  Chocolate: '#c2a08a',
+  Lilac: '#cfc2bb',
+  Cocoa: '#c8a893',
+  'Cocoa lilac': '#d5c6bd',
 };
 
 /** Red and cream shades, controlled mostly by the intensity gene. */
@@ -73,6 +90,8 @@ export function resolveColor(g: Genotype): CoatColor {
       merle: false,
       doubleMerle: false,
       harlequin: false,
+      merlePatch: '#f0e7dc',
+      merleSubtle: false,
       brindle: false,
       white: 0.05,
       ticked: false,
@@ -169,10 +188,41 @@ export function resolveColor(g: Genotype): CoatColor {
     name += ' with a dark mask';
   }
 
-  if (harlequin) name = `Harlequin ${dark.name.toLowerCase()}`;
-  else if (doubleMerle) name = `Double merle ${dark.name.toLowerCase()}`;
-  else if (merle && !clearRed) name = `${dark.name} merle`.replace(/^Black merle$/, 'Blue merle');
-  else if (merle && clearRed) name = `${red.name} (hidden merle)`;
+  // --- Merle ---------------------------------------------------------------
+  // Merle dilutes BLACK pigment across most of the body and leaves irregular
+  // patches at full strength. So a blue merle is mostly grey with black torn
+  // through it — not black with grey spots — and a fawn dog with merle stays
+  // fawn, because there is almost no black pigment there to dilute.
+  const eumelaninBody = !clearRed && (kLocus === 'KB' || (kLocus === 'ky' && (aLocus === 'a' || aLocus === 'at')));
+  let merlePatch = dark.hex;
+  let merleSubtle = false;
+
+  if (harlequin) {
+    name = `Harlequin ${dark.name.toLowerCase()}`;
+  } else if (doubleMerle) {
+    name = `Double merle ${dark.name.toLowerCase()}`;
+    merlePatch = MERLE_DILUTE[dark.name] ?? '#a9a9b0';
+  } else if (merle && eumelaninBody) {
+    const merleName: Record<string, string> = {
+      Black: 'Blue merle',
+      Blue: 'Slate merle',
+      Chocolate: 'Red merle',
+      Lilac: 'Lilac merle',
+      Cocoa: 'Cocoa merle',
+      'Cocoa lilac': 'Cocoa lilac merle',
+    };
+    base = MERLE_DILUTE[dark.name] ?? '#8e8f97';
+    if (tanPoints) accent = red.hex;
+    else accent = base;
+    name = (merleName[dark.name] ?? `${dark.name} merle`) + (tanPoints ? ' and tan' : '');
+  } else if (merle && !clearRed) {
+    // Sable or brindle: the merle is genetically there but visually faint.
+    name = `${name} (sable merle)`;
+    merleSubtle = true;
+  } else if (merle && clearRed) {
+    name = `${red.name} (hidden merle)`;
+    merleSubtle = true;
+  }
 
   if (white >= 0.5 && !doubleMerle && !harlequin) name += ', heavily marked white';
   else if (white >= 0.15) name += ' and white';
@@ -194,6 +244,8 @@ export function resolveColor(g: Genotype): CoatColor {
     merle,
     doubleMerle,
     harlequin,
+    merlePatch,
+    merleSubtle,
     brindle,
     white,
     ticked,

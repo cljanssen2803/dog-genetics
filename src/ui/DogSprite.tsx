@@ -469,21 +469,28 @@ function Markings({
 
   // --- Merle: torn patches of diluted pigment ------------------------------
   if (colour.merle) {
-    const count = colour.doubleMerle ? 6 : 13;
+    // Real merle is torn, not spotted: many patches of very different sizes,
+    // a few large and most small, so the eye reads marbling rather than dots.
+    const count = colour.doubleMerle ? 6 : 22;
     const spots: React.ReactNode[] = [];
     for (let i = 0; i < count; i++) {
+      const big = i < 5;
       spots.push(
         blob(
           `m${i}`,
           16 + noise() * 72,
           10 + noise() * 72,
-          5 + noise() * 11,
-          5 + noise() * 12,
-          // Merle dilutes patches of pigment, so they are always LIGHTER than
-          // the base — a blue merle is black with grey torn through it, never
-          // black with darker patches.
-          colour.harlequin ? '#f5f0e6' : shade(base, colour.doubleMerle ? 62 : 44),
-          colour.harlequin ? 0.96 : 0.8,
+          big ? 8 + noise() * 12 : 2.5 + noise() * 6,
+          big ? 7 + noise() * 12 : 2.5 + noise() * 6,
+          // Merle dilutes the BODY and leaves patches at full strength, so the
+          // patches are the dark ones. On a sable merle the patches are faint,
+          // because a fawn coat has almost no black pigment for merle to act on.
+          colour.harlequin
+            ? '#1d1a17'
+            : colour.doubleMerle
+              ? shade(base, 40)
+              : forShading(colour.merlePatch),
+          colour.harlequin ? 0.96 : colour.merleSubtle ? 0.22 : 0.9,
         ),
       );
     }
