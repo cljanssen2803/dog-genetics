@@ -551,7 +551,7 @@ export const TAIL_BLURB: Record<TailType, string> = {
  * flat-faced bull type. A thick double coat with pricked ears and a tail over
  * the back is a Spitz, and gets its own too.
  */
-export type Silhouette = CoatKind | 'sighthound' | 'bull' | 'heavy' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'flatLong';
+export type Silhouette = CoatKind | 'sighthound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong';
 
 export function resolveSilhouette(
   coat: CoatProfile,
@@ -567,6 +567,7 @@ export function resolveSilhouette(
   if (shortLegs > 0 && (coat.kind === 'smooth' || coat.kind === 'short')) {
     return substance > 60 ? 'lowHeavy' : 'lowSmooth';
   }
+  if (shortLegs > 0 && coat.kind === 'wire') return 'lowWire';
   if (muzzle < 30 && (coat.kind === 'long' || coat.kind === 'silky' || coat.kind === 'doubleThick')) return 'flatLong';
   // Thresholds are loose on purpose: a dog's visible build wanders a good
   // twenty points either side of its breed's average.
@@ -574,9 +575,14 @@ export function resolveSilhouette(
   if (coat.kind === 'smooth' || coat.kind === 'short') {
     // The bull body: a flat face, or a heavy dog with a short broad muzzle
     // (the bull-and-terrier breeds). The heavy body: heavy with a real muzzle.
-    if (muzzle <= 30 || (substance > 70 && muzzle < 40)) return 'bull';
-    if (substance > 84) return 'heavy';
+    if (muzzle <= 30 || (substance > 76 && muzzle < 36)) return 'bull';
+    // The Bull Terrier: heavy, long-headed, pricked ears, no undercoat.
+    if (substance > 70 && muzzle >= 50 && earSet > 80 && !coat.undercoat) return 'egg';
+    // Heavy dogs: jowly with a shortish muzzle, plain with a real one.
+    if (substance > 84) return muzzle < 46 ? 'jowl' : 'heavy';
     if (substance < 46 && muzzle > 60 && !coat.undercoat) return 'sighthound';
+    // Small, compact, square: the terrier body.
+    if (sizeLbs < 30 && muzzle >= 40 && earSet > 30 && !coat.undercoat) return 'terrier';
     // A giant smooth dog with a long head — a Great Dane — is a sighthound
     // frame scaled up, and the build factor widens it to suit.
     if (sizeLbs > 95 && muzzle > 60 && substance < 78 && !coat.undercoat) return 'sighthound';

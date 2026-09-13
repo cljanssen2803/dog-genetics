@@ -154,3 +154,12 @@ pendulous hound ear). All wired in: short-legged smooth dogs use a low body
 by build, flat-faced long-coated dogs use the flat-long body, and drop-eared
 smooth hounds get the hound ear. The unused third short-legged body was near
 identical to the Dachshund frame and was not installed.
+
+### DELIVERED 2026-09-13 (evening batch)
+
+Bodies: terrier (small square smooth), egg (Bull Terrier), jowl (heavy,
+short-muzzled mastiff), low wire (Scottie/Westie/Cairn — arrived as a flat
+white silhouette with no shading, scaled up 1.32× and dropped to the ground
+line; a shaded redo would be welcome). Ears: bat, rose, short drop. Tails:
+otter, flag, sabre. Stencils: true piebald, colour patches, ticking. All
+wired in. The tasselled ear was not used (nothing to hang it on yet).

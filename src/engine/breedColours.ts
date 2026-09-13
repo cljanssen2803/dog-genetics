@@ -203,5 +203,5 @@ function I(i: number) {
 /** Breeds whose long coats are silky rather than plush, whatever the default says. */
 export const SINGLE_COATED = [
   'cavalier', 'papillon', 'cocker', 'springer', 'brittany', 'lhasa', 'pekingese', 'japaneseChin', 'griffon',
-  'shihTzu', 'basenji', 'miniSchnauzer', 'giantSchnauzer', 'jackRussell', 'ratTerrier', 'minPin', 'airedale', 'borderTerrier',
+  'shihTzu', 'basenji', 'beagle', 'miniSchnauzer', 'giantSchnauzer', 'jackRussell', 'ratTerrier', 'minPin', 'airedale', 'borderTerrier',
 ];

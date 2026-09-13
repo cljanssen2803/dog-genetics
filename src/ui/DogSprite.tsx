@@ -71,6 +71,10 @@ const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }
   lowSmooth: { eye: [82.8, 28.0], nose: [90.9, 32.6] },
   lowHeavy: { eye: [82.9, 28.0], nose: [91.2, 32.7] },
   flatLong: { eye: [84.5, 23.6], nose: [89.5, 24.5] },
+  terrier: { eye: [79.7, 23.6], nose: [86.6, 27.6] },
+  egg: { eye: [80.4, 19.8], nose: [88.9, 27.0] },
+  jowl: { eye: [83.9, 23.2], nose: [92.3, 25.7] },
+  lowWire: { eye: [77, 36], nose: [86, 44] },
   smooth: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
   short: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
   silky: { eye: [83.2, 21.7], nose: [91.3, 24.6] },
@@ -88,17 +92,21 @@ const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }
  * stretched the right way. When a file arrives, add it to HAVE below and the
  * sprite starts using it.
  */
-type BuildSilhouette = 'sighthound' | 'bull' | 'heavy' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'flatLong';
+type BuildSilhouette = 'sighthound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong';
 const SILHOUETTE_SRC: Record<BuildSilhouette, { file: string; fallback: CoatKind }> = {
   sighthound: { file: 'body-sighthound.png', fallback: 'smooth' },
   bull: { file: 'body-bull.png', fallback: 'smooth' },
   heavy: { file: 'body-heavy.png', fallback: 'smooth' },
+  jowl: { file: 'body-jowl.png', fallback: 'smooth' },
+  egg: { file: 'body-egg.png', fallback: 'smooth' },
+  terrier: { file: 'body-terrier.png', fallback: 'smooth' },
   spitz: { file: 'body-spitz.png', fallback: 'doubleThick' },
   lowSmooth: { file: 'body-lowsmooth.png', fallback: 'smooth' },
   lowHeavy: { file: 'body-lowheavy.png', fallback: 'smooth' },
+  lowWire: { file: 'body-lowwire.png', fallback: 'wire' },
   flatLong: { file: 'body-flatlong.png', fallback: 'silky' },
 };
-const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'bull', 'heavy', 'spitz', 'lowSmooth', 'lowHeavy', 'flatLong'];
+const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'bull', 'heavy', 'jowl', 'egg', 'terrier', 'spitz', 'lowSmooth', 'lowHeavy', 'lowWire', 'flatLong'];
 
 /**
  * Where the ears and tail attach on each body, as percentages of the canvas.
@@ -114,6 +122,10 @@ const RIG: Partial<Record<Silhouette, { ear: [number, number]; tail: [number, nu
   lowSmooth: { ear: [78, 27], tail: [25.5, 50] },
   lowHeavy: { ear: [77, 26], tail: [22, 48] },
   flatLong: { ear: [78.5, 20.5], tail: [22, 41] },
+  terrier: { ear: [75, 23], tail: [28, 49] },
+  egg: { ear: [75, 18.5], tail: [23, 42] },
+  jowl: { ear: [77, 18], tail: [21, 40] },
+  lowWire: { ear: [78, 32], tail: [24, 50] },
 };
 
 const TAIL_SRC: Record<TailType, string> = {
@@ -146,6 +158,16 @@ const HAVE = new Set<string>([
   'body-flatlong.png',
   'ear-hound.png',
   'ear-spaniel.png',
+  'body-terrier.png',
+  'body-egg.png',
+  'body-jowl.png',
+  'body-lowwire.png',
+  'ear-bat.png',
+  'ear-rose.png',
+  'ear-shortdrop.png',
+  'tail-otter.png',
+  'tail-flag.png',
+  'tail-sabre.png',
 ]);
 
 /**
@@ -203,6 +225,12 @@ const ROUND_EAR_FIT: Fit = { anchor: [72, 41], target: [74.5, 19], scale: 0.42 }
 const HOUND_EAR_FIT: Fit = { anchor: [70, 29], target: [75.5, 17], scale: 0.5 };
 /** The feathered spaniel ear, for the silky-coated drop-eared breeds. */
 const SPANIEL_EAR_FIT: Fit = { anchor: [80, 18], target: [75.5, 17], scale: 0.45 };
+/** The big rounded bat ear: French Bulldog, Corgi, Chihuahua. Base bottom-left. */
+const BAT_EAR_FIT: Fit = { anchor: [45, 83], target: [74.5, 19], scale: 0.3 };
+/** The small rose ear folded back: sighthounds and Bulldogs. */
+const ROSE_EAR_FIT: Fit = { anchor: [75, 37], target: [75, 17], scale: 0.6 };
+/** The short neat drop ear of a retriever. Hangs from its top edge. */
+const SHORT_DROP_FIT: Fit = { anchor: [76, 31], target: [75.5, 16.5], scale: 0.55 };
 
 const EAR_FIT: Record<EarType, Fit> = {
   erect: { anchor: [65.8, 77.2], target: [74.5, 19], scale: 0.27 },
@@ -227,6 +255,11 @@ const TAIL_FIT: Record<TailType, Fit> = {
   sickle: { anchor: [51, 76], target: [28, 48], scale: 0.65 },
   curled: { anchor: [59.5, 63], target: [28, 48], scale: 0.75 },
 };
+
+/** Extra tail pieces chosen by coat rather than by carriage. */
+const OTTER_TAIL_FIT: Fit = { anchor: [72, 54], target: [27.5, 47.5], scale: 0.5, rotate: 12 };
+const FLAG_TAIL_FIT: Fit = { anchor: [81, 42], target: [27.5, 46.5], scale: 0.5, rotate: -12 };
+const SABRE_TAIL_FIT: Fit = { anchor: [62, 42], target: [27.5, 47.5], scale: 0.55 };
 
 /** A fit moved to a different body's attachment point. */
 function retarget(fit: Fit, target: [number, number] | undefined, base: [number, number]): Fit {
@@ -386,6 +419,10 @@ const BODY_BOX: Record<string, [number, number, number, number]> = {
   'body-lowheavy.png': [17.1, 20.1, 92.7, 87.5],
   'body-lowsmooth.png': [19.2, 21.0, 92.4, 87.1],
   'body-flatlong.png': [16.9, 14.7, 91.0, 87.5],
+  'body-terrier.png': [24.7, 17.1, 88.0, 86.9],
+  'body-egg.png': [18.8, 12.9, 90.3, 87.8],
+  'body-jowl.png': [16.2, 12.3, 93.8, 91.0],
+  'body-lowwire.png': [20.6, 27.4, 89.4, 88.0],
 };
 
 /** The CSS transform that maps the smooth body's box onto another body's. */
@@ -556,6 +593,11 @@ function describe(dog: Dog, drawLbs?: number) {
     ears === 'drop' && !coat.undercoat && !coat.hairless && silhouette !== 'sighthound' && silhouette !== 'bull';
   const houndEars = longEared && (coat.kind === 'smooth' || coat.kind === 'short') && dog.observed.muzzle > 55;
   const spanielEars = longEared && !houndEars && (coat.kind === 'silky' || coat.kind === 'long' || silhouette === 'flatLong');
+  // Big bat ears on the small flat-faced and low dogs; rose ears folded back
+  // on sighthounds and Bulldogs; short neat drops on the plush-coated retrievers.
+  const batEars = ears === 'erect' && !roundEars && (silhouette === 'bull' || silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'terrier');
+  const roseEars = (ears === 'button' || ears === 'semiErect') && (silhouette === 'sighthound' || silhouette === 'bull' || silhouette === 'egg');
+  const shortDrop = ears === 'drop' && coat.undercoat && !coat.hairless;
 
   // The tail: the real file if it exists, else a stand-in built from one we have.
   const standin = HAVE.has(TAIL_SRC[tail]) ? undefined : TAIL_STANDIN[tail];
@@ -565,12 +607,27 @@ function describe(dog: Dog, drawLbs?: number) {
   // Dalmatian carries a sleek one: the whip artwork, held out in a sabre. A
   // plush-coated shepherd type carries a furry one: the plume, hanging.
   const smoothKind = coat.kind === 'smooth' || coat.kind === 'short' || coat.kind === 'hairless';
+  let tailSrc = TAIL_SRC[tailKey];
   if ((tail === 'full' || tail === 'whip') && silhouette === 'spitz') {
     tailKey = 'plume';
     tailFit = { ...TAIL_FIT.plume, rotate: tail === 'whip' ? 74 : 62, scale: 0.6 };
+    tailSrc = TAIL_SRC.plume;
+  } else if (tail === 'full' && smoothKind && coat.undercoat) {
+    // The thick otter tail of a Labrador.
+    tailSrc = 'tail-otter.png';
+    tailFit = OTTER_TAIL_FIT;
   } else if (tail === 'full' && smoothKind) {
-    tailKey = 'whip';
-    tailFit = { ...TAIL_FIT.whip, rotate: -8, scale: coat.undercoat ? 0.8 : 0.72 };
+    // A hound's sabre, hanging in a curve.
+    tailSrc = 'tail-sabre.png';
+    tailFit = SABRE_TAIL_FIT;
+  } else if (tail === 'plume' && (coat.kind === 'silky' || coat.kind === 'long')) {
+    // Setters and spaniels carry the feathered flag level.
+    tailSrc = 'tail-flag.png';
+    tailFit = FLAG_TAIL_FIT;
+  } else if (tail === 'whip' && (coat.kind === 'silky' || coat.kind === 'long' || coat.kind === 'doubleThick')) {
+    // A low-set tail on a coated dog is still feathered: the flag, hanging.
+    tailSrc = 'tail-flag.png';
+    tailFit = { ...FLAG_TAIL_FIT, rotate: 34, scale: 0.45 };
   }
   const noise = makeNoise(dog.seedValue ?? 1);
 
@@ -605,7 +662,7 @@ function describe(dog: Dog, drawLbs?: number) {
   // the dog read as long, and a Scottie is low without being a sausage.
   // Dogs drawn on a purpose-made low body need no squash; coated
   // short-legged dogs (a Scottie, a Pekingese) still borrow a normal body.
-  const lowBody = silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'flatLong';
+  const lowBody = silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire' || silhouette === 'flatLong';
   const legSquash = lowBody ? 1 : shortLegs === 2 ? 0.66 : shortLegs === 1 ? 0.82 : shepherd ? 0.93 : 1;
   const stretch = shepherd ? 1.1 : 1;
 
@@ -620,8 +677,20 @@ function describe(dog: Dog, drawLbs?: number) {
   return {
     bodySrc,
     fill,
-    earSrc: roundEars ? 'ear-round.png' : houndEars ? 'ear-hound.png' : spanielEars ? 'ear-spaniel.png' : EAR_SRC[ears],
-    tailSrc: TAIL_SRC[tailKey],
+    earSrc: roundEars
+      ? 'ear-round.png'
+      : houndEars
+        ? 'ear-hound.png'
+        : spanielEars
+          ? 'ear-spaniel.png'
+          : batEars
+            ? 'ear-bat.png'
+            : roseEars
+              ? 'ear-rose.png'
+              : shortDrop
+                ? 'ear-shortdrop.png'
+                : EAR_SRC[ears],
+    tailSrc,
     tailStandin: standin?.transform,
     earFit: retarget(
       ears === 'drop' && coat.undercoat
@@ -634,6 +703,12 @@ function describe(dog: Dog, drawLbs?: number) {
               ? HOUND_EAR_FIT
               : spanielEars
                 ? SPANIEL_EAR_FIT
+                : batEars
+                  ? BAT_EAR_FIT
+                  : roseEars
+                    ? ROSE_EAR_FIT
+                    : shortDrop
+                      ? SHORT_DROP_FIT
             : silhouette === 'spitz' && ears === 'erect'
               // Spitz ears are small, thick triangles, not Shepherd sails.
               ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * (shortLegs > 0 ? 0.6 : 0.72) }
@@ -777,11 +852,26 @@ function Markings({
   if (colour.white > 0.08) {
     const w = colour.white;
     const white = '#f7f2e8';
-    const src = w >= 0.8 ? 'mark-extreme.png' : w >= 0.5 ? 'mark-piebald.png' : w >= 0.3 ? 'mark-collar.png' : 'mark-irish.png';
+    // Real piebald and Irish white vary from dog to dog with the same genes,
+    // so each dog picks one of the drawings for its level with its own noise.
+    const roll = noise();
+    let src: string;
+    let patches = false;
+    if (w >= 0.8) src = 'mark-extreme.png';
+    else if (w >= 0.5) {
+      if (roll < 0.4) src = 'mark-piebald.png';
+      else if (roll < 0.7) src = 'mark-extended.png';
+      else {
+        // White all over, with the colour left as torn patches.
+        src = 'mark-extreme.png';
+        patches = true;
+      }
+    } else src = roll < 0.55 ? 'mark-irish.png' : 'mark-collar.png';
     // The extreme-white stencil was drawn a whisker inside the body; grown a
     // touch so no coloured rim shows along the back.
-    const grow = w >= 0.8 ? ' translate(-1.7%, -1.7%) scale(1.035)' : '';
+    const grow = src === 'mark-extreme.png' ? ' translate(-1.7%, -1.7%) scale(1.035)' : '';
     shapes.push(<Stencil key="white" src={src} colour={white} opacity={1} transform={`${fit ?? ''}${grow}`.trim() || undefined} />);
+    if (patches) shapes.push(<Stencil key="patches" src="mark-patches.png" colour={base} opacity={1} transform={fit} />);
   }
 
   // --- Ticking -------------------------------------------------------------
@@ -798,12 +888,9 @@ function Markings({
     }
     spots.push(blob('t-head', 82 + hx + noise() * 6, 16 + hy + noise() * 6, 3, 3.6, colour.base, 0.95));
     shapes.push(<div key="spots" style={{ position: 'absolute', inset: 0 }}>{spots}</div>);
-  } else if (colour.ticked && colour.white > 0.2) {
-    // Ticking proper: a peppering of small flecks in the white.
-    for (let i = 0; i < 40; i++) {
-      const s = 0.9 + noise() * 0.9;
-      shapes.push(blob(`t${i}`, 20 + noise() * 60, 40 + noise() * 50, s, s * 1.3, colour.base, 0.75));
-    }
+  } else if (colour.ticked && colour.white > 0.1) {
+    // Ticking proper: a hand-drawn peppering of flecks, in the coat colour.
+    shapes.push(<Stencil key="ticking" src="mark-ticking.png" colour={colour.base} opacity={0.85} transform={fit} />);
   }
 
   // --- Dark mask over the muzzle -------------------------------------------
