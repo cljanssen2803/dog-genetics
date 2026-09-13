@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Toast } from './ui/components';
+import { SpriteFilters } from './ui/DogSprite';
 import { GameProvider } from './ui/GameContext';
 import { Home } from './ui/screens/Home';
 import { NewProject } from './ui/screens/NewProject';
@@ -66,6 +67,7 @@ export default function App() {
 
   return (
     <>
+      <SpriteFilters />
       {route.name === 'home' && (
         <Home onOpen={(id) => void open(id)} onNew={() => setRoute({ name: 'new' })} />
       )}

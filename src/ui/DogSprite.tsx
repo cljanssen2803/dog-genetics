@@ -102,8 +102,11 @@ const EAR_FIT: Record<EarType, Fit> = {
 };
 
 const TAIL_FIT: Record<TailType, Fit> = {
-  full: { anchor: [25, 47], target: [25, 47], scale: 1 },
-  bobtail: { anchor: [26, 43], target: [25.5, 45], scale: 1 },
+  // The root is pushed a couple of percent INTO the rump and the tail drawn a
+  // touch larger. It sits behind the body, so the overlap is hidden, and the
+  // join can never open into a gap on a body whose rump sits differently.
+  full: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
+  bobtail: { anchor: [26, 43], target: [27.5, 45.5], scale: 1.1 },
 };
 
 function fitStyle(fit: Fit): { transform: string; transformOrigin: string } {
@@ -138,7 +141,11 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
   const height = (size * 1086) / 1448;
   // Just enough to take the hard edge off. Any more and white markings turn
   // into a glow, as though the dog were lit from inside.
-  const art = useMemo(() => describe(dog, Math.max(0.6, size * 0.005)), [dog, size]);
+  // Markings get a ragged "fur" edge from an SVG displacement filter. The
+  // filter's strength is in pixels, so a small card and a large portrait use
+  // different ones or the small one turns to mush.
+  const furFilter = size < 110 ? 'fur-edge-s' : size < 170 ? 'fur-edge-m' : 'fur-edge-l';
+  const art = useMemo(() => describe(dog, Math.max(0.6, size * 0.005), furFilter), [dog, size, furFilter]);
 
   return (
     <div
@@ -262,7 +269,7 @@ function contrastInk(hex: string, strength = 58): string {
   return shade(hex, luminance(hex) < 120 ? strength : -strength);
 }
 
-function describe(dog: Dog, blurPx: number) {
+function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m') {
   const weight = sizeToPounds(dog.observed.size);
   const coat = resolveCoat(dog.genotype, weight);
   const colour = resolveColor(dog.genotype);
@@ -303,6 +310,7 @@ function describe(dog: Dog, blurPx: number) {
         accent={forShading(colour.accent)}
         noise={noise}
         blurPx={blurPx}
+        furFilter={furFilter}
       />
     ),
   };
@@ -323,6 +331,7 @@ function Markings({
   accent,
   noise,
   blurPx,
+  furFilter,
 }: {
   colour: ReturnType<typeof resolveColor>;
   base: string;
@@ -330,6 +339,7 @@ function Markings({
   noise: () => number;
   /** Softening for the white markings, scaled to how big the dog is drawn. */
   blurPx: number;
+  furFilter: string;
 }) {
   const shapes: React.ReactNode[] = [];
   const fleck = contrastInk(base);
@@ -358,6 +368,23 @@ function Markings({
       }}
     />
   );
+
+  /**
+   * A patch of colour with an irregular outline: a cluster of overlapping
+   * ellipses, each nudged and resized by the dog's own noise. One ellipse reads
+   * as a sticker; four jostling ellipses read as a marking.
+   */
+  const patch = (key: string, x: number, y: number, w: number, h: number, fill: string, opacity = 1) => {
+    const parts: React.ReactNode[] = [];
+    for (let i = 0; i < 4; i++) {
+      const dx = (noise() - 0.5) * w * 0.55;
+      const dy = (noise() - 0.5) * h * 0.55;
+      const sw = w * (0.55 + noise() * 0.5);
+      const sh = h * (0.55 + noise() * 0.5);
+      parts.push(blob(key + '-' + i, x + w / 2 - sw / 2 + dx, y + h / 2 - sh / 2 + dy, sw, sh, fill, opacity));
+    }
+    return parts;
+  };
 
   // --- Brindle: soft tiger striping across the barrel ----------------------
   // Confined to the body and kept translucent. Hard black bars running over the
@@ -396,7 +423,8 @@ function Markings({
 
   // --- Tan points: legs, muzzle, eyebrows, chest ---------------------------
   if (colour.tanPoints) {
-    shapes.push(
+    const tan: React.ReactNode[] = [];
+    tan.push(
       blob('tp-leg1', 24, 66, 9, 26, accent, 0.95),
       blob('tp-leg2', 36, 68, 9, 24, accent, 0.95),
       blob('tp-leg3', 62, 66, 9, 26, accent, 0.95),
@@ -405,13 +433,19 @@ function Markings({
       blob('tp-brow', 80, 13, 5, 4, accent, 0.85),
       blob('tp-chest', 72, 44, 10, 14, accent, 0.8),
     );
+    shapes.push(
+      <div key="tan" style={{ position: 'absolute', inset: 0, filter: `url(#${furFilter})` }}>
+        {tan}
+      </div>,
+    );
   }
 
   // --- Merle: torn patches of diluted pigment ------------------------------
   if (colour.merle) {
     const count = colour.doubleMerle ? 6 : 13;
+    const spots: React.ReactNode[] = [];
     for (let i = 0; i < count; i++) {
-      shapes.push(
+      spots.push(
         blob(
           `m${i}`,
           16 + noise() * 72,
@@ -426,6 +460,11 @@ function Markings({
         ),
       );
     }
+    shapes.push(
+      <div key="merle" style={{ position: 'absolute', inset: 0, filter: `url(#${furFilter})` }}>
+        {spots}
+      </div>,
+    );
   }
 
   // --- White markings ------------------------------------------------------
@@ -444,7 +483,7 @@ function Markings({
     // The chest marking runs down the FRONT of the chest, between the forelegs.
     // Seen from the side that is a narrow strip at the leading edge, not a
     // patch on the shoulder.
-    marks.push(blob('w-chest', 74, 44, 7, 20, white));
+    marks.push(...patch('w-chest', 73, 43, 8, 21, white));
     marks.push(blob('w-toe1', 24, 85, 7, 9, white));
     marks.push(blob('w-toe2', 36, 87, 7, 8, white));
     marks.push(blob('w-toe3', 62, 85, 7, 9, white));
@@ -461,17 +500,17 @@ function Markings({
     if (w > 0.4) {
       // A collar across the shoulders, which is where piebald goes next. Kept
       // clear of the skull so it does not look like the head has come off.
-      marks.push(blob('w-collar', 57, 28, 14, 30, white, 0.96));
-      marks.push(blob('w-belly', 28, 58, 42, 20, white));
+      marks.push(...patch('w-collar', 57, 28, 14, 30, white, 0.96));
+      marks.push(...patch('w-belly', 28, 58, 42, 20, white));
     }
 
     if (w > 0.55) {
-      marks.push(blob('w-flank', 22, 34, 40, 34, white, 0.95));
-      marks.push(blob('w-neck', 55, 18, 16, 26, white, 0.9));
+      marks.push(...patch('w-flank', 22, 34, 40, 34, white, 0.95));
+      marks.push(...patch('w-neck', 55, 18, 16, 26, white, 0.9));
     }
 
     shapes.push(
-      <div key="white" style={{ position: 'absolute', inset: 0, filter: `blur(${blurPx}px)` }}>
+      <div key="white" style={{ position: 'absolute', inset: 0, filter: `url(#${furFilter}) blur(${blurPx * 0.6}px)` }}>
         {marks}
       </div>,
     );
@@ -498,4 +537,30 @@ function Markings({
   shapes.push(blob('sheen', 30, 26, 44, 12, light, 0.16));
 
   return <>{shapes}</>;
+}
+
+/**
+ * The SVG filters that give markings a ragged fur edge. Mounted once, at the
+ * top of the app; every sprite refers to them by id. Three strengths, because
+ * displacement is measured in pixels and a small card needs far less than a
+ * full-size portrait.
+ */
+export function SpriteFilters() {
+  const variants: [string, number, number][] = [
+    ['fur-edge-s', 0.09, 2.2],
+    ['fur-edge-m', 0.07, 4.2],
+    ['fur-edge-l', 0.05, 7],
+  ];
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+      <defs>
+        {variants.map(([id, freq, scale]) => (
+          <filter key={id} id={id} x="-15%" y="-15%" width="130%" height="130%">
+            <feTurbulence type="fractalNoise" baseFrequency={freq} numOctaves="3" seed="11" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale={scale} xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        ))}
+      </defs>
+    </svg>
+  );
 }
