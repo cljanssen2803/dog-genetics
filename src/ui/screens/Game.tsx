@@ -33,6 +33,7 @@ import {
 import { buildGenerationReport, type GenerationReport } from '../../game/analytics';
 import { Tutorial } from '../Tutorial';
 import { ShowSheet } from './ShowSheet';
+import { ExpertSheet } from './ExpertSheet';
 import { reputationTier } from '../../game/project';
 
 type Tab = 'project' | 'kennel' | 'breed' | 'puppies' | 'pedigree' | 'analytics';
@@ -56,6 +57,7 @@ export function Game({ onExit }: { onExit: () => void }) {
   const [tutorialOpen, setTutorialOpen] = useState(!project.tutorialSeen);
   const [editorState, setEditorState] = useState<EditorState | null>(null);
   const [showsOpen, setShowsOpen] = useState(false);
+  const [expertOpen, setExpertOpen] = useState(false);
 
   const advance = (months: number) => {
     const reports: MonthReport[] = [];
@@ -123,6 +125,7 @@ export function Game({ onExit }: { onExit: () => void }) {
               onAdvanceToEvent={advanceToEvent}
               onEditStandard={() => setEditorState(editorStateFrom(project.standard))}
               onShows={() => setShowsOpen(true)}
+              onExpert={() => setExpertOpen(true)}
             />
           )}
           {tab === 'kennel' && <KennelTab onShowPedigree={showPedigree} />}
@@ -217,6 +220,7 @@ export function Game({ onExit }: { onExit: () => void }) {
       )}
 
       {showsOpen && <ShowSheet onClose={() => setShowsOpen(false)} />}
+      {expertOpen && <ExpertSheet onClose={() => setExpertOpen(false)} />}
 
       {timeReport && <TimeSheet reports={timeReport} onClose={() => setTimeReport(null)} />}
       {genReport && <GenerationReportSheet report={genReport} onClose={() => setGenReport(null)} />}
@@ -302,12 +306,14 @@ function ProjectTab({
   onAdvanceToEvent,
   onEditStandard,
   onShows,
+  onExpert,
 }: {
   onCloseGeneration: () => void;
   onAdvance: (months: number) => void;
   onAdvanceToEvent: () => void;
   onEditStandard: () => void;
   onShows: () => void;
+  onExpert: () => void;
 }) {
   const { project } = useGame();
   const difficulty = useMemo(() => assessDifficulty(project.standard), [project.standard]);
@@ -348,6 +354,12 @@ function ProjectTab({
             </Button>
           </div>
         </Card>
+      </Section>
+
+      <Section title="Stuck? Ask the expert" subtitle="A specific read on what your population needs and which pairing to make.">
+        <Button full tone="accent" onClick={onExpert}>
+          Ask the expert
+        </Button>
       </Section>
 
       <Section

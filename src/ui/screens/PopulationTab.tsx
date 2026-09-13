@@ -8,9 +8,9 @@
 import { useMemo } from 'react';
 import { Button, Card, Chip, Empty, Explain, Section, StatRow } from '../components';
 import { DogPortrait } from '../DogPortrait';
+import { describeDog } from '../DogFacts';
 import { useGame } from '../GameContext';
 import { type Dog, ageMonths } from '../../engine/dog';
-import { sizeToPounds } from '../../engine/traits';
 import { LOCUS_BY_KEY } from '../../engine/loci';
 import {
   type PedigreeNode,
@@ -123,7 +123,7 @@ export function PedigreeTab({
         <div className="card p-2 overflow-x-auto">
           <div className="flex gap-1.5 min-w-max">
             {[0, 1, 2, 3].map((generation) => (
-              <div key={generation} className="flex flex-col justify-around gap-1.5" style={{ width: 116 }}>
+              <div key={generation} className="flex flex-col justify-around gap-1.5" style={{ width: 150 }}>
                 {collectGeneration(tree, generation).map((node, index) => (
                   <PedigreeBox key={index} node={node} onFocus={onFocus} />
                 ))}
@@ -180,6 +180,7 @@ function PedigreeBox({
   node: PedigreeNode | null;
   onFocus: (dog: Dog) => void;
 }) {
+  const { project } = useGame();
   if (!node?.dog) {
     return (
       <div className="rounded-lg border border-dashed border-[var(--line)] px-2 py-2 text-[10.5px] text-[var(--text-faint)] text-center">
@@ -188,16 +189,30 @@ function PedigreeBox({
     );
   }
   const dog = node.dog;
+  const f = describeDog(dog, project);
   return (
     <button
       onClick={() => onFocus(dog)}
       className="rounded-lg border border-[var(--line)] bg-[var(--bg-2)] px-2 py-1.5 text-left active:bg-[var(--card)]"
     >
-      <div className="text-[11.5px] font-semibold truncate">
-        {dog.name} {dog.sex === 'M' ? '♂' : '♀'}
+      <div className="flex items-center gap-1.5">
+        <DogPortrait dog={dog} size={30} framed={false} />
+        <div className="min-w-0">
+          <div className="text-[11.5px] font-semibold truncate">
+            {f.titles.length > 0 && <span className="text-rust">{f.titles[f.titles.length - 1]} </span>}
+            {f.name} {f.sexSymbol}
+          </div>
+          <div className="text-[9.5px] text-[var(--text-faint)] truncate">{f.breed}</div>
+        </div>
       </div>
-      <div className="text-[10px] text-[var(--text-faint)] truncate">
-        {sizeToPounds(dog.observed.size).toFixed(0)} lb
+      <div className="text-[9.5px] text-[var(--text-soft)] truncate mt-0.5">
+        {f.adultWeight} · {f.colour}
+      </div>
+      <div className="text-[9.5px] truncate">
+        <span className={f.score >= 70 ? 'text-moss' : f.score >= 45 ? 'text-[var(--text-soft)]' : 'text-berry'}>
+          {project.standard.name} {f.score}
+        </span>
+        {dog.status === 'deceased' && <span className="text-[var(--text-faint)]"> · † </span>}
       </div>
     </button>
   );

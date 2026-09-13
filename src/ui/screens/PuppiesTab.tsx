@@ -15,11 +15,10 @@ import { Button, Card, Chip, Empty, Explain } from '../components';
 import { DogPortrait } from '../DogPortrait';
 import { useGame } from '../GameContext';
 import { DogCard, DogDetailSheet } from '../dogs';
-import { type Dog, ageMonths, estimateTrait, formatAge, weightEstimate } from '../../engine/dog';
-import { calmnessFrom, scoreToStars, sizeToPounds } from '../../engine/traits';
+import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, describeDog } from '../DogFacts';
+import { type Dog, formatAge } from '../../engine/dog';
 import { scoreDog } from '../../engine/standard';
 import { type Litter, kennelCount, puppiesOf, setRetention } from '../../game/project';
-import { hiddenCarriers, resolveCoat, resolveColor } from '../../engine/phenotype';
 
 export function PuppiesTab({ onShowPedigree }: { onShowPedigree?: (dog: Dog) => void }) {
   const { project } = useGame();
@@ -145,23 +144,8 @@ function LitterBlock({
 
 function PuppyCard({ puppy, onOpen }: { puppy: Dog; onOpen: (dog: Dog) => void }) {
   const { project, refresh, say } = useGame();
-  const month = project.month;
-  const age = ageMonths(puppy, month);
-  const grown = age >= 18;
-
-  const weight = weightEstimate(puppy, month);
-  const calm = estimateTrait(puppy, 'energy', month);
-  const stability = estimateTrait(puppy, 'stability', month);
-  const prey = estimateTrait(puppy, 'preyDrive', month);
-  const biddability = estimateTrait(puppy, 'biddability', month);
-
-  const calmScore = calmnessFrom(calm.center, stability.center, puppy.observed.vocality);
-  const coat = resolveCoat(puppy.genotype, sizeToPounds(puppy.observed.size));
-  const color = resolveColor(puppy.genotype);
+  const f = describeDog(puppy, project);
   const score = scoreDog(puppy, project.standard);
-  // Home-bred puppies come DNA panelled, so what they hide is visible from
-  // day one. This is often the real reason to keep a plain-looking puppy.
-  const carries = puppy.tests.dna ? hiddenCarriers(puppy.genotype).slice(0, 4) : [];
 
   if (puppy.status === 'placed') {
     return (
@@ -188,65 +172,33 @@ function PuppyCard({ puppy, onOpen }: { puppy: Dog; onOpen: (dog: Dog) => void }
       <button onClick={() => onOpen(puppy)} className="w-full text-left flex gap-3 mb-2">
         <DogPortrait dog={puppy} size={84} />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="display font-semibold text-[14.5px]">{puppy.name}</span>
-            <span className="text-[12px] text-[var(--text-faint)]">{puppy.sex === 'M' ? '♂' : '♀'}</span>
-            {puppy.rarities.length > 0 && <Chip tone="rare">rare</Chip>}
-          </div>
-
-          <div className="text-[11.5px] text-[var(--text-faint)] mb-1">
-            {grown
-              ? `${weight.center.toFixed(1)} lb`
-              : `Adult size estimate ${weight.low.toFixed(0)}–${weight.high.toFixed(0)} lb`}
-            {' · '}
-            {weight.confidenceLabel} confidence
-          </div>
-
-          <div className="text-[11.5px] text-[var(--text-soft)] leading-snug">
-            {grown ? (
-              <>
-                Calm {Math.round(calmScore)} · Prey drive {Math.round(prey.center)} · Trainable{' '}
-                {Math.round(biddability.center)}
-              </>
-            ) : (
-              <>
-                Calm {'★'.repeat(scoreToStars(calmScore))}
-                {'☆'.repeat(5 - scoreToStars(calmScore))} · Prey{' '}
-                {'★'.repeat(scoreToStars(prey.center))}
-                {'☆'.repeat(5 - scoreToStars(prey.center))} · Trainable{' '}
-                {'★'.repeat(scoreToStars(biddability.center))}
-                {'☆'.repeat(5 - scoreToStars(biddability.center))}
-              </>
-            )}
-          </div>
-
-          <div className="text-[11.5px] text-[var(--text-soft)] truncate">
-            {color.name} · {coat.label}
-          </div>
-
-          {carries.length > 0 && (
-            <div className="text-[11.5px] text-clay truncate">
-              Carries {carries.map((c) => c.label).join(', ')}
-            </div>
+          <NameLine f={f} />
+          <FactLine f={f} className="mb-1" />
+          <TemperamentLine f={f} />
+          <LookLine f={f} />
+          {f.carries.length > 0 && (
+            <div className="text-[11.5px] text-clay truncate">Carries {f.carries.slice(0, 4).join(', ')}</div>
           )}
-
-          <div className="flex flex-wrap gap-1 mt-1">
-            <Chip tone={score.total >= 70 ? 'good' : score.total >= 45 ? 'neutral' : 'bad'}>
-              score {score.total}
-            </Chip>
-            {score.healthNotes.length > 0 && <Chip tone="bad">health</Chip>}
-            {puppy.retention && (
-              <Chip tone="info">
-                {puppy.retention === 'keep'
-                  ? 'keeping'
-                  : puppy.retention === 'wait'
-                    ? 'waiting'
-                    : puppy.retention === 'retainNoBreed'
-                      ? 'kept, not bred'
-                      : 'pet home'}
-              </Chip>
-            )}
-          </div>
+          <FactChips
+            f={f}
+            standardName={project.standard.name}
+            extra={
+              <>
+                {score.healthNotes.length > 0 && <Chip tone="bad">health</Chip>}
+                {puppy.retention && (
+                  <Chip tone="info">
+                    {puppy.retention === 'keep'
+                      ? 'keeping'
+                      : puppy.retention === 'wait'
+                        ? 'waiting'
+                        : puppy.retention === 'retainNoBreed'
+                          ? 'kept, not bred'
+                          : 'pet home'}
+                  </Chip>
+                )}
+              </>
+            }
+          />
         </div>
       </button>
 

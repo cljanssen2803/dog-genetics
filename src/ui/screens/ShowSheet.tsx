@@ -5,9 +5,9 @@
 import { useState } from 'react';
 import { Button, Card, Chip, Empty, Explain, Section, Sheet, StatRow } from '../components';
 import { DogPortrait } from '../DogPortrait';
+import { FactLine, LookLine, NameLine, describeDog } from '../DogFacts';
 import { useGame } from '../GameContext';
-import { type Dog, ageMonths, formatAge } from '../../engine/dog';
-import { sizeToPounds } from '../../engine/traits';
+import type { Dog } from '../../engine/dog';
 import { activeDogs, reputationTier } from '../../game/project';
 import { CLASS_LABEL, type ShowResult, canShow, runShow, titleFor } from '../../game/shows';
 
@@ -74,17 +74,20 @@ export function ShowSheet({ onClose }: { onClose: () => void }) {
               <div className="flex items-center gap-3">
                 <DogPortrait dog={dog} size={64} />
                 <div className="flex-1 min-w-0">
-                  <div className="display font-semibold text-[14.5px] flex items-center gap-1.5">
-                    {dog.titles && dog.titles.length > 0 && (
-                      <span className="text-rust">{dog.titles[dog.titles.length - 1]}</span>
-                    )}
-                    {dog.name}
-                    <span className="text-[var(--text-faint)]">{dog.sex === 'M' ? '♂' : '♀'}</span>
-                  </div>
-                  <div className="text-[11.5px] text-[var(--text-faint)]">
-                    {formatAge(ageMonths(dog, project.month))} · {sizeToPounds(dog.observed.size).toFixed(1)} lb
-                    {dog.showPoints ? ` · ${dog.showPoints} show points` : ''}
-                  </div>
+                  {(() => {
+                    const f = describeDog(dog, project);
+                    return (
+                      <>
+                        <NameLine f={f} />
+                        <FactLine f={f} />
+                        <LookLine f={f} />
+                        <div className="text-[11.5px] text-[var(--text-faint)]">
+                          {project.standard.name} {f.score}
+                          {dog.showPoints ? ` · ${dog.showPoints} show points` : ''}
+                        </div>
+                      </>
+                    );
+                  })()}
                   {!eligibility.ok && (
                     <div className="text-[11.5px] text-[var(--text-faint)] mt-0.5">{eligibility.reason}</div>
                   )}

@@ -12,7 +12,6 @@ import {
   STAGE_LABEL,
   ageMonths,
   breedingEligibility,
-  currentWeight,
   estimateTrait,
   formatAge,
   lifeStage,
@@ -23,9 +22,7 @@ import {
   FORM_TRAITS,
   HEALTH_TRAITS,
   TRAITS,
-  calmnessFrom,
   describeScore,
-  scoreToStars,
   sizeToPounds,
 } from '../engine/traits';
 import {
@@ -43,6 +40,7 @@ import { describeCoi } from '../engine/pedigree';
 import { DogPortrait } from './DogPortrait';
 import { Button, Card, Chip, Explain, Section, Sheet, StatRow, TraitBar } from './components';
 import { useGame } from './GameContext';
+import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, copyText, describeDog, dogDescription } from './DogFacts';
 import {
   PLACEMENT_LABEL,
   ancestorInfluenceFor,
@@ -69,23 +67,7 @@ export function DogCard({
   right?: React.ReactNode;
 }) {
   const { project } = useGame();
-  const month = project.month;
-  const age = ageMonths(dog, month);
-  const grown = age >= 18;
-
-  const score = useMemo(() => scoreDog(dog, project.standard), [dog, project.standard, month]);
-  const coat = resolveCoat(dog.genotype, sizeToPounds(dog.observed.size));
-  const flags = geneticHealthFlags(dog.genotype);
-  const affected = flags.filter((f) => f.severity === 'affected');
-  const carriers = flags.filter((f) => f.severity === 'carrier');
-
-  const weight = currentWeight(dog, month);
-  const estimate = weightEstimate(dog, month);
-  // Hidden recessives are the whole game for coat and colour projects, so they
-  // get a line on the card rather than being buried in the detail sheet.
-  const carries = dog.tests.dna ? hiddenCarriers(dog.genotype).slice(0, 4) : [];
-
-  const calm = calmnessFrom(dog.observed.energy, dog.observed.stability, dog.observed.vocality);
+  const f = useMemo(() => describeDog(dog, project), [dog, project, project.month]);
 
   return (
     <Card onClick={onOpen ? () => onOpen(dog) : undefined} className="mb-2">
@@ -95,57 +77,22 @@ export function DogCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-1.5">
-            <span className="display font-semibold text-[15px] truncate">{dog.name}</span>
-            <span className="text-[13px] text-[var(--text-faint)]">{dog.sex === 'M' ? '♂' : '♀'}</span>
-            {dog.rarities.length > 0 && <Chip tone="rare">rare</Chip>}
-          </div>
+          <NameLine f={f} />
+          <FactLine f={f} className="mb-1" />
+          <TemperamentLine f={f} />
+          <LookLine f={f} />
 
-          <div className="text-[11.5px] text-[var(--text-faint)] mb-1.5">
-            {formatAge(age)} ·{' '}
-            {grown
-              ? `${weight.toFixed(weight < 20 ? 1 : 0)} lb`
-              : `now ${weight.toFixed(1)} lb, adult ${estimate.low.toFixed(0)}–${estimate.high.toFixed(0)} lb`}
-            {dog.breedLabel ? ` · ${dog.breedLabel}` : ''}
-          </div>
-
-          {grown ? (
-            <div className="text-[11.5px] text-[var(--text-soft)] leading-snug">
-              Calm {calm} · Trainable {Math.round(dog.observed.biddability)} · Prey drive{' '}
-              {Math.round(dog.observed.preyDrive)}
-            </div>
-          ) : (
-            <div className="text-[11.5px] text-[var(--text-soft)] leading-snug">
-              Calm {'★'.repeat(scoreToStars(calm))}
-              {'☆'.repeat(5 - scoreToStars(calm))} · Trainable{' '}
-              {'★'.repeat(scoreToStars(dog.observed.biddability))}
-              {'☆'.repeat(5 - scoreToStars(dog.observed.biddability))}
-            </div>
+          {f.carries.length > 0 && (
+            <div className="text-[11.5px] text-clay truncate">Carries {f.carries.slice(0, 4).join(', ')}</div>
           )}
 
-          <div className="text-[11.5px] text-[var(--text-soft)] truncate">{coat.label}</div>
-
-          {carries.length > 0 && (
-            <div className="text-[11.5px] text-clay truncate">
-              Carries {carries.map((c) => c.label).join(', ')}
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {showScore && (
-              <Chip tone={score.total >= 70 ? 'good' : score.total >= 45 ? 'neutral' : 'bad'}>
-                {project.standard.name} {score.total}
-              </Chip>
-            )}
-            {affected.length > 0 && <Chip tone="bad">{affected[0].name}</Chip>}
-            {affected.length === 0 && carriers.length > 0 && (
-              <Chip tone="warn">
-                {carriers.length === 1 ? `${carriers[0].name} carrier` : `${carriers.length} carriers`}
-              </Chip>
-            )}
-            {!dog.tests.dna && <Chip tone="neutral">untested</Chip>}
-            {dog.breedingRetired && <Chip tone="neutral">not breeding</Chip>}
-          </div>
+          {showScore ? (
+            <FactChips
+              f={f}
+              standardName={project.standard.name}
+              extra={dog.breedingRetired ? <Chip tone="neutral">not breeding</Chip> : null}
+            />
+          ) : null}
         </div>
 
         {right && <div className="flex-none self-center">{right}</div>}
@@ -171,6 +118,7 @@ export function DogDetailSheet({
   const [tab, setTab] = useState<'overview' | 'health' | 'genes' | 'decide'>('overview');
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState('');
+  const [exportText, setExportText] = useState<string | null>(null);
 
   if (!dog) return null;
 
@@ -216,9 +164,60 @@ export function DogDetailSheet({
       }
       subtitle={`${STAGE_LABEL[stage]} · ${formatAge(age)} · ${dog.breedLabel}`}
     >
-      <div className="flex justify-center mb-3">
+      <div className="flex justify-center mb-2">
         <DogPortrait dog={dog} size={200} />
       </div>
+
+      <div className="flex gap-2 mb-4">
+        <Button
+          small
+          tone="secondary"
+          full
+          onClick={async () => {
+            const text = dogDescription(dog, project, nerdMode);
+            const ok = await copyText(text);
+            if (ok) say(`${dog.name}'s description copied. Paste it into any image generator.`);
+            else setExportText(text); // show it instead, so nothing is ever lost
+          }}
+        >
+          Copy description{nerdMode ? ' + genotype' : ''}
+        </Button>
+        <Button small tone="secondary" onClick={() => setExportText(dogDescription(dog, project, nerdMode))}>
+          View
+        </Button>
+      </div>
+
+      {exportText !== null && (
+        <Sheet
+          open
+          onClose={() => setExportText(null)}
+          title={`${dog.name} — description`}
+          subtitle="Ready to paste into an image generator or another assistant"
+          footer={
+            <div className="flex gap-2">
+              <Button
+                tone="secondary"
+                onClick={async () => {
+                  const ok = await copyText(exportText);
+                  say(ok ? 'Copied.' : 'Tap inside the text, then use Select All and Copy.');
+                }}
+              >
+                Copy
+              </Button>
+              <Button full onClick={() => setExportText(null)}>
+                Done
+              </Button>
+            </div>
+          }
+        >
+          <textarea
+            readOnly
+            value={exportText}
+            onFocus={(e) => e.currentTarget.select()}
+            className="w-full h-[60vh] rounded-xl border border-[var(--line)] bg-[var(--card)] p-3 text-[12.5px] leading-relaxed font-mono"
+          />
+        </Sheet>
+      )}
 
       <div className="flex gap-1 mb-4 p-1 rounded-xl bg-[var(--bg-2)] border border-[var(--line)]">
         {(
@@ -520,7 +519,7 @@ function TraitGroup({ dog, title, traits }: { dog: Dog; title: string; traits: s
                     {w.known
                       ? `${w.center.toFixed(w.center < 20 ? 1 : 0)} lb`
                       : `${w.low.toFixed(0)}–${w.high.toFixed(0)} lb`}
-                    <span className="text-[var(--text-faint)] font-normal ml-1">{w.confidenceLabel}</span>
+                    <span className="text-[var(--text-faint)] font-normal ml-1">{w.known ? '' : `${w.confidenceLabel.toLowerCase()} confidence`}</span>
                   </span>
                 </div>
               </div>
@@ -534,7 +533,7 @@ function TraitGroup({ dog, title, traits }: { dog: Dog; title: string; traits: s
               value={estimate.center}
               low={estimate.known ? undefined : estimate.low}
               high={estimate.known ? undefined : estimate.high}
-              hint={estimate.known ? describeScore(estimate.center) : estimate.confidenceLabel}
+              hint={estimate.known ? describeScore(estimate.center) : `estimate · ${estimate.confidenceLabel.toLowerCase()} confidence`}
             />
           );
         })}

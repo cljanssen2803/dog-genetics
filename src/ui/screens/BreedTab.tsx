@@ -9,8 +9,8 @@ import { useMemo, useState } from 'react';
 import { Button, Card, Chip, Empty, Explain, Section, Segmented, Sheet, StatRow } from '../components';
 import { DogPortrait } from '../DogPortrait';
 import { useGame } from '../GameContext';
-import { type Dog, ageMonths, breedingEligibility, formatAge } from '../../engine/dog';
-import { type PolyTrait, TRAITS, sizeToPounds } from '../../engine/traits';
+import { type Dog, breedingEligibility } from '../../engine/dog';
+import { type PolyTrait, TRAITS } from '../../engine/traits';
 import {
   type OutsideSearch,
   activeDogs,
@@ -20,9 +20,9 @@ import {
   searchOutsideDogs,
 } from '../../game/project';
 import { type MatchVerdict, type PairingPreview, previewPairing, rankMates } from '../../game/matchmaking';
-import { scoreDog } from '../../engine/standard';
-import { populationWarnings } from '../../game/analytics';
+import { goalGaps, populationWarnings } from '../../game/analytics';
 import { BreedPicker } from './NewProject';
+import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, describeDog } from '../DogFacts';
 import { BEHAVIOR_TRAITS } from '../../engine/traits';
 
 const VERDICT_TONE: Record<MatchVerdict, 'good' | 'neutral' | 'info' | 'warn' | 'bad'> = {
@@ -135,21 +135,21 @@ export function BreedTab() {
           </button>
 
           <Card className="mb-4 border-[var(--brand)]">
-            <div className="flex gap-3 items-center">
-              <DogPortrait dog={parent} size={78} />
-              <div>
-                <div className="display text-[16px] font-semibold">
-                  {parent.name} {parent.sex === 'M' ? '♂' : '♀'}
+            {(() => {
+              const f = describeDog(parent, project);
+              return (
+                <div className="flex gap-3 items-center">
+                  <DogPortrait dog={parent} size={78} />
+                  <div className="flex-1 min-w-0">
+                    <NameLine f={f} />
+                    <FactLine f={f} />
+                    <TemperamentLine f={f} />
+                    <LookLine f={f} />
+                    <FactChips f={f} standardName={project.standard.name} />
+                  </div>
                 </div>
-                <div className="text-[12px] text-[var(--text-faint)]">
-                  {formatAge(ageMonths(parent, project.month))} ·{' '}
-                  {sizeToPounds(parent.observed.size).toFixed(1)} lb
-                </div>
-                <div className="text-[12px] text-[var(--text-soft)]">
-                  {project.standard.name} score {scoreDog(parent, project.standard).total}
-                </div>
-              </div>
-            </div>
+              );
+            })()}
           </Card>
 
           <Section
@@ -189,23 +189,26 @@ export function BreedTab() {
 
 function ParentRow({ dog, onSelect }: { dog: Dog; onSelect: () => void }) {
   const { project } = useGame();
-  const score = scoreDog(dog, project.standard);
+  const f = describeDog(dog, project);
 
   return (
     <Card onClick={onSelect} className="mb-2">
       <div className="flex items-center gap-3">
-        <DogPortrait dog={dog} size={64} />
+        <DogPortrait dog={dog} size={72} />
         <div className="flex-1 min-w-0">
-          <div className="display font-semibold text-[14.5px]">
-            {dog.name} <span className="text-[var(--text-faint)]">{dog.sex === 'M' ? '♂' : '♀'}</span>
-          </div>
-          <div className="text-[11.5px] text-[var(--text-faint)]">
-            {formatAge(ageMonths(dog, project.month))} · {sizeToPounds(dog.observed.size).toFixed(1)} lb ·{' '}
-            {dog.littersProduced} litter{dog.littersProduced === 1 ? '' : 's'}
-          </div>
-          <Chip tone={score.total >= 70 ? 'good' : score.total >= 45 ? 'neutral' : 'bad'} className="mt-1">
-            score {score.total}
-          </Chip>
+          <NameLine f={f} />
+          <FactLine f={f} />
+          <TemperamentLine f={f} />
+          <LookLine f={f} />
+          <FactChips
+            f={f}
+            standardName={project.standard.name}
+            extra={
+              <Chip>
+                {dog.littersProduced} litter{dog.littersProduced === 1 ? '' : 's'}
+              </Chip>
+            }
+          />
         </div>
         <span className="text-[var(--text-faint)] text-[20px]">›</span>
       </div>
@@ -223,29 +226,33 @@ function MateCard({
   onOpen: () => void;
 }) {
   const { project } = useGame();
+  const f = describeDog(dog, project);
 
   return (
     <Card onClick={onOpen} className="mb-2">
       <div className="flex gap-3">
-        <DogPortrait dog={dog} size={74} />
+        <DogPortrait dog={dog} size={78} />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <span className="display font-semibold text-[14.5px] truncate">{dog.name}</span>
-            <Chip tone={VERDICT_TONE[preview.verdict]}>{preview.verdict}</Chip>
-          </div>
-          <div className="text-[11.5px] text-[var(--text-faint)] mb-1">
-            {formatAge(ageMonths(dog, project.month))} · {sizeToPounds(dog.observed.size).toFixed(1)} lb ·{' '}
-            {dog.breedLabel}
-          </div>
-          <div className="text-[11.5px] text-[var(--text-soft)] leading-snug">
-            Projected inbreeding {(preview.coi * 100).toFixed(1)}% · average puppy{' '}
-            {Math.round(preview.meanScore)} · {preview.standardLow}–{preview.standardHigh}% meet standard
-          </div>
-          {preview.diseases.some((d) => d.affected > 0) && (
-            <Chip tone="bad" className="mt-1">
-              disease risk
+          <div className="flex items-start justify-between gap-2">
+            <NameLine f={f} />
+            <Chip tone={VERDICT_TONE[preview.verdict]} className="flex-none">
+              {preview.verdict}
             </Chip>
-          )}
+          </div>
+          <FactLine f={f} />
+          <TemperamentLine f={f} />
+          <LookLine f={f} />
+          <div className="text-[11.5px] text-[var(--text-soft)] leading-snug mt-1">
+            Inbreeding {(preview.coi * 100).toFixed(1)}% · average puppy {Math.round(preview.meanScore)} ·{' '}
+            {preview.standardLow}–{preview.standardHigh}% meet standard
+          </div>
+          <FactChips
+            f={f}
+            standardName={project.standard.name}
+            extra={
+              preview.diseases.some((d) => d.affected > 0) ? <Chip tone="bad">disease risk</Chip> : null
+            }
+          />
         </div>
       </div>
     </Card>
@@ -414,7 +421,8 @@ function OutsideSheet({ open, onClose }: { open: boolean; onClose: () => void })
   const [mode, setMode] = useState<'breed' | 'traits' | 'random'>('breed');
   const [breedKey, setBreedKey] = useState('miniSchnauzer');
   const [needs, setNeeds] = useState<Partial<Record<PolyTrait, 'high' | 'low'>>>({});
-  const [results, setResults] = useState<Dog[]>([]);
+  const [results, setResults] = useState<Candidate[]>([]);
+  const gaps = useMemo(() => goalGaps(project).slice(0, 3), [project, project.month]);
 
   if (!open) return null;
 
@@ -425,13 +433,19 @@ function OutsideSheet({ open, onClose }: { open: boolean; onClose: () => void })
         : mode === 'traits'
           ? { kind: 'traits', needs }
           : { kind: 'random' };
-    setResults(searchOutsideDogs(project, search, 4));
+    const found = searchOutsideDogs(project, search, 5);
+    // Judge every candidate by the best litter it could give you with what you
+    // already own, then put the most useful one first.
+    const judged = found
+      .map((dog) => ({ dog, best: bestPairingFor(project, dog) }))
+      .sort((a, b) => (b.best?.meanScore ?? -1) - (a.best?.meanScore ?? -1));
+    setResults(judged);
     refresh();
   };
 
   const adopt = (dog: Dog) => {
     say(adoptOutsideDog(project, dog));
-    setResults((r) => r.filter((d) => d.id !== dog.id));
+    setResults((r) => r.filter((c) => c.dog.id !== dog.id));
     refresh();
   };
 
@@ -519,82 +533,120 @@ function OutsideSheet({ open, onClose }: { open: boolean; onClose: () => void })
         </div>
       )}
 
-      {results.map((dog) => (
-        <OutsideCard key={dog.id} dog={dog} onAdopt={() => adopt(dog)} disabled={full} />
+      {results.length > 0 && gaps.length > 0 && (
+        <div className="card p-3 mb-3">
+          <div className="text-[12px] font-semibold mb-1">What your population most needs</div>
+          <div className="text-[12.5px] text-[var(--text-soft)] leading-relaxed">
+            {gaps.map((g) => g.text).join(' · ')}
+          </div>
+          <div className="text-[11px] text-[var(--text-faint)] mt-1">
+            Candidates are sorted by the best litter they could give you with the dogs you already have.
+          </div>
+        </div>
+      )}
+
+      {results.map((c, i) => (
+        <OutsideCard
+          key={c.dog.id}
+          dog={c.dog}
+          best={c.best}
+          rank={i + 1}
+          onAdopt={() => adopt(c.dog)}
+          disabled={full}
+        />
       ))}
     </Sheet>
   );
 }
 
+interface Candidate {
+  dog: Dog;
+  best: PairingPreview | null;
+}
+
+/**
+ * The best litter an outside dog could give you right now, judged against
+ * every eligible mate already in the kennel.
+ */
+function bestPairingFor(project: ReturnType<typeof useGame>['project'], dog: Dog): PairingPreview | null {
+  const mates = activeDogs(project).filter(
+    (d) => d.sex !== dog.sex && breedingEligibility(d, project.month, project.lastLitter[d.id]).eligible,
+  );
+  let best: PairingPreview | null = null;
+  for (const mate of mates.slice(0, 8)) {
+    const sire = dog.sex === 'M' ? dog : mate;
+    const dam = dog.sex === 'F' ? dog : mate;
+    const p = previewPairing(project, sire, dam);
+    if (!best || p.meanScore > best.meanScore) best = p;
+  }
+  return best;
+}
+
 function OutsideCard({
   dog,
+  best,
+  rank,
   onAdopt,
   disabled,
 }: {
   dog: Dog;
+  best: PairingPreview | null;
+  rank: number;
   onAdopt: () => void;
   disabled: boolean;
 }) {
   const { project } = useGame();
-  const score = scoreDog(dog, project.standard);
-
-  // What this dog would actually contribute: compare against the best mate
-  // currently available in the kennel.
-  const bestMatch = useMemo(() => {
-    const mates = activeDogs(project).filter(
-      (d) => d.sex !== dog.sex && breedingEligibility(d, project.month, project.lastLitter[d.id]).eligible,
-    );
-    if (mates.length === 0) return null;
-    let best: PairingPreview | null = null;
-    for (const mate of mates.slice(0, 6)) {
-      const sire = dog.sex === 'M' ? dog : mate;
-      const dam = dog.sex === 'F' ? dog : mate;
-      const p = previewPairing(project, sire, dam);
-      if (!best || p.meanScore > best.meanScore) best = p;
-    }
-    return best;
-  }, [dog, project]);
+  const f = describeDog(dog, project);
+  const mateName = best ? (best.sire.id === dog.id ? best.dam.name : best.sire.name) : null;
 
   return (
-    <Card className="mb-3">
+    <Card className={`mb-3 ${rank === 1 ? 'border-[var(--brand)]' : ''}`}>
       <div className="flex gap-3 mb-2">
         <DogPortrait dog={dog} size={86} />
         <div className="flex-1 min-w-0">
-          <div className="display font-semibold text-[15px]">
-            {dog.name} <span className="text-[var(--text-faint)]">{dog.sex === 'M' ? '♂' : '♀'}</span>
+          <div className="flex items-start justify-between gap-2">
+            <NameLine f={f} />
+            {rank === 1 && <Chip tone="good" className="flex-none">best fit</Chip>}
           </div>
-          <div className="text-[12px] text-[var(--text-faint)]">
-            {dog.breedLabel} · {formatAge(ageMonths(dog, project.month))} ·{' '}
-            {sizeToPounds(dog.observed.size).toFixed(1)} lb
-          </div>
-          <Chip tone={score.total >= 60 ? 'good' : score.total >= 40 ? 'neutral' : 'bad'} className="mt-1">
-            {project.standard.name} score {score.total}
-          </Chip>
+          <FactLine f={f} />
+          <TemperamentLine f={f} />
+          <LookLine f={f} />
+          {f.carries.length > 0 && (
+            <div className="text-[11.5px] text-clay truncate">Carries {f.carries.slice(0, 4).join(', ')}</div>
+          )}
+          <FactChips f={f} standardName={project.standard.name} />
         </div>
       </div>
 
-      {score.strengths.length > 0 && (
-        <div className="mb-1.5">
-          <div className="text-[11.5px] font-semibold text-moss mb-0.5">Brings</div>
-          <div className="text-[12px] text-[var(--text-soft)]">
-            {score.strengths.map((s) => s.label.toLowerCase()).join(', ')}
+      {best ? (
+        <div className="card p-2.5 mb-2 bg-[var(--bg-2)]">
+          <div className="text-[12px] mb-1.5">
+            Best litter here: with <strong>{mateName}</strong> · average puppy{' '}
+            <strong>{Math.round(best.meanScore)}</strong> · inbreeding {(best.coi * 100).toFixed(1)}% ·{' '}
+            {best.standardLow}–{best.standardHigh}% meet standard
           </div>
+          {best.improvements.length > 0 && (
+            <div className="text-[12px] text-moss leading-snug">
+              ↑ Would improve {best.improvements.map((i) => i.label.toLowerCase()).join(', ')}
+            </div>
+          )}
+          {best.weaknesses.length > 0 && (
+            <div className="text-[12px] text-rust leading-snug">
+              ↓ Would cost {best.weaknesses.map((w) => w.label.toLowerCase()).join(', ')}
+            </div>
+          )}
+          {best.diseases.some((d) => d.affected > 0) && (
+            <div className="text-[12px] text-berry leading-snug">
+              ⚠ Shares a disease gene with {mateName}: some puppies would be affected
+            </div>
+          )}
+          {best.improvements.length === 0 && best.weaknesses.length === 0 && (
+            <div className="text-[12px] text-[var(--text-faint)]">No big shifts either way — a neutral outcross.</div>
+          )}
         </div>
-      )}
-
-      {(score.weaknesses.length > 0 || score.healthNotes.length > 0) && (
-        <div className="mb-2">
-          <div className="text-[11.5px] font-semibold text-rust mb-0.5">Concerns</div>
-          <div className="text-[12px] text-[var(--text-soft)]">
-            {[...score.weaknesses.map((s) => s.label.toLowerCase()), ...score.healthNotes].join('; ')}
-          </div>
-        </div>
-      )}
-
-      {bestMatch && (
-        <div className="text-[12px] text-[var(--text-soft)] mb-2">
-          Best pairing here would be with <strong>{bestMatch.sire.id === dog.id ? bestMatch.dam.name : bestMatch.sire.name}</strong>
-          : inbreeding {(bestMatch.coi * 100).toFixed(1)}%, average puppy {Math.round(bestMatch.meanScore)}.
+      ) : (
+        <div className="text-[12px] text-[var(--text-faint)] mb-2">
+          Nothing in your kennel is available to pair with this dog right now.
         </div>
       )}
 

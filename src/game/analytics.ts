@@ -9,7 +9,9 @@
  */
 
 import { LOCUS_BY_KEY } from '../engine/loci';
-import { TRAITS, type PolyTrait } from '../engine/traits';
+import { TRAITS, type PolyTrait, sizeToPounds } from '../engine/traits';
+import { resolveCoat } from '../engine/phenotype';
+import { DERIVED_LABEL, type DerivedKey } from '../engine/standard';
 import {
   type GenerationSnapshot,
   type Project,
@@ -347,4 +349,120 @@ export function populationWarnings(project: Project): string[] {
   }
 
   return warnings;
+}
+
+// ---------------------------------------------------------------------------
+// Where the population falls short of the standard
+// ---------------------------------------------------------------------------
+
+export interface GoalGap {
+  key: string;
+  label: string;
+  /** Plain-language statement of the shortfall. */
+  text: string;
+  /** How far off, scaled by how much the player said they care. */
+  severity: number;
+  direction: 'up' | 'down' | 'mixed';
+}
+
+function goalCentre(goal: { mode: string; preferredLow?: number; preferredHigh?: number }): number {
+  if (goal.mode === 'higher') return 90;
+  if (goal.mode === 'lower') return 10;
+  return ((goal.preferredLow ?? 50) + (goal.preferredHigh ?? 50)) / 2;
+}
+
+function rangeText(goal: { mode: string; preferredLow?: number; preferredHigh?: number }, unit = ''): string {
+  if (goal.mode === 'higher') return 'as high as possible';
+  if (goal.mode === 'lower') return 'as low as possible';
+  return `${goal.preferredLow}–${goal.preferredHigh}${unit}`;
+}
+
+/**
+ * Every goal the player cares about, ranked by how badly the breeding
+ * population is missing it. This is the single most useful list in the game:
+ * it is what the outside-dog search sorts by, and what the expert reads first.
+ */
+export function goalGaps(project: Project): GoalGap[] {
+  const population = breedingPopulation(project);
+  if (population.length === 0) return [];
+  const standard = project.standard;
+  const gaps: GoalGap[] = [];
+  const mean = (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length;
+
+  for (const [key, goal] of Object.entries(standard.traitGoals)) {
+    if (!goal || goal.priority < 2) continue;
+    const trait = key as PolyTrait;
+    const def = TRAITS[trait];
+
+    if (def.logScale) {
+      const avg = mean(population.map((d) => sizeToPounds(d.observed.size)));
+      const low = goal.preferredLow ?? 0;
+      const high = goal.preferredHigh ?? 999;
+      if (avg >= low && avg <= high) continue;
+      const off = avg < low ? low - avg : avg - high;
+      gaps.push({
+        key,
+        label: def.label,
+        text: `${avg < low ? 'bigger' : 'smaller'} dogs — averaging ${avg.toFixed(0)} lb, aiming for ${low}–${high} lb`,
+        severity: (off / Math.max(5, (low + high) / 2)) * 100 * (goal.priority / 4),
+        direction: avg < low ? 'up' : 'down',
+      });
+      continue;
+    }
+
+    const avg = mean(population.map((d) => d.observed[trait]));
+    const centre = goalCentre(goal);
+    const inRange =
+      goal.mode === 'range'
+        ? avg >= (goal.preferredLow ?? 0) && avg <= (goal.preferredHigh ?? 100)
+        : Math.abs(avg - centre) < 12;
+    if (inRange) continue;
+
+    const direction = avg < centre ? 'up' : 'down';
+    gaps.push({
+      key,
+      label: def.label,
+      text: `${direction === 'up' ? 'more' : 'less'} ${def.label.toLowerCase()} — averaging ${Math.round(avg)}, aiming for ${rangeText(goal)}`,
+      severity: Math.abs(avg - centre) * (goal.priority / 4),
+      direction,
+    });
+  }
+
+  for (const [key, goal] of Object.entries(standard.derivedGoals)) {
+    if (!goal || goal.priority < 2) continue;
+    const derived = key as DerivedKey;
+    const avg = mean(population.map((d) => resolveCoat(d.genotype, sizeToPounds(d.observed.size))[derived]));
+    const centre = goalCentre(goal);
+    const inRange =
+      goal.mode === 'range'
+        ? avg >= (goal.preferredLow ?? 0) && avg <= (goal.preferredHigh ?? 100)
+        : Math.abs(avg - centre) < 12;
+    if (inRange) continue;
+    const direction = avg < centre ? 'up' : 'down';
+    gaps.push({
+      key,
+      label: DERIVED_LABEL[derived],
+      text: `${direction === 'up' ? 'more' : 'less'} ${DERIVED_LABEL[derived].toLowerCase()} — averaging ${Math.round(avg)}, aiming for ${rangeText(goal)}`,
+      severity: Math.abs(avg - centre) * (goal.priority / 4),
+      direction,
+    });
+  }
+
+  if (standard.coatGoal && standard.coatGoal.priority >= 2) {
+    const hits = population.filter((d) =>
+      standard.coatGoal!.kinds.includes(resolveCoat(d.genotype, sizeToPounds(d.observed.size)).kind),
+    ).length;
+    const share = hits / population.length;
+    if (share < 0.75) {
+      gaps.push({
+        key: 'coatKind',
+        label: 'Coat type',
+        text: `the right coat type — only ${Math.round(share * 100)}% of your breeding dogs have it`,
+        severity: (1 - share) * 60 * (standard.coatGoal.priority / 4),
+        direction: 'mixed',
+      });
+    }
+  }
+
+  return gaps.sort((a, b) => b.severity - a.severity);
 }

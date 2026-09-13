@@ -14,8 +14,9 @@
 import { Rng, hashString } from '../engine/rng';
 import { type Dog, ageMonths, breedingEligibility } from '../engine/dog';
 import { attemptMating, diseaseRisks, predictCoatOutcomes, type DiseaseRisk } from '../engine/breeding';
-import { type DogScore, scoreDog } from '../engine/standard';
-import { ALL_TRAITS, type PolyTrait, TRAITS, sizeToPounds } from '../engine/traits';
+import { DERIVED_LABEL, type DerivedKey, type DogScore, scoreDog } from '../engine/standard';
+import { resolveCoat } from '../engine/phenotype';
+import { ALL_TRAITS, TRAITS, sizeToPounds } from '../engine/traits';
 import { describeCoi, sharedAncestors } from '../engine/pedigree';
 import {
   type Project,
@@ -33,7 +34,8 @@ export type MatchVerdict =
   | 'Do not breed';
 
 export interface TraitShift {
-  trait: PolyTrait;
+  /** A polygenic trait key, or a coat property such as 'coldTolerance'. */
+  trait: string;
   label: string;
   /** Change versus the better parent, in points (or pounds for size). */
   change: number;
@@ -174,6 +176,31 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
       direction: change > 0 ? 'up' : 'down',
       helpful,
       text: `${def.label} ${change > 0 ? 'up' : 'down'} about ${amount}${unit}`,
+    });
+  }
+
+  // Coat properties — shedding, grooming, cold and heat tolerance, water
+  // resistance — come from the coat genes rather than a polygenic trait, so
+  // they need their own pass. Without this a project whose biggest need is a
+  // warmer coat would never see it mentioned on a pairing.
+  for (const [key, goal] of Object.entries(project.standard.derivedGoals)) {
+    if (!goal || goal.priority === 0) continue;
+    if (simulated.length === 0 || population.length === 0) continue;
+    const derived = key as DerivedKey;
+    const coatOf = (d: Dog) => resolveCoat(d.genotype, sizeToPounds(d.observed.size))[derived];
+    const litterMean = simulated.reduce((sum, d) => sum + coatOf(d), 0) / simulated.length;
+    const popMean = population.reduce((sum, d) => sum + coatOf(d), 0) / population.length;
+    const change = litterMean - popMean;
+    if (Math.abs(change) < 4) continue;
+    const target = goalCentre(goal, false);
+    const helpful = Math.abs(litterMean - target) < Math.abs(popMean - target);
+    shifts.push({
+      trait: derived,
+      label: DERIVED_LABEL[derived],
+      change,
+      direction: change > 0 ? 'up' : 'down',
+      helpful,
+      text: `${DERIVED_LABEL[derived]} ${change > 0 ? 'up' : 'down'} about ${Math.abs(change).toFixed(0)} points`,
     });
   }
 
