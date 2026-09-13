@@ -353,10 +353,11 @@ export function resolveCoat(g: Genotype, sizeLbs: number): CoatProfile {
   else if (furnished) kind = 'wire';
   else kind = 'smooth';
 
-  // A long coat without curl or furnishings on a big dog reads as a true
-  // weatherproof double coat.
-  const undercoat = !lowShed && curlCopies === 0 && (longCoat || sizeLbs > 35);
-  if (undercoat && longCoat && !furnished && curlCopies === 0) kind = 'doubleThick';
+  // The undercoat gene. A long straight plush coat is the classic double coat
+  // and gets its own body art; a short plush coat (Husky, Labrador) keeps the
+  // smooth body but is warmer and sheds more, and the label says so.
+  const undercoat = copies(g, 'undercoat', 'U') >= 1 && curlCopies === 0;
+  if (undercoat && longCoat && !furnished) kind = 'doubleThick';
 
   // Shedding: the low-shed gene helps, but coat structure matters more. A curly
   // coat traps hair instead of dropping it; a plush double coat blows out twice
@@ -405,6 +406,7 @@ export function resolveCoat(g: Genotype, sizeLbs: number): CoatProfile {
   if (kind === 'smooth') waterResistance = 25;
   if (kind === 'silky') waterResistance = 22;
   if (kind === 'long') waterResistance = 40;
+  if (undercoat) waterResistance = Math.min(95, waterResistance + 30);
 
   const parts: string[] = [];
   const kindLabel: Record<CoatKind, string> = {
@@ -418,9 +420,9 @@ export function resolveCoat(g: Genotype, sizeLbs: number): CoatProfile {
     wavyFurnished: 'Wavy furnished coat',
     doubleThick: 'Dense weatherproof double coat',
   };
-  parts.push(kindLabel[kind]);
+  parts.push(kind === 'smooth' && undercoat ? 'Short plush double coat' : kindLabel[kind]);
   if (lowShed) parts.push('low shedding');
-  if (undercoat) parts.push('heavy undercoat');
+  if (undercoat && kind !== 'smooth' && kind !== 'doubleThick') parts.push('heavy undercoat');
 
   return {
     kind,
@@ -440,7 +442,12 @@ export function resolveCoat(g: Genotype, sizeLbs: number): CoatProfile {
 // ---------------------------------------------------------------------------
 
 export type EarType = 'drop' | 'semiErect' | 'erect' | 'button';
-export type TailType = 'full' | 'bobtail';
+/**
+ * Tail shapes. `full` is the ordinary hanging sabre. The rest come from the
+ * tail-carriage trait, the bobtail gene, the muzzle (a screw tail goes with a
+ * flat face) and the coat (a plume needs long hair to be a plume).
+ */
+export type TailType = 'full' | 'bobtail' | 'screw' | 'whip' | 'plume' | 'sickle' | 'curled';
 
 export function resolveEars(earSetScore: number): EarType {
   if (earSetScore >= 76) return 'erect';
@@ -456,8 +463,62 @@ export const EAR_LABEL: Record<EarType, string> = {
   erect: 'Erect ears',
 };
 
-export function resolveTail(g: Genotype): TailType {
-  return copies(g, 'bobtail', 'Bt') >= 1 ? 'bobtail' : 'full';
+export function resolveTail(g: Genotype, tailSet = 48, muzzle = 50, coat?: CoatKind): TailType {
+  if (copies(g, 'bobtail', 'Bt') >= 1) return 'bobtail';
+  if (tailSet >= 82) return 'curled';
+  if (muzzle < 30 && tailSet < 68) return 'screw';
+  if (tailSet >= 68) return 'sickle';
+  if (tailSet <= 26) return 'whip';
+  if (coat === 'long' || coat === 'silky' || coat === 'wavyFurnished') return 'plume';
+  return 'full';
+}
+
+export const TAIL_LABEL: Record<TailType, string> = {
+  full: 'Full tail',
+  bobtail: 'Natural bobtail',
+  screw: 'Screw tail',
+  whip: 'Whip tail',
+  plume: 'Plumed tail',
+  sickle: 'Sickle tail',
+  curled: 'Curled tail',
+};
+
+/** A sentence for the tail, for descriptions. */
+export const TAIL_BLURB: Record<TailType, string> = {
+  full: 'a full tail hanging in a gentle curve',
+  bobtail: 'a natural bobtail',
+  screw: 'a short tight screw tail',
+  whip: 'a long thin whip tail carried low',
+  plume: 'a long feathered plume of a tail',
+  sickle: 'a sickle tail curving up over the back',
+  curled: 'a tail curled tight over the back',
+};
+
+/**
+ * Which body silhouette to draw. The coat decides it for most dogs — under a
+ * heavy coat the frame is hidden anyway. But a smooth coat shows the build,
+ * so it comes in three: the ordinary one, a racy sighthound and a heavy
+ * flat-faced bull type. A thick double coat with pricked ears and a tail over
+ * the back is a Spitz, and gets its own too.
+ */
+export type Silhouette = CoatKind | 'sighthound' | 'bull' | 'spitz';
+
+export function resolveSilhouette(
+  coat: CoatProfile,
+  substance: number,
+  muzzle: number,
+  earSet: number,
+  tailSet: number,
+): Silhouette {
+  const plain = coat.kind === 'smooth' || coat.kind === 'short' || coat.kind === 'doubleThick';
+  // Thresholds are loose on purpose: a dog's visible build wanders a good
+  // twenty points either side of its breed's average.
+  if (plain && coat.undercoat && earSet > 68 && tailSet >= 64) return 'spitz';
+  if (coat.kind === 'smooth' || coat.kind === 'short') {
+    if (muzzle <= 30 || substance > 84) return 'bull';
+    if (substance < 40 && muzzle > 60 && !coat.undercoat) return 'sighthound';
+  }
+  return coat.kind;
 }
 
 /** Shortened legs from the Dachshund/Corgi gene. 0 = normal, 2 = very short. */

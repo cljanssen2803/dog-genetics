@@ -242,3 +242,69 @@ Generate these seven:
 
 Save them anywhere and tell me the folder. I will run the cleaner, wire each to
 the genetics, and the code-drawn shapes go away.
+
+---
+
+## ROUND FOUR — body builds and tail shapes (8 images)
+
+Result of the breed run-through (2026-09-13): every one of the eight bodies is
+the same medium build with the same medium muzzle, and there are only two
+tails. So a Greyhound, a Bulldog, a Pug, a Mastiff and a Labrador all come out
+as the same dog in a different colour, and every Spitz breed has a hanging
+tail. The code now picks a body and a tail from the genetics; these are the
+pieces it is waiting for. Until each file arrives it stretches or rotates the
+existing artwork as a stand-in, so nothing is broken — it is just less good.
+
+Same rules as the full set: 1024×768, transparent, white with grey shading,
+feet on y = 690, shoulders at y = 250, ear base at (760, 250), tail root at
+(250, 330), nose tip at (960, 300). Use the pilot body as a reference image.
+
+Style preamble, paste at the front of every prompt:
+
+> Flat vector illustration of a dog, side profile facing right, standing square
+> with all four legs visible. Pure white fur with soft light-grey cel shading
+> only — absolutely no colour, no brown, no black. Clean simple shapes, minimal
+> or no outline. Transparent background, PNG with alpha. 1024×768 canvas, the
+> dog centred with its feet on a ground line at 690 pixels from the top. No
+> background, no scenery, no ground shadow, no text. Children's picture-book
+> style, warm and appealing, not photorealistic.
+
+### Bodies — 3 images, complete dog, NO ears and NO tail
+
+22. **Sighthound** — `body-sighthound.png`. A Greyhound: very deep chest
+    sweeping up to a tucked, narrow waist; long thin legs; long slender neck;
+    a long narrow head with a fine pointed muzzle; smooth coat. Elegant and
+    racy. Keep the feet on the ground line and the shoulders at the same
+    height as the pilot so it lines up.
+23. **Bull** — `body-bull.png`. A Bulldog / Mastiff type: wide, heavy,
+    barrel-chested body; thick short neck; broad head with a very short,
+    flat, pushed-in muzzle and heavy jowls; sturdy legs set wide; smooth coat.
+    Nose tip well behind the usual x = 960 is fine — this dog has no muzzle to
+    speak of — but keep the eye where the pilot's is.
+24. **Spitz** — `body-spitz.png`. A Husky / Akita type: compact, well-muscled
+    body; thick plush coat with a full ruff around the neck and chest; a
+    wedge-shaped head with a moderately short muzzle; furry legs. No ears, no
+    tail — those come separately.
+
+### Tails — 5 images, just the tail, at the rump
+
+25. **Curled** — `tail-curled.png`. A tight plush curl carried right over the
+    back, like an Akita or a Pug. Rooted at (250, 330) and curling UP and
+    FORWARD over the rump.
+26. **Sickle** — `tail-sickle.png`. A looser sweep up and over the back in a
+    sickle shape, well furred, like a Husky. Rooted at (250, 330).
+27. **Plume** — `tail-plume.png`. Long, carried level or slightly up, with
+    long flowing feathering along the underside, like a Golden Retriever or
+    a Papillon. Rooted at (250, 330).
+28. **Whip** — `tail-whip.png`. Long, very thin, carried low and tucked between
+    the hind legs with a slight upward curve at the tip, like a Greyhound.
+    Rooted at (250, 330).
+29. **Screw** — `tail-screw.png`. A short, thick, tightly kinked corkscrew
+    stub, like an English Bulldog. Rooted at (250, 330).
+
+### What happens when you send them back
+
+Drop them in a folder and tell me where. I run the cleaner, measure each one,
+and add its filename to the `HAVE` list in `src/ui/DogSprite.tsx` — at that
+moment the stand-in switches off and the real piece is used. One file at a
+time is fine; the code copes with any subset.

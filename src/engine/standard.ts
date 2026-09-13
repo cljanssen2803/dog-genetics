@@ -19,7 +19,7 @@ import {
   calmnessFrom,
 } from './traits';
 import type { Dog } from './dog';
-import { type CoatKind, type EarType, type TailType, resolveCoat, resolveColor, resolveEars, resolveTail, geneticHealthFlags } from './phenotype';
+import { type CoatKind, type EarType, type TailType, TAIL_LABEL, resolveCoat, resolveColor, resolveEars, resolveTail, geneticHealthFlags } from './phenotype';
 import { copies } from './loci';
 
 export type Priority = 0 | 1 | 2 | 3 | 4;
@@ -256,13 +256,13 @@ export function scoreDog(
   }
 
   if (standard.tailGoal && standard.tailGoal.priority > 0) {
-    const tail = resolveTail(dog.genotype);
+    const tail = resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind);
     const hit = standard.tailGoal.types.includes(tail);
     const weight = PRIORITY_WEIGHT[standard.tailGoal.priority];
     breakdown.push({
       key: 'tail',
       label: 'Tail',
-      actual: tail === 'bobtail' ? 'Natural bobtail' : 'Full tail',
+      actual: TAIL_LABEL[tail],
       score: hit ? 1 : 0.2,
       priority: standard.tailGoal.priority,
       weight,

@@ -20,7 +20,7 @@ import { type Milestone, type Project, activeDogs } from '../../game/project';
 import { retrospective } from '../../game/story';
 import { scoreDog, type BreedStandard, PRIORITY_LABEL, DERIVED_LABEL } from '../../engine/standard';
 import { TRAITS, type PolyTrait } from '../../engine/traits';
-import { EAR_LABEL } from '../../engine/phenotype';
+import { EAR_LABEL, TAIL_LABEL } from '../../engine/phenotype';
 
 // ---------------------------------------------------------------------------
 // The written standard
@@ -71,6 +71,9 @@ export function writtenStandard(project: Project): string[] {
 
   if (s.earGoal && s.earGoal.types.length) {
     paras.push(`HEAD. Ears ${s.earGoal.types.map((t) => EAR_LABEL[t].toLowerCase()).join(' or ')}.`);
+  }
+  if (s.tailGoal && s.tailGoal.types.length) {
+    paras.push(`TAIL. ${s.tailGoal.types.map((t) => TAIL_LABEL[t]).join(' or ')}.`);
   }
 
   const temper: string[] = [];

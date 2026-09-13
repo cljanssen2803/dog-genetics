@@ -17,6 +17,8 @@ import type { Project } from './project';
 import { ensureIds } from './project';
 import { Rng, hashString } from '../engine/rng';
 import { QUIRKS } from '../engine/quirks';
+import { LOCI } from '../engine/loci';
+import { BREED_BY_KEY, DEFAULT_ALLELES } from '../engine/breeds';
 
 const INDEX_KEY = 'dogGenetics.projectIndex';
 const PROJECT_KEY = (id: string) => `dogGenetics.project.${id}`;
@@ -148,6 +150,29 @@ function migrate(project: Project): Project {
   for (const dog of Object.values(project.dogs)) {
     if (typeof dog.seedValue !== 'number') {
       dog.seedValue = hashString(dog.id) % 2147483646;
+    }
+    // Saves written before tail carriage was a trait. Give the dog an
+    // ordinary tail, seeded from the dog itself so it is the same every load,
+    // and it inherits normally from here on.
+    if (dog.bv.tailSet === undefined) {
+      const r = new Rng(dog.seedValue ^ 0x7a11);
+      dog.bv.tailSet = r.clampedNormal(48, 8);
+      dog.het.tailSet = 12 * Math.sqrt(0.55) * 0.85;
+      dog.observed.tailSet = Math.max(0, Math.min(100, dog.bv.tailSet + r.normal(0, 8)));
+      dog.guessNoise.tailSet = r.clampedNormal(0, 1, 2.2);
+    }
+    // Genes added to the game after this save was written (the undercoat
+    // gene, for one). Draw them from the dog's own breed table so a saved
+    // Husky gets its undercoat and a saved Greyhound does not.
+    for (const locus of LOCI) {
+      if (locus.category === 'quirk' || dog.genotype[locus.key]) continue;
+      const breed = dog.originBreed ? BREED_BY_KEY[dog.originBreed] : undefined;
+      const table =
+        locus.category === 'disease'
+          ? { N: 1, m: 0 }
+          : (breed?.alleles?.[locus.key] ?? DEFAULT_ALLELES[locus.key] ?? { [locus.alleles[0].code]: 1 });
+      const r = new Rng((dog.seedValue ^ hashString(locus.key)) % 2147483646);
+      dog.genotype[locus.key] = [r.weightedKey(table), r.weightedKey(table)];
     }
     // Saves written before personality genes existed. Draw them now from the
     // dog's own seed, so the same dog always gets the same habits — and so

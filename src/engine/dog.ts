@@ -277,6 +277,7 @@ export function uncertainty(trait: PolyTrait, months: number): number {
     substance: 12,
     muzzle: 10,
     earSet: 7,
+    tailSet: 7,
     energy: 15,
     preyDrive: 13,
     vocality: 12,

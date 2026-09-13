@@ -45,6 +45,7 @@ export const DEFAULT_ALLELES: Record<string, Record<string, number>> = {
   furnishings: { F: 0.15, f: 0.85 },
   curl: { Cu: 0.08, cu: 0.92 },
   shedding: { Sh: 0.82, sh: 0.18 },
+  undercoat: { U: 0.3, u: 0.7 },
   hairlessDom: { Hd: 0, hd: 1 },
   hairlessRec: { N: 1, hr: 0 },
   chondro: { Cd: 0, cd: 1 },
@@ -73,6 +74,8 @@ const straight = { Cu: 0, cu: 1 };
 const curly = { Cu: 0.97, cu: 0.03 };
 const shedsHeavily = { Sh: 0.98, sh: 0.02 };
 const shedsLittle = { Sh: 0.03, sh: 0.97 };
+const plush = { U: 0.97, u: 0.03 };
+const singleCoat = { U: 0.02, u: 0.98 };
 
 export const BREEDS: BreedProfile[] = [
   // ============================================================ COMPANION ===
@@ -86,7 +89,7 @@ export const BREEDS: BreedProfile[] = [
       persistence: 64, independence: 34, alertness: 66, vocality: 58, handling: 62,
       structure: 62, longevity: 66, fertility: 62, substance: 46, muzzle: 74, earSet: 14,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatLong, curl: curly, furnishings: bearded, shedding: shedsLittle,
       locusE: { Em: 0.05, E: 0.35, e: 0.6 }, locusK: { KB: 0.55, kbr: 0.02, ky: 0.43 },
       locusA: { ay: 0.2, aw: 0.02, at: 0.28, a: 0.5 },
@@ -106,7 +109,7 @@ export const BREEDS: BreedProfile[] = [
       persistence: 60, independence: 34, alertness: 74, vocality: 70, handling: 56,
       structure: 60, longevity: 76, fertility: 58, substance: 38, muzzle: 68, earSet: 14,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatLong, curl: curly, furnishings: bearded, shedding: shedsLittle,
       locusE: { Em: 0.05, E: 0.3, e: 0.65 }, locusK: { KB: 0.5, kbr: 0.02, ky: 0.48 },
       locusB: { B: 0.7, b: 0.3 }, locusD: { D: 0.8, d: 0.2 },
@@ -122,9 +125,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 62, sociability: 84, energy: 54, stability: 52, preyDrive: 28,
       persistence: 40, independence: 26, alertness: 62, vocality: 68, handling: 62,
-      structure: 58, longevity: 74, fertility: 56, substance: 44, muzzle: 46, earSet: 12,
+      structure: 58, longevity: 74, fertility: 56, substance: 44, muzzle: 46, earSet: 12, tailSet: 78,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatLong, curl: curly, furnishings: bearded, shedding: shedsLittle,
       locusE: { Em: 0, E: 0.15, e: 0.85 }, intensity: { I: 0.1, i: 0.9 },
       locusS: { S: 0.2, sp: 0.8 },
@@ -140,7 +143,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 70, sociability: 92, energy: 42, stability: 58, preyDrive: 36,
       persistence: 32, independence: 16, alertness: 44, vocality: 40, handling: 84,
-      structure: 44, longevity: 26, fertility: 60, substance: 48, muzzle: 40, earSet: 6,
+      structure: 44, longevity: 26, fertility: 60, substance: 48, muzzle: 40, earSet: 6, tailSet: 44,
     },
     alleles: {
       coatLength: coatLong, curl: straight, furnishings: smoothFace,
@@ -159,9 +162,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 44, sociability: 86, energy: 30, stability: 62, preyDrive: 20,
       persistence: 46, independence: 30, alertness: 40, vocality: 34, handling: 82,
-      structure: 36, longevity: 42, fertility: 28, substance: 74, muzzle: 6, earSet: 8,
+      structure: 36, longevity: 42, fertility: 28, substance: 74, muzzle: 6, earSet: 8, tailSet: 94,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0.9, E: 0.05, e: 0.05 }, locusK: { KB: 0.1, kbr: 0, ky: 0.9 },
       locusA: { ay: 0.88, aw: 0, at: 0.02, a: 0.1 }, locusS: { S: 1, sp: 0 },
@@ -178,9 +181,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 46, sociability: 78, energy: 34, stability: 58, preyDrive: 28,
       persistence: 54, independence: 36, alertness: 52, vocality: 30, handling: 74,
-      structure: 30, longevity: 34, fertility: 18, substance: 82, muzzle: 8, earSet: 92,
+      structure: 30, longevity: 34, fertility: 18, substance: 82, muzzle: 8, earSet: 92, tailSet: 40,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: { L: 0.94, l: 0.06 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0.35, E: 0.25, e: 0.4 }, locusK: { KB: 0.25, kbr: 0.4, ky: 0.35 },
       locusA: { ay: 0.7, aw: 0.02, at: 0.2, a: 0.08 },
@@ -199,9 +202,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 60, sociability: 80, energy: 54, stability: 58, preyDrive: 34,
       persistence: 50, independence: 34, alertness: 62, vocality: 44, handling: 72,
-      structure: 44, longevity: 54, fertility: 30, substance: 58, muzzle: 14, earSet: 94,
+      structure: 44, longevity: 54, fertility: 30, substance: 58, muzzle: 14, earSet: 94, tailSet: 40,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusE: { Em: 0.1, E: 0.85, e: 0.05 }, locusK: { KB: 0.6, kbr: 0.35, ky: 0.05 },
       locusS: { S: 0.05, sp: 0.95 }, locusB: { B: 0.92, b: 0.08 },
@@ -217,9 +220,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 44, sociability: 76, energy: 34, stability: 54, preyDrive: 20,
       persistence: 48, independence: 44, alertness: 52, vocality: 48, handling: 66,
-      structure: 48, longevity: 72, fertility: 46, substance: 52, muzzle: 10, earSet: 8,
+      structure: 48, longevity: 72, fertility: 46, substance: 52, muzzle: 10, earSet: 8, tailSet: 84,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsLittle,
       locusS: { S: 0.25, sp: 0.75 }, locusA: { ay: 0.55, aw: 0.05, at: 0.3, a: 0.1 },
     },
@@ -234,9 +237,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 54, sociability: 70, energy: 46, stability: 40, preyDrive: 26,
       persistence: 42, independence: 22, alertness: 72, vocality: 78, handling: 52,
-      structure: 50, longevity: 80, fertility: 40, substance: 26, muzzle: 44, earSet: 10,
+      structure: 50, longevity: 80, fertility: 40, substance: 26, muzzle: 44, earSet: 10, tailSet: 76,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsLittle,
       locusE: { Em: 0, E: 0.1, e: 0.9 }, intensity: { I: 0.02, i: 0.98 },
       locusS: { S: 0.15, sp: 0.85 },
@@ -254,7 +257,7 @@ export const BREEDS: BreedProfile[] = [
       persistence: 66, independence: 52, alertness: 84, vocality: 86, handling: 42,
       structure: 48, longevity: 78, fertility: 40, substance: 24, muzzle: 48, earSet: 84,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsLittle,
       locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.05, aw: 0, at: 0.95, a: 0 },
       locusD: { D: 0.45, d: 0.55 },
@@ -270,9 +273,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 50, sociability: 56, energy: 56, stability: 36, preyDrive: 40,
       persistence: 56, independence: 50, alertness: 88, vocality: 90, handling: 40,
-      structure: 48, longevity: 76, fertility: 42, substance: 32, muzzle: 40, earSet: 90,
+      structure: 48, longevity: 76, fertility: 42, substance: 32, muzzle: 40, earSet: 90, tailSet: 92,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0.15, E: 0.25, e: 0.6 }, locusA: { ay: 0.8, aw: 0.05, at: 0.1, a: 0.05 },
       locusB: { B: 0.85, b: 0.15 }, locusD: { D: 0.8, d: 0.2 },
@@ -288,7 +291,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 84, sociability: 66, energy: 62, stability: 54, preyDrive: 44,
       persistence: 64, independence: 30, alertness: 78, vocality: 64, handling: 56,
-      structure: 62, longevity: 84, fertility: 52, substance: 24, muzzle: 56, earSet: 94,
+      structure: 62, longevity: 84, fertility: 52, substance: 24, muzzle: 56, earSet: 94, tailSet: 74,
     },
     alleles: {
       coatLength: coatLong, curl: straight, furnishings: smoothFace,
@@ -307,9 +310,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 40, sociability: 32, energy: 46, stability: 28, preyDrive: 42,
       persistence: 58, independence: 44, alertness: 86, vocality: 84, handling: 30,
-      structure: 44, longevity: 86, fertility: 34, substance: 22, muzzle: 38, earSet: 92,
+      structure: 44, longevity: 86, fertility: 34, substance: 22, muzzle: 38, earSet: 92, tailSet: 70,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: { L: 0.6, l: 0.4 }, curl: straight, furnishings: smoothFace,
       locusB: { B: 0.8, b: 0.2 }, locusD: { D: 0.75, d: 0.25 },
       merle: { M: 0.03, m: 0.97 }, locusS: { S: 0.5, sp: 0.5 },
@@ -325,9 +328,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 44, sociability: 46, energy: 50, stability: 30, preyDrive: 72,
       persistence: 34, independence: 46, alertness: 66, vocality: 38, handling: 34,
-      structure: 40, longevity: 78, fertility: 44, substance: 8, muzzle: 80, earSet: 44,
+      structure: 40, longevity: 78, fertility: 44, substance: 8, muzzle: 80, earSet: 44, tailSet: 10,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusB: { B: 0.75, b: 0.25 }, locusD: { D: 0.5, d: 0.5 },
       locusK: { KB: 0.5, kbr: 0.05, ky: 0.45 }, locusS: { S: 0.45, sp: 0.55 },
@@ -364,7 +367,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 58, sociability: 56, energy: 92, stability: 58, preyDrive: 96,
       persistence: 94, independence: 66, alertness: 86, vocality: 78, handling: 60,
-      structure: 70, longevity: 78, fertility: 74, substance: 44, muzzle: 66, earSet: 40,
+      structure: 70, longevity: 78, fertility: 74, substance: 44, muzzle: 66, earSet: 40, tailSet: 58,
     },
     alleles: {
       coatLength: { L: 0.8, l: 0.2 }, curl: straight, furnishings: { F: 0.4, f: 0.6 },
@@ -404,9 +407,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 62, sociability: 70, energy: 70, stability: 66, preyDrive: 88,
       persistence: 82, independence: 50, alertness: 78, vocality: 60, handling: 66,
-      structure: 62, longevity: 74, fertility: 50, substance: 54, muzzle: 58, earSet: 88,
+      structure: 62, longevity: 74, fertility: 50, substance: 54, muzzle: 58, earSet: 88, tailSet: 66,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: { L: 0.6, l: 0.4 }, curl: straight, furnishings: bearded,
       locusE: { Em: 0.1, E: 0.35, e: 0.55 }, locusK: { KB: 0.05, kbr: 0, ky: 0.95 },
       locusA: { ay: 0.8, aw: 0.05, at: 0.15, a: 0 },
@@ -422,9 +425,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 68, sociability: 88, energy: 70, stability: 72, preyDrive: 66,
       persistence: 82, independence: 40, alertness: 62, vocality: 40, handling: 86,
-      structure: 66, longevity: 64, fertility: 64, substance: 82, muzzle: 34, earSet: 56,
+      structure: 66, longevity: 64, fertility: 64, substance: 82, muzzle: 34, earSet: 56, tailSet: 44,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusK: { KB: 0.35, kbr: 0.45, ky: 0.2 }, locusE: { Em: 0.15, E: 0.55, e: 0.3 },
       locusB: { B: 0.9, b: 0.1 }, locusD: { D: 0.8, d: 0.2 },
@@ -441,9 +444,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 58, sociability: 44, energy: 74, stability: 58, preyDrive: 82,
       persistence: 76, independence: 68, alertness: 94, vocality: 82, handling: 48,
-      structure: 68, longevity: 80, fertility: 56, substance: 46, muzzle: 56, earSet: 94,
+      structure: 68, longevity: 80, fertility: 56, substance: 46, muzzle: 56, earSet: 94, tailSet: 60,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: { L: 0.45, l: 0.55 }, curl: straight, furnishings: smoothFace,
       locusK: { KB: 0.95, kbr: 0, ky: 0.05 }, locusE: { Em: 0, E: 0.98, e: 0.02 },
       bobtail: { Bt: 0.45, bt: 0.55 }, locusS: { S: 1, sp: 0 },
@@ -461,9 +464,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 84, sociability: 90, energy: 72, stability: 76, preyDrive: 62,
       persistence: 72, independence: 26, alertness: 46, vocality: 38, handling: 88,
-      structure: 50, longevity: 52, fertility: 78, substance: 72, muzzle: 62, earSet: 8,
+      structure: 50, longevity: 52, fertility: 78, substance: 72, muzzle: 62, earSet: 8, tailSet: 46,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0.02, E: 0.68, e: 0.3 }, locusK: { KB: 0.92, kbr: 0, ky: 0.08 },
       locusB: { B: 0.7, b: 0.3 }, locusD: { D: 0.94, d: 0.06 },
@@ -480,9 +483,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 86, sociability: 94, energy: 64, stability: 74, preyDrive: 56,
       persistence: 68, independence: 22, alertness: 44, vocality: 36, handling: 90,
-      structure: 48, longevity: 38, fertility: 74, substance: 66, muzzle: 64, earSet: 6,
+      structure: 48, longevity: 38, fertility: 74, substance: 66, muzzle: 64, earSet: 6, tailSet: 44,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatLong, curl: { Cu: 0.2, cu: 0.8 }, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0, E: 0.05, e: 0.95 }, intensity: { I: 0.55, i: 0.45 },
       locusB: { B: 0.95, b: 0.05 }, locusS: { S: 0.95, sp: 0.05 },
@@ -498,7 +501,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 72, sociability: 80, energy: 64, stability: 48, preyDrive: 62,
       persistence: 60, independence: 28, alertness: 56, vocality: 56, handling: 64,
-      structure: 54, longevity: 62, fertility: 66, substance: 58, muzzle: 46, earSet: 2,
+      structure: 54, longevity: 62, fertility: 66, substance: 58, muzzle: 46, earSet: 2, tailSet: 44,
     },
     alleles: {
       coatLength: coatLong, curl: { Cu: 0.15, cu: 0.85 }, furnishings: smoothFace,
@@ -517,7 +520,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 78, sociability: 74, energy: 86, stability: 58, preyDrive: 80,
       persistence: 76, independence: 40, alertness: 62, vocality: 44, handling: 70,
-      structure: 68, longevity: 70, fertility: 70, substance: 48, muzzle: 68, earSet: 6,
+      structure: 68, longevity: 70, fertility: 70, substance: 48, muzzle: 68, earSet: 6, tailSet: 44,
     },
     alleles: {
       coatLength: { L: 0.3, l: 0.7 }, curl: straight, furnishings: smoothFace,
@@ -537,9 +540,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 78, sociability: 70, energy: 82, stability: 62, preyDrive: 50,
       persistence: 78, independence: 40, alertness: 70, vocality: 62, handling: 66,
-      structure: 66, longevity: 70, fertility: 62, substance: 58, muzzle: 62, earSet: 8,
+      structure: 66, longevity: 70, fertility: 62, substance: 58, muzzle: 62, earSet: 8, tailSet: 70,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatLong, curl: { Cu: 0.7, cu: 0.3 }, furnishings: { F: 0.6, f: 0.4 }, shedding: shedsLittle,
       locusK: { KB: 0.85, kbr: 0, ky: 0.15 }, locusE: { Em: 0, E: 0.9, e: 0.1 },
       locusB: { B: 0.8, b: 0.2 }, locusS: { S: 0.35, sp: 0.65 },
@@ -555,9 +558,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 94, sociability: 46, energy: 94, stability: 44, preyDrive: 84,
       persistence: 92, independence: 40, alertness: 92, vocality: 52, handling: 58,
-      structure: 66, longevity: 76, fertility: 70, substance: 40, muzzle: 70, earSet: 62,
+      structure: 66, longevity: 76, fertility: 70, substance: 40, muzzle: 70, earSet: 62, tailSet: 34,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: { L: 0.35, l: 0.65 }, curl: straight, furnishings: smoothFace,
       locusK: { KB: 0.75, kbr: 0, ky: 0.25 }, locusE: { Em: 0, E: 0.92, e: 0.08 },
       locusB: { B: 0.82, b: 0.18 }, locusS: { S: 0.05, sp: 0.95 },
@@ -574,9 +577,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 86, sociability: 54, energy: 84, stability: 48, preyDrive: 72,
       persistence: 82, independence: 38, alertness: 88, vocality: 64, handling: 60,
-      structure: 62, longevity: 70, fertility: 68, substance: 52, muzzle: 66, earSet: 34,
+      structure: 62, longevity: 70, fertility: 68, substance: 52, muzzle: 66, earSet: 34, tailSet: 40,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusK: { KB: 0.2, kbr: 0, ky: 0.8 }, locusE: { Em: 0, E: 0.92, e: 0.08 },
       locusA: { ay: 0.1, aw: 0.02, at: 0.85, a: 0.03 },
@@ -595,9 +598,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 84, sociability: 42, energy: 78, stability: 58, preyDrive: 80,
       persistence: 86, independence: 42, alertness: 92, vocality: 58, handling: 62,
-      structure: 34, longevity: 44, fertility: 72, substance: 66, muzzle: 72, earSet: 92,
+      structure: 34, longevity: 44, fertility: 72, substance: 66, muzzle: 72, earSet: 92, tailSet: 30,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: { L: 0.72, l: 0.28 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0.55, E: 0.4, e: 0.05 }, locusK: { KB: 0.1, kbr: 0, ky: 0.9 },
       locusA: { ay: 0.15, aw: 0.3, at: 0.45, a: 0.1 },
@@ -614,9 +617,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 90, sociability: 38, energy: 96, stability: 62, preyDrive: 94,
       persistence: 94, independence: 42, alertness: 94, vocality: 58, handling: 58,
-      structure: 70, longevity: 66, fertility: 74, substance: 46, muzzle: 76, earSet: 96,
+      structure: 70, longevity: 66, fertility: 74, substance: 46, muzzle: 76, earSet: 96, tailSet: 40,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0.9, E: 0.08, e: 0.02 }, locusK: { KB: 0.05, kbr: 0, ky: 0.95 },
       locusA: { ay: 0.9, aw: 0.05, at: 0.05, a: 0 },
@@ -633,9 +636,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 74, sociability: 62, energy: 64, stability: 60, preyDrive: 62,
       persistence: 74, independence: 48, alertness: 88, vocality: 86, handling: 62,
-      structure: 52, longevity: 72, fertility: 62, substance: 68, muzzle: 62, earSet: 92,
+      structure: 52, longevity: 72, fertility: 62, substance: 68, muzzle: 62, earSet: 92, tailSet: 44,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: { L: 0.75, l: 0.25 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       chondro: { Cd: 0.98, cd: 0.02 }, locusE: { Em: 0.1, E: 0.45, e: 0.45 },
       locusK: { KB: 0.05, kbr: 0, ky: 0.95 }, locusA: { ay: 0.7, aw: 0.02, at: 0.28, a: 0 },
@@ -653,9 +656,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 46, sociability: 50, energy: 58, stability: 46, preyDrive: 88,
       persistence: 90, independence: 70, alertness: 82, vocality: 84, handling: 46,
-      structure: 40, longevity: 76, fertility: 58, substance: 56, muzzle: 72, earSet: 2,
+      structure: 40, longevity: 76, fertility: 58, substance: 56, muzzle: 72, earSet: 2, tailSet: 44,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: { L: 0.6, l: 0.4 }, curl: straight, furnishings: { F: 0.3, f: 0.7 },
       chondro: { Cd: 1, cd: 0 }, locusE: { Em: 0.1, E: 0.75, e: 0.15 },
       locusK: { KB: 0.05, kbr: 0.1, ky: 0.85 }, locusA: { ay: 0.3, aw: 0.02, at: 0.65, a: 0.03 },
@@ -673,9 +676,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 40, sociability: 84, energy: 72, stability: 70, preyDrive: 86,
       persistence: 88, independence: 74, alertness: 62, vocality: 92, handling: 80,
-      structure: 70, longevity: 74, fertility: 78, substance: 60, muzzle: 66, earSet: 2,
+      structure: 70, longevity: 74, fertility: 78, substance: 60, muzzle: 66, earSet: 2, tailSet: 68,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusK: { KB: 0, kbr: 0, ky: 1 }, locusE: { Em: 0, E: 0.95, e: 0.05 },
       locusA: { ay: 0.25, aw: 0.05, at: 0.7, a: 0 },
@@ -692,9 +695,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 52, sociability: 58, energy: 34, stability: 56, preyDrive: 92,
       persistence: 30, independence: 54, alertness: 48, vocality: 20, handling: 66,
-      structure: 74, longevity: 62, fertility: 66, substance: 18, muzzle: 86, earSet: 40,
+      structure: 74, longevity: 62, fertility: 66, substance: 18, muzzle: 86, earSet: 40, tailSet: 8,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusK: { KB: 0.4, kbr: 0.35, ky: 0.25 }, locusE: { Em: 0.25, E: 0.5, e: 0.25 },
       locusD: { D: 0.8, d: 0.2 }, locusS: { S: 0.5, sp: 0.5 },
@@ -710,9 +713,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 56, sociability: 60, energy: 40, stability: 48, preyDrive: 90,
       persistence: 32, independence: 44, alertness: 54, vocality: 18, handling: 60,
-      structure: 76, longevity: 78, fertility: 66, substance: 16, muzzle: 84, earSet: 42,
+      structure: 76, longevity: 78, fertility: 66, substance: 16, muzzle: 84, earSet: 42, tailSet: 8,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusK: { KB: 0.35, kbr: 0.35, ky: 0.3 }, locusD: { D: 0.75, d: 0.25 },
       locusS: { S: 0.45, sp: 0.55 },
@@ -728,9 +731,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 22, sociability: 36, energy: 70, stability: 44, preyDrive: 90,
       persistence: 72, independence: 94, alertness: 84, vocality: 6, handling: 36,
-      structure: 74, longevity: 74, fertility: 34, substance: 40, muzzle: 70, earSet: 96,
+      structure: 74, longevity: 74, fertility: 34, substance: 40, muzzle: 70, earSet: 96, tailSet: 88,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusK: { KB: 0.1, kbr: 0.25, ky: 0.65 }, locusE: { Em: 0, E: 0.98, e: 0.02 },
       locusA: { ay: 0.95, aw: 0, at: 0.05, a: 0 }, locusS: { S: 0.2, sp: 0.8 },
@@ -747,9 +750,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 26, sociability: 30, energy: 58, stability: 52, preyDrive: 86,
       persistence: 78, independence: 92, alertness: 88, vocality: 42, handling: 22,
-      structure: 72, longevity: 80, fertility: 58, substance: 52, muzzle: 62, earSet: 96,
+      structure: 72, longevity: 80, fertility: 58, substance: 52, muzzle: 62, earSet: 96, tailSet: 90,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0.05, E: 0.7, e: 0.25 }, locusK: { KB: 0.02, kbr: 0, ky: 0.98 },
       locusA: { ay: 0.75, aw: 0.05, at: 0.2, a: 0 },
@@ -766,14 +769,14 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 28, sociability: 74, energy: 92, stability: 66, preyDrive: 88,
       persistence: 90, independence: 88, alertness: 54, vocality: 76, handling: 64,
-      structure: 78, longevity: 74, fertility: 74, substance: 46, muzzle: 74, earSet: 94,
+      structure: 78, longevity: 74, fertility: 74, substance: 46, muzzle: 74, earSet: 94, tailSet: 72,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: { L: 0.85, l: 0.15 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0, E: 0.85, e: 0.15 }, locusK: { KB: 0.05, kbr: 0, ky: 0.95 },
       locusA: { ay: 0.15, aw: 0.7, at: 0.1, a: 0.05 },
       locusS: { S: 0.1, sp: 0.9 }, blueEyes: { Be: 0.4, be: 0.6 },
-      locusB: { B: 0.85, b: 0.15 },
+      locusB: { B: 0.85, b: 0.15 }, ticking: { T: 0, t: 1 },
     },
     diseases: {},
     blurb: 'Built to run for a hundred miles in a blizzard. Superb cold tolerance, an escape artist, and completely uninterested in obedience.',
@@ -786,9 +789,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 34, sociability: 68, energy: 74, stability: 68, preyDrive: 82,
       persistence: 92, independence: 84, alertness: 62, vocality: 62, handling: 66,
-      structure: 60, longevity: 58, fertility: 70, substance: 82, muzzle: 68, earSet: 90,
+      structure: 60, longevity: 58, fertility: 70, substance: 82, muzzle: 68, earSet: 90, tailSet: 78,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: { L: 0.8, l: 0.2 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0, E: 0.95, e: 0.05 }, locusK: { KB: 0.02, kbr: 0, ky: 0.98 },
       locusA: { ay: 0.1, aw: 0.85, at: 0.05, a: 0 },
@@ -805,9 +808,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 52, sociability: 88, energy: 74, stability: 66, preyDrive: 62,
       persistence: 72, independence: 62, alertness: 70, vocality: 84, handling: 74,
-      structure: 66, longevity: 70, fertility: 66, substance: 62, muzzle: 66, earSet: 92,
+      structure: 66, longevity: 70, fertility: 66, substance: 62, muzzle: 66, earSet: 92, tailSet: 90,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0, E: 0.1, e: 0.9 }, intensity: { I: 0.05, i: 0.95 },
       locusB: { B: 1, b: 0 }, locusD: { D: 1, d: 0 },
@@ -826,9 +829,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 62, sociability: 72, energy: 40, stability: 56, preyDrive: 44,
       persistence: 46, independence: 36, alertness: 62, vocality: 44, handling: 78,
-      structure: 40, longevity: 12, fertility: 58, substance: 76, muzzle: 70, earSet: 30,
+      structure: 40, longevity: 12, fertility: 58, substance: 76, muzzle: 70, earSet: 30, tailSet: 24,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusE: { Em: 0.45, E: 0.5, e: 0.05 }, locusK: { KB: 0.45, kbr: 0.2, ky: 0.35 },
       locusA: { ay: 0.75, aw: 0.02, at: 0.15, a: 0.08 },
@@ -847,9 +850,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 74, sociability: 84, energy: 38, stability: 82, preyDrive: 26,
       persistence: 62, independence: 32, alertness: 46, vocality: 34, handling: 86,
-      structure: 38, longevity: 16, fertility: 62, substance: 92, muzzle: 56, earSet: 4,
+      structure: 38, longevity: 16, fertility: 62, substance: 92, muzzle: 56, earSet: 4, tailSet: 40,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatLong, curl: { Cu: 0.25, cu: 0.75 }, furnishings: smoothFace, shedding: shedsHeavily,
       locusK: { KB: 0.85, kbr: 0, ky: 0.15 }, locusE: { Em: 0, E: 0.95, e: 0.05 },
       locusB: { B: 0.85, b: 0.15 }, locusS: { S: 0.6, sp: 0.4 },
@@ -865,9 +868,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 62, sociability: 80, energy: 30, stability: 78, preyDrive: 22,
       persistence: 56, independence: 38, alertness: 52, vocality: 38, handling: 84,
-      structure: 32, longevity: 12, fertility: 54, substance: 96, muzzle: 42, earSet: 4,
+      structure: 32, longevity: 12, fertility: 54, substance: 96, muzzle: 42, earSet: 4, tailSet: 40,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: { L: 0.5, l: 0.5 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusE: { Em: 0.5, E: 0.45, e: 0.05 }, locusK: { KB: 0.05, kbr: 0.05, ky: 0.9 },
       locusA: { ay: 0.9, aw: 0.02, at: 0.08, a: 0 },
@@ -884,9 +887,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 72, sociability: 78, energy: 48, stability: 68, preyDrive: 34,
       persistence: 58, independence: 34, alertness: 58, vocality: 40, handling: 82,
-      structure: 42, longevity: 14, fertility: 60, substance: 82, muzzle: 60, earSet: 6,
+      structure: 42, longevity: 14, fertility: 60, substance: 82, muzzle: 60, earSet: 6, tailSet: 40,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusK: { KB: 0, kbr: 0, ky: 1 }, locusE: { Em: 0, E: 1, e: 0 },
       locusA: { ay: 0, aw: 0, at: 1, a: 0 },
@@ -903,7 +906,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 58, sociability: 74, energy: 42, stability: 66, preyDrive: 78,
       persistence: 40, independence: 50, alertness: 46, vocality: 22, handling: 78,
-      structure: 44, longevity: 8, fertility: 54, substance: 58, muzzle: 84, earSet: 38,
+      structure: 44, longevity: 8, fertility: 54, substance: 58, muzzle: 84, earSet: 38, tailSet: 20,
     },
     alleles: {
       coatLength: { L: 0.3, l: 0.7 }, curl: straight, furnishings: bearded, shedding: { Sh: 0.5, sh: 0.5 },
@@ -922,9 +925,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 84, sociability: 48, energy: 76, stability: 54, preyDrive: 74,
       persistence: 84, independence: 34, alertness: 94, vocality: 52, handling: 62,
-      structure: 62, longevity: 30, fertility: 68, substance: 52, muzzle: 80, earSet: 40,
+      structure: 62, longevity: 30, fertility: 68, substance: 52, muzzle: 80, earSet: 40, tailSet: 34,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusK: { KB: 0.02, kbr: 0, ky: 0.98 }, locusE: { Em: 0, E: 0.98, e: 0.02 },
       locusA: { ay: 0, aw: 0, at: 1, a: 0 },
@@ -942,9 +945,9 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 76, sociability: 42, energy: 58, stability: 74, preyDrive: 62,
       persistence: 82, independence: 44, alertness: 86, vocality: 36, handling: 76,
-      structure: 46, longevity: 30, fertility: 70, substance: 90, muzzle: 52, earSet: 10,
+      structure: 46, longevity: 30, fertility: 70, substance: 90, muzzle: 52, earSet: 10, tailSet: 40,
     },
-    alleles: {
+    alleles: { undercoat: plush,
       coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
       locusK: { KB: 0, kbr: 0, ky: 1 }, locusE: { Em: 0, E: 1, e: 0 },
       locusA: { ay: 0, aw: 0, at: 1, a: 0 },
@@ -965,7 +968,7 @@ export const BREEDS: BreedProfile[] = [
       persistence: 44, independence: 30, alertness: 72, vocality: 58, handling: 44,
       structure: 50, longevity: 78, fertility: 46, substance: 20, muzzle: 62, earSet: 78,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       hairlessDom: { Hd: 0.62, hd: 0.38 },
       coatLength: { L: 0.15, l: 0.85 }, curl: straight, furnishings: smoothFace,
       locusS: { S: 0.1, sp: 0.9 }, locusB: { B: 0.75, b: 0.25 },
@@ -985,7 +988,7 @@ export const BREEDS: BreedProfile[] = [
       persistence: 66, independence: 76, alertness: 88, vocality: 48, handling: 52,
       structure: 74, longevity: 82, fertility: 52, substance: 38, muzzle: 74, earSet: 94,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       hairlessDom: { Hd: 0.7, hd: 0.3 },
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusK: { KB: 0.8, kbr: 0, ky: 0.2 }, locusE: { Em: 0, E: 0.98, e: 0.02 },
@@ -1004,7 +1007,7 @@ export const BREEDS: BreedProfile[] = [
       persistence: 78, independence: 48, alertness: 82, vocality: 64, handling: 62,
       structure: 72, longevity: 80, fertility: 66, substance: 40, muzzle: 66, earSet: 76,
     },
-    alleles: {
+    alleles: { undercoat: singleCoat,
       hairlessRec: { N: 0.25, hr: 0.75 },
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusS: { S: 0.1, sp: 0.9 }, ticking: { T: 0.4, t: 0.6 },
@@ -1020,252 +1023,252 @@ export const BREEDS: BreedProfile[] = [
   // of small terriers and lapdogs.
   {
     key: 'boxer', name: 'Boxer', group: 'Working', weight: 65,
-    traits: { biddability: 66, sociability: 80, energy: 82, stability: 58, preyDrive: 56, persistence: 70, independence: 36, alertness: 78, vocality: 42, handling: 74, structure: 52, longevity: 28, fertility: 66, substance: 68, muzzle: 22, earSet: 40 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.9, E: 0.1, e: 0 }, locusK: { KB: 0, kbr: 0.55, ky: 0.45 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusS: { S: 0.45, sp: 0.55 }, locusB: { B: 1, b: 0 } },
+    traits: { biddability: 66, sociability: 80, energy: 82, stability: 58, preyDrive: 56, persistence: 70, independence: 36, alertness: 78, vocality: 42, handling: 74, structure: 52, longevity: 28, fertility: 66, substance: 68, muzzle: 22, earSet: 40, tailSet: 66 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.9, E: 0.1, e: 0 }, locusK: { KB: 0, kbr: 0.55, ky: 0.45 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusS: { S: 0.45, sp: 0.55 }, locusB: { B: 1, b: 0 } },
     diseases: { dcm: 0.3, dm: 0.1 },
     blurb: 'Bouncy, clownish and devoted, with a flat face and a heart that gives out early.',
   },
   {
     key: 'bulldog', name: 'English Bulldog', group: 'Companion', weight: 50,
-    traits: { biddability: 40, sociability: 80, energy: 22, stability: 70, preyDrive: 18, persistence: 60, independence: 44, alertness: 40, vocality: 30, handling: 82, structure: 22, longevity: 14, fertility: 8, substance: 96, muzzle: 2, earSet: 40 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0.4, E: 0.3, e: 0.3 }, locusK: { KB: 0.05, kbr: 0.4, ky: 0.55 }, locusA: { ay: 0.95, aw: 0, at: 0.05, a: 0 }, locusS: { S: 0.2, sp: 0.8 }, locusD: { D: 0.85, d: 0.15 } },
+    traits: { biddability: 40, sociability: 80, energy: 22, stability: 70, preyDrive: 18, persistence: 60, independence: 44, alertness: 40, vocality: 30, handling: 82, structure: 22, longevity: 14, fertility: 8, substance: 96, muzzle: 2, earSet: 40, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0.4, E: 0.3, e: 0.3 }, locusK: { KB: 0.05, kbr: 0.4, ky: 0.55 }, locusA: { ay: 0.95, aw: 0, at: 0.05, a: 0 }, locusS: { S: 0.2, sp: 0.8 }, locusD: { D: 0.85, d: 0.15 } },
     diseases: { huu: 0.1 },
     blurb: 'The most extreme body in dogs: cannot breathe well, run far, mate naturally or whelp without surgery. Utterly lovable regardless.',
   },
   {
     key: 'amstaff', name: 'American Staffordshire Terrier', group: 'Terrier', weight: 60,
-    traits: { biddability: 66, sociability: 78, energy: 74, stability: 68, preyDrive: 70, persistence: 88, independence: 42, alertness: 66, vocality: 38, handling: 80, structure: 66, longevity: 58, fertility: 68, substance: 84, muzzle: 40, earSet: 56 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0.35, kbr: 0.35, ky: 0.3 }, locusB: { B: 0.85, b: 0.15 }, locusD: { D: 0.7, d: 0.3 }, locusS: { S: 0.45, sp: 0.55 } },
+    traits: { biddability: 66, sociability: 78, energy: 74, stability: 68, preyDrive: 70, persistence: 88, independence: 42, alertness: 66, vocality: 38, handling: 80, structure: 66, longevity: 58, fertility: 68, substance: 84, muzzle: 40, earSet: 56, tailSet: 42 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0.35, kbr: 0.35, ky: 0.3 }, locusB: { B: 0.85, b: 0.15 }, locusD: { D: 0.7, d: 0.3 }, locusS: { S: 0.45, sp: 0.55 } },
     diseases: { dm: 0.2, cystinuria: 0.03 },
     blurb: 'Muscular, people-loving and relentless once committed. Blue is common, and so is the spinal disease that travels with the breed.',
   },
   {
     key: 'caneCorso', name: 'Cane Corso', group: 'Guardian', weight: 105,
-    traits: { biddability: 70, sociability: 34, energy: 60, stability: 70, preyDrive: 62, persistence: 82, independence: 48, alertness: 92, vocality: 36, handling: 62, structure: 50, longevity: 26, fertility: 66, substance: 92, muzzle: 38, earSet: 30 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.6, E: 0.4, e: 0 }, locusK: { KB: 0.5, kbr: 0.3, ky: 0.2 }, locusA: { ay: 0.9, aw: 0, at: 0.1, a: 0 }, locusD: { D: 0.65, d: 0.35 }, locusS: { S: 0.9, sp: 0.1 } },
+    traits: { biddability: 70, sociability: 34, energy: 60, stability: 70, preyDrive: 62, persistence: 82, independence: 48, alertness: 92, vocality: 36, handling: 62, structure: 50, longevity: 26, fertility: 66, substance: 92, muzzle: 38, earSet: 30, tailSet: 36 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.6, E: 0.4, e: 0 }, locusK: { KB: 0.5, kbr: 0.3, ky: 0.2 }, locusA: { ay: 0.9, aw: 0, at: 0.1, a: 0 }, locusD: { D: 0.65, d: 0.35 }, locusS: { S: 0.9, sp: 0.1 } },
     diseases: { dcm: 0.08 },
     blurb: 'An Italian estate guardian: serious, watchful and physically formidable. Not a dog for a first-time owner.',
   },
   {
     key: 'greatPyrenees', name: 'Great Pyrenees', group: 'Giant / Guardian', weight: 105,
-    traits: { biddability: 38, sociability: 62, energy: 34, stability: 80, preyDrive: 40, persistence: 76, independence: 90, alertness: 84, vocality: 80, handling: 76, structure: 44, longevity: 22, fertility: 60, substance: 80, muzzle: 62, earSet: 6 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0, E: 0.1, e: 0.9 }, intensity: { I: 0.02, i: 0.98 }, locusS: { S: 0.3, sp: 0.7 } },
+    traits: { biddability: 38, sociability: 62, energy: 34, stability: 80, preyDrive: 40, persistence: 76, independence: 90, alertness: 84, vocality: 80, handling: 76, structure: 44, longevity: 22, fertility: 60, substance: 80, muzzle: 62, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0, E: 0.1, e: 0.9 }, intensity: { I: 0.02, i: 0.98 }, locusS: { S: 0.3, sp: 0.7 } },
     diseases: {},
     blurb: 'A livestock guardian that thinks for itself, barks all night on principle, and is gentle beyond belief with anything it considers its own.',
   },
   {
     key: 'akita', name: 'Akita', group: 'Spitz / Guardian', weight: 100,
-    traits: { biddability: 34, sociability: 26, energy: 52, stability: 64, preyDrive: 78, persistence: 84, independence: 92, alertness: 92, vocality: 30, handling: 40, structure: 52, longevity: 34, fertility: 58, substance: 84, muzzle: 56, earSet: 96 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0.15, E: 0.6, e: 0.25 }, locusK: { KB: 0.1, kbr: 0.3, ky: 0.6 }, locusA: { ay: 0.8, aw: 0.1, at: 0.05, a: 0.05 }, locusS: { S: 0.4, sp: 0.6 } },
+    traits: { biddability: 34, sociability: 26, energy: 52, stability: 64, preyDrive: 78, persistence: 84, independence: 92, alertness: 92, vocality: 30, handling: 40, structure: 52, longevity: 34, fertility: 58, substance: 84, muzzle: 56, earSet: 96, tailSet: 92 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0.15, E: 0.6, e: 0.25 }, locusK: { KB: 0.1, kbr: 0.3, ky: 0.6 }, locusA: { ay: 0.8, aw: 0.1, at: 0.05, a: 0.05 }, locusS: { S: 0.4, sp: 0.6 } },
     diseases: {},
     blurb: 'Dignified, silent, and intensely loyal to one household. Famously intolerant of other dogs.',
   },
   {
     key: 'chow', name: 'Chow Chow', group: 'Spitz', weight: 55,
-    traits: { biddability: 24, sociability: 20, energy: 34, stability: 58, preyDrive: 50, persistence: 70, independence: 96, alertness: 80, vocality: 32, handling: 22, structure: 40, longevity: 44, fertility: 46, substance: 78, muzzle: 40, earSet: 88 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0, E: 0.4, e: 0.6 }, locusK: { KB: 0.35, kbr: 0, ky: 0.65 }, locusA: { ay: 0.9, aw: 0, at: 0, a: 0.1 }, locusB: { B: 0.85, b: 0.15 }, locusD: { D: 0.8, d: 0.2 } },
+    traits: { biddability: 24, sociability: 20, energy: 34, stability: 58, preyDrive: 50, persistence: 70, independence: 96, alertness: 80, vocality: 32, handling: 22, structure: 40, longevity: 44, fertility: 46, substance: 78, muzzle: 40, earSet: 88, tailSet: 90 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0, E: 0.4, e: 0.6 }, locusK: { KB: 0.35, kbr: 0, ky: 0.65 }, locusA: { ay: 0.9, aw: 0, at: 0, a: 0.1 }, locusB: { B: 0.85, b: 0.15 }, locusD: { D: 0.8, d: 0.2 } },
     diseases: {},
     blurb: 'Aloof to the point of cat-like, with a lion ruff, a blue tongue, and a strong opinion about being touched.',
   },
   {
     key: 'dalmatian', name: 'Dalmatian', group: 'Companion / Carriage', weight: 52,
-    traits: { biddability: 60, sociability: 66, energy: 90, stability: 54, preyDrive: 58, persistence: 82, independence: 52, alertness: 74, vocality: 50, handling: 62, structure: 68, longevity: 62, fertility: 66, substance: 46, muzzle: 74, earSet: 8 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 1, kbr: 0, ky: 0 }, locusS: { S: 0, sp: 1 }, ticking: { T: 1, t: 0 }, locusB: { B: 0.85, b: 0.15 } },
+    traits: { biddability: 60, sociability: 66, energy: 90, stability: 54, preyDrive: 58, persistence: 82, independence: 52, alertness: 74, vocality: 50, handling: 62, structure: 68, longevity: 62, fertility: 66, substance: 46, muzzle: 74, earSet: 8, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 1, kbr: 0, ky: 0 }, locusS: { S: 0, sp: 1 }, ticking: { T: 1, t: 0 }, locusB: { B: 0.85, b: 0.15 } },
     diseases: { huu: 0.99 },
     blurb: 'Bred to run beside carriages for fifty miles. Every Dalmatian on earth carries the urinary stone gene; a third are born deaf.',
   },
   {
     key: 'vizsla', name: 'Vizsla', group: 'Gundog', weight: 50,
-    traits: { biddability: 82, sociability: 78, energy: 92, stability: 46, preyDrive: 84, persistence: 78, independence: 24, alertness: 70, vocality: 46, handling: 62, structure: 72, longevity: 68, fertility: 70, substance: 40, muzzle: 74, earSet: 6 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0, E: 0.05, e: 0.95 }, intensity: { I: 0.9, i: 0.1 }, locusB: { B: 0, b: 1 }, locusS: { S: 0.95, sp: 0.05 } },
+    traits: { biddability: 82, sociability: 78, energy: 92, stability: 46, preyDrive: 84, persistence: 78, independence: 24, alertness: 70, vocality: 46, handling: 62, structure: 72, longevity: 68, fertility: 70, substance: 40, muzzle: 74, earSet: 6, tailSet: 30 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0, E: 0.05, e: 0.95 }, intensity: { I: 0.9, i: 0.1 }, locusB: { B: 0, b: 1 }, locusS: { S: 0.95, sp: 0.05 } },
     diseases: {},
     blurb: 'A rust-red velcro dog with limitless stamina. Every Vizsla is chocolate-based, which is why the nose matches the coat.',
   },
   {
     key: 'weimaraner', name: 'Weimaraner', group: 'Gundog', weight: 70,
-    traits: { biddability: 72, sociability: 62, energy: 90, stability: 44, preyDrive: 88, persistence: 82, independence: 30, alertness: 78, vocality: 52, handling: 58, structure: 68, longevity: 60, fertility: 68, substance: 50, muzzle: 76, earSet: 6 },
-    alleles: { coatLength: { L: 0.9, l: 0.1 }, curl: straight, furnishings: smoothFace, locusK: { KB: 1, kbr: 0, ky: 0 }, locusB: { B: 0, b: 1 }, locusD: { D: 0, d: 1 }, locusS: { S: 0.98, sp: 0.02 } },
+    traits: { biddability: 72, sociability: 62, energy: 90, stability: 44, preyDrive: 88, persistence: 82, independence: 30, alertness: 78, vocality: 52, handling: 58, structure: 68, longevity: 60, fertility: 68, substance: 50, muzzle: 76, earSet: 6, tailSet: 30 },
+    alleles: { undercoat: singleCoat, coatLength: { L: 0.9, l: 0.1 }, curl: straight, furnishings: smoothFace, locusK: { KB: 1, kbr: 0, ky: 0 }, locusB: { B: 0, b: 1 }, locusD: { D: 0, d: 1 }, locusS: { S: 0.98, sp: 0.02 } },
     diseases: { huu: 0.04 },
     blurb: 'The grey ghost: every one is chocolate AND dilute, which is what makes the silver coat. Anxious when left, tireless when not.',
   },
   {
     key: 'springer', name: 'English Springer Spaniel', group: 'Gundog', weight: 45,
-    traits: { biddability: 80, sociability: 80, energy: 84, stability: 50, preyDrive: 78, persistence: 74, independence: 28, alertness: 62, vocality: 54, handling: 68, structure: 60, longevity: 66, fertility: 72, substance: 52, muzzle: 62, earSet: 2 },
+    traits: { biddability: 80, sociability: 80, energy: 84, stability: 50, preyDrive: 78, persistence: 74, independence: 28, alertness: 62, vocality: 54, handling: 68, structure: 60, longevity: 66, fertility: 72, substance: 52, muzzle: 62, earSet: 2, tailSet: 44 },
     alleles: { coatLength: coatLong, curl: { Cu: 0.1, cu: 0.9 }, furnishings: smoothFace, locusB: { B: 0.55, b: 0.45 }, locusS: { S: 0.05, sp: 0.95 }, ticking: { T: 0.6, t: 0.4 }, locusA: { ay: 0.2, aw: 0, at: 0.75, a: 0.05 } },
     diseases: { prcdPRA: 0.06 },
     blurb: 'A flushing spaniel that lives to work cover. Liver-and-white or black-and-white, always busy, always wagging.',
   },
   {
     key: 'cattleDog', name: 'Australian Cattle Dog', group: 'Herding', weight: 40,
-    traits: { biddability: 76, sociability: 34, energy: 96, stability: 62, preyDrive: 86, persistence: 96, independence: 56, alertness: 94, vocality: 46, handling: 48, structure: 80, longevity: 80, fertility: 72, substance: 58, muzzle: 66, earSet: 96 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0.1, kbr: 0, ky: 0.9 }, locusA: { ay: 0.1, aw: 0.1, at: 0.8, a: 0 }, locusS: { S: 0, sp: 1 }, ticking: { T: 1, t: 0 }, locusB: { B: 0.7, b: 0.3 } },
+    traits: { biddability: 76, sociability: 34, energy: 96, stability: 62, preyDrive: 86, persistence: 96, independence: 56, alertness: 94, vocality: 46, handling: 48, structure: 80, longevity: 80, fertility: 72, substance: 58, muzzle: 66, earSet: 96, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0.1, kbr: 0, ky: 0.9 }, locusA: { ay: 0.1, aw: 0.1, at: 0.8, a: 0 }, locusS: { S: 0, sp: 1 }, ticking: { T: 1, t: 0 }, locusB: { B: 0.7, b: 0.3 } },
     diseases: { prcdPRA: 0.1 },
     blurb: 'The hardest-working, longest-lived dog in this bank. Heavily ticked blue or red, and will heel anything that moves, including you.',
   },
   {
     key: 'sheltie', name: 'Shetland Sheepdog', group: 'Herding', weight: 22,
-    traits: { biddability: 90, sociability: 40, energy: 70, stability: 38, preyDrive: 60, persistence: 72, independence: 30, alertness: 92, vocality: 94, handling: 50, structure: 66, longevity: 74, fertility: 62, substance: 42, muzzle: 74, earSet: 60 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0.1, kbr: 0, ky: 0.9 }, locusA: { ay: 0.6, aw: 0, at: 0.35, a: 0.05 }, merle: { M: 0.2, m: 0.8 }, locusS: { S: 0.15, sp: 0.85 } },
+    traits: { biddability: 90, sociability: 40, energy: 70, stability: 38, preyDrive: 60, persistence: 72, independence: 30, alertness: 92, vocality: 94, handling: 50, structure: 66, longevity: 74, fertility: 62, substance: 42, muzzle: 74, earSet: 60, tailSet: 36 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0.1, kbr: 0, ky: 0.9 }, locusA: { ay: 0.6, aw: 0, at: 0.35, a: 0.05 }, merle: { M: 0.2, m: 0.8 }, locusS: { S: 0.15, sp: 0.85 } },
     diseases: { cea: 0.6, mdr1: 0.15 },
     blurb: 'A miniature Collie that is brilliant, sensitive, and possibly the barkiest dog alive. Eye disease runs through most of the breed.',
   },
   {
     key: 'roughCollie', name: 'Rough Collie', group: 'Herding', weight: 60,
-    traits: { biddability: 84, sociability: 62, energy: 60, stability: 48, preyDrive: 54, persistence: 64, independence: 32, alertness: 84, vocality: 82, handling: 62, structure: 66, longevity: 66, fertility: 64, substance: 44, muzzle: 90, earSet: 62 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.65, aw: 0, at: 0.35, a: 0 }, merle: { M: 0.2, m: 0.8 }, locusS: { S: 0.1, sp: 0.9 } },
+    traits: { biddability: 84, sociability: 62, energy: 60, stability: 48, preyDrive: 54, persistence: 64, independence: 32, alertness: 84, vocality: 82, handling: 62, structure: 66, longevity: 66, fertility: 64, substance: 44, muzzle: 90, earSet: 62, tailSet: 36 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.65, aw: 0, at: 0.35, a: 0 }, merle: { M: 0.2, m: 0.8 }, locusS: { S: 0.1, sp: 0.9 } },
     diseases: { cea: 0.7, mdr1: 0.35 },
     blurb: 'Lassie. Elegant, gentle, and carrying more eye disease and drug sensitivity than almost any breed.',
   },
   {
     key: 'oes', name: 'Old English Sheepdog', group: 'Herding', weight: 80,
-    traits: { biddability: 62, sociability: 76, energy: 58, stability: 60, preyDrive: 40, persistence: 60, independence: 44, alertness: 66, vocality: 60, handling: 70, structure: 46, longevity: 40, fertility: 60, substance: 78, muzzle: 50, earSet: 6 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: bearded, shedding: shedsHeavily, locusK: { KB: 0.9, kbr: 0, ky: 0.1 }, locusD: { D: 0.4, d: 0.6 }, locusS: { S: 0, sp: 1 }, bobtail: { Bt: 0.3, bt: 0.7 } },
+    traits: { biddability: 62, sociability: 76, energy: 58, stability: 60, preyDrive: 40, persistence: 60, independence: 44, alertness: 66, vocality: 60, handling: 70, structure: 46, longevity: 40, fertility: 60, substance: 78, muzzle: 50, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: bearded, shedding: shedsHeavily, locusK: { KB: 0.9, kbr: 0, ky: 0.1 }, locusD: { D: 0.4, d: 0.6 }, locusS: { S: 0, sp: 1 }, bobtail: { Bt: 0.3, bt: 0.7 } },
     diseases: { mdr1: 0.08, dm: 0.04 },
     blurb: 'A shaggy grey-and-white bear with a bear-like temperament. The coat is a second job.',
   },
   {
     key: 'havanese', name: 'Havanese', group: 'Companion', weight: 12,
-    traits: { biddability: 72, sociability: 88, energy: 52, stability: 58, preyDrive: 26, persistence: 46, independence: 22, alertness: 62, vocality: 58, handling: 74, structure: 60, longevity: 78, fertility: 58, substance: 46, muzzle: 50, earSet: 8 },
-    alleles: { coatLength: coatLong, curl: { Cu: 0.35, cu: 0.65 }, furnishings: bearded, shedding: shedsLittle, locusB: { B: 0.75, b: 0.25 }, locusS: { S: 0.4, sp: 0.6 }, locusE: { Em: 0.05, E: 0.5, e: 0.45 } },
+    traits: { biddability: 72, sociability: 88, energy: 52, stability: 58, preyDrive: 26, persistence: 46, independence: 22, alertness: 62, vocality: 58, handling: 74, structure: 60, longevity: 78, fertility: 58, substance: 46, muzzle: 50, earSet: 8, tailSet: 76 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.35, cu: 0.65 }, furnishings: bearded, shedding: shedsLittle, locusB: { B: 0.75, b: 0.25 }, locusS: { S: 0.4, sp: 0.6 }, locusE: { Em: 0.05, E: 0.5, e: 0.45 } },
     diseases: {},
     blurb: 'The national dog of Cuba: sturdy for a toy, low-shedding, and glued to its people.',
   },
   {
     key: 'pekingese', name: 'Pekingese', group: 'Companion', weight: 11,
-    traits: { biddability: 30, sociability: 42, energy: 24, stability: 62, preyDrive: 20, persistence: 66, independence: 74, alertness: 62, vocality: 50, handling: 44, structure: 34, longevity: 60, fertility: 32, substance: 76, muzzle: 2, earSet: 4 },
+    traits: { biddability: 30, sociability: 42, energy: 24, stability: 62, preyDrive: 20, persistence: 66, independence: 74, alertness: 62, vocality: 50, handling: 44, structure: 34, longevity: 60, fertility: 32, substance: 76, muzzle: 2, earSet: 4, tailSet: 82 },
     alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, chondro: { Cd: 0.9, cd: 0.1 }, locusE: { Em: 0.7, E: 0.2, e: 0.1 }, locusA: { ay: 0.9, aw: 0, at: 0.05, a: 0.05 } },
     diseases: {},
     blurb: 'An imperial lapdog that regards you as staff. Flat-faced, short-legged, and monumentally dignified.',
   },
   {
     key: 'minPin', name: 'Miniature Pinscher', group: 'Companion / Terrier', weight: 9,
-    traits: { biddability: 50, sociability: 48, energy: 84, stability: 44, preyDrive: 74, persistence: 68, independence: 56, alertness: 92, vocality: 84, handling: 40, structure: 66, longevity: 80, fertility: 56, substance: 30, muzzle: 68, earSet: 94 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.55, aw: 0, at: 0.45, a: 0 }, locusE: { Em: 0, E: 0.4, e: 0.6 }, locusB: { B: 0.7, b: 0.3 } },
+    traits: { biddability: 50, sociability: 48, energy: 84, stability: 44, preyDrive: 74, persistence: 68, independence: 56, alertness: 92, vocality: 84, handling: 40, structure: 66, longevity: 80, fertility: 56, substance: 30, muzzle: 68, earSet: 94, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.55, aw: 0, at: 0.45, a: 0 }, locusE: { Em: 0, E: 0.4, e: 0.6 }, locusB: { B: 0.7, b: 0.3 } },
     diseases: { mdr1: 0.02 },
     blurb: 'The King of Toys: a self-important little athlete with a high-stepping trot and no idea it weighs nine pounds.',
   },
   {
     key: 'scottie', name: 'Scottish Terrier', group: 'Terrier', weight: 20,
-    traits: { biddability: 34, sociability: 36, energy: 56, stability: 62, preyDrive: 84, persistence: 92, independence: 80, alertness: 78, vocality: 60, handling: 40, structure: 58, longevity: 66, fertility: 50, substance: 70, muzzle: 66, earSet: 92 },
-    alleles: { coatLength: { L: 0.5, l: 0.5 }, curl: straight, furnishings: bearded, shedding: shedsLittle, chondro: { Cd: 0.9, cd: 0.1 }, locusK: { KB: 0.7, kbr: 0.25, ky: 0.05 }, locusE: { Em: 0, E: 0.85, e: 0.15 } },
+    traits: { biddability: 34, sociability: 36, energy: 56, stability: 62, preyDrive: 84, persistence: 92, independence: 80, alertness: 78, vocality: 60, handling: 40, structure: 58, longevity: 66, fertility: 50, substance: 70, muzzle: 66, earSet: 92, tailSet: 66 },
+    alleles: { undercoat: plush, coatLength: { L: 0.5, l: 0.5 }, curl: straight, furnishings: bearded, shedding: shedsLittle, chondro: { Cd: 0.9, cd: 0.1 }, locusK: { KB: 0.7, kbr: 0.25, ky: 0.05 }, locusE: { Em: 0, E: 0.85, e: 0.15 } },
     diseases: { vwd: 0.1 },
     blurb: 'Stubborn, dignified, and built like a small tank on short legs. Will not be told.',
   },
   {
     key: 'westie', name: 'West Highland White Terrier', group: 'Terrier', weight: 17,
-    traits: { biddability: 50, sociability: 62, energy: 66, stability: 60, preyDrive: 84, persistence: 86, independence: 66, alertness: 78, vocality: 66, handling: 54, structure: 62, longevity: 72, fertility: 56, substance: 58, muzzle: 56, earSet: 92 },
-    alleles: { coatLength: { L: 0.4, l: 0.6 }, curl: straight, furnishings: bearded, shedding: shedsLittle, chondro: { Cd: 0.6, cd: 0.4 }, locusE: { Em: 0, E: 0.05, e: 0.95 }, intensity: { I: 0.02, i: 0.98 } },
+    traits: { biddability: 50, sociability: 62, energy: 66, stability: 60, preyDrive: 84, persistence: 86, independence: 66, alertness: 78, vocality: 66, handling: 54, structure: 62, longevity: 72, fertility: 56, substance: 58, muzzle: 56, earSet: 92, tailSet: 68 },
+    alleles: { undercoat: plush, coatLength: { L: 0.4, l: 0.6 }, curl: straight, furnishings: bearded, shedding: shedsLittle, chondro: { Cd: 0.6, cd: 0.4 }, locusE: { Em: 0, E: 0.05, e: 0.95 }, intensity: { I: 0.02, i: 0.98 } },
     diseases: { ichthyosis: 0.05 },
     blurb: 'A white ratting terrier with a big personality and famously itchy skin.',
   },
   {
     key: 'cairn', name: 'Cairn Terrier', group: 'Terrier', weight: 14,
-    traits: { biddability: 54, sociability: 60, energy: 70, stability: 64, preyDrive: 88, persistence: 88, independence: 62, alertness: 80, vocality: 64, handling: 56, structure: 70, longevity: 78, fertility: 62, substance: 50, muzzle: 60, earSet: 94 },
-    alleles: { coatLength: { L: 0.4, l: 0.6 }, curl: straight, furnishings: bearded, shedding: shedsLittle, chondro: { Cd: 0.5, cd: 0.5 }, locusK: { KB: 0.05, kbr: 0.4, ky: 0.55 }, locusA: { ay: 0.7, aw: 0.25, at: 0.05, a: 0 } },
+    traits: { biddability: 54, sociability: 60, energy: 70, stability: 64, preyDrive: 88, persistence: 88, independence: 62, alertness: 80, vocality: 64, handling: 56, structure: 70, longevity: 78, fertility: 62, substance: 50, muzzle: 60, earSet: 94, tailSet: 66 },
+    alleles: { undercoat: plush, coatLength: { L: 0.4, l: 0.6 }, curl: straight, furnishings: bearded, shedding: shedsLittle, chondro: { Cd: 0.5, cd: 0.5 }, locusK: { KB: 0.05, kbr: 0.4, ky: 0.55 }, locusA: { ay: 0.7, aw: 0.25, at: 0.05, a: 0 } },
     diseases: {},
     blurb: 'Toto. A scruffy, tough, cheerful little vermin dog and one of the healthiest terriers.',
   },
   {
     key: 'borderTerrier', name: 'Border Terrier', group: 'Terrier', weight: 14,
     traits: { biddability: 66, sociability: 72, energy: 72, stability: 70, preyDrive: 88, persistence: 90, independence: 54, alertness: 72, vocality: 46, handling: 70, structure: 72, longevity: 80, fertility: 66, substance: 46, muzzle: 62, earSet: 40 },
-    alleles: { coatLength: { L: 0.5, l: 0.5 }, curl: straight, furnishings: bearded, shedding: shedsLittle, locusK: { KB: 0.05, kbr: 0, ky: 0.95 }, locusA: { ay: 0.3, aw: 0.6, at: 0.1, a: 0 }, locusE: { Em: 0.4, E: 0.6, e: 0 } },
+    alleles: { undercoat: plush, coatLength: { L: 0.5, l: 0.5 }, curl: straight, furnishings: bearded, shedding: shedsLittle, locusK: { KB: 0.05, kbr: 0, ky: 0.95 }, locusA: { ay: 0.3, aw: 0.6, at: 0.1, a: 0 }, locusE: { Em: 0.4, E: 0.6, e: 0 } },
     diseases: {},
     blurb: 'The most even-tempered of the working terriers: friendly, quiet for a terrier, and still a serious hunter. Long lived and sound.',
   },
   {
     key: 'airedale', name: 'Airedale Terrier', group: 'Terrier', weight: 55,
-    traits: { biddability: 62, sociability: 60, energy: 76, stability: 66, preyDrive: 84, persistence: 88, independence: 66, alertness: 82, vocality: 52, handling: 60, structure: 68, longevity: 64, fertility: 66, substance: 56, muzzle: 80, earSet: 44 },
+    traits: { biddability: 62, sociability: 60, energy: 76, stability: 66, preyDrive: 84, persistence: 88, independence: 66, alertness: 82, vocality: 52, handling: 60, structure: 68, longevity: 64, fertility: 66, substance: 56, muzzle: 80, earSet: 44, tailSet: 66 },
     alleles: { coatLength: { L: 0.4, l: 0.6 }, curl: straight, furnishings: bearded, shedding: shedsLittle, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0, aw: 0, at: 1, a: 0 }, locusE: { Em: 0, E: 1, e: 0 } },
     diseases: { vwd: 0.03 },
     blurb: 'The King of Terriers. Big enough to hunt otter, wiry, black-and-tan, and every inch a terrier in a large dog.',
   },
   {
     key: 'bullTerrier', name: 'Bull Terrier', group: 'Terrier', weight: 55,
-    traits: { biddability: 44, sociability: 74, energy: 74, stability: 60, preyDrive: 70, persistence: 92, independence: 60, alertness: 64, vocality: 40, handling: 68, structure: 60, longevity: 54, fertility: 62, substance: 82, muzzle: 60, earSet: 96 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0.2, kbr: 0.4, ky: 0.4 }, locusS: { S: 0.25, sp: 0.75 }, locusE: { Em: 0.2, E: 0.5, e: 0.3 } },
+    traits: { biddability: 44, sociability: 74, energy: 74, stability: 60, preyDrive: 70, persistence: 92, independence: 60, alertness: 64, vocality: 40, handling: 68, structure: 60, longevity: 54, fertility: 62, substance: 82, muzzle: 60, earSet: 96, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0.2, kbr: 0.4, ky: 0.4 }, locusS: { S: 0.25, sp: 0.75 }, locusE: { Em: 0.2, E: 0.5, e: 0.3 } },
     diseases: { pll: 0.05 },
     blurb: 'The egg-headed gladiator: clownish, obsessive, immensely strong, and prone to deafness in the white ones.',
   },
   {
     key: 'sharPei', name: 'Shar Pei', group: 'Guardian', weight: 50,
-    traits: { biddability: 32, sociability: 24, energy: 40, stability: 60, preyDrive: 54, persistence: 70, independence: 88, alertness: 88, vocality: 32, handling: 30, structure: 40, longevity: 38, fertility: 50, substance: 74, muzzle: 30, earSet: 20 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0.5, kbr: 0, ky: 0.5 }, locusA: { ay: 0.85, aw: 0, at: 0, a: 0.15 }, locusB: { B: 0.75, b: 0.25 }, locusD: { D: 0.7, d: 0.3 }, locusE: { Em: 0.05, E: 0.5, e: 0.45 } },
+    traits: { biddability: 32, sociability: 24, energy: 40, stability: 60, preyDrive: 54, persistence: 70, independence: 88, alertness: 88, vocality: 32, handling: 30, structure: 40, longevity: 38, fertility: 50, substance: 74, muzzle: 30, earSet: 20, tailSet: 88 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0.5, kbr: 0, ky: 0.5 }, locusA: { ay: 0.85, aw: 0, at: 0, a: 0.15 }, locusB: { B: 0.75, b: 0.25 }, locusD: { D: 0.7, d: 0.3 }, locusE: { Em: 0.05, E: 0.5, e: 0.45 } },
     diseases: {},
     blurb: 'Wrinkled, aloof and suspicious of strangers, with a hippo muzzle and a tendency to recurrent fevers.',
   },
   {
     key: 'basset', name: 'Basset Hound', group: 'Hound', weight: 55,
-    traits: { biddability: 36, sociability: 82, energy: 30, stability: 74, preyDrive: 78, persistence: 90, independence: 74, alertness: 44, vocality: 90, handling: 84, structure: 34, longevity: 56, fertility: 68, substance: 88, muzzle: 66, earSet: 0 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, chondro: { Cd: 1, cd: 0 }, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.3, aw: 0, at: 0.7, a: 0 }, locusS: { S: 0.02, sp: 0.98 }, locusB: { B: 0.7, b: 0.3 } },
+    traits: { biddability: 36, sociability: 82, energy: 30, stability: 74, preyDrive: 78, persistence: 90, independence: 74, alertness: 44, vocality: 90, handling: 84, structure: 34, longevity: 56, fertility: 68, substance: 88, muzzle: 66, earSet: 0, tailSet: 44 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, chondro: { Cd: 1, cd: 0 }, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.3, aw: 0, at: 0.7, a: 0 }, locusS: { S: 0.02, sp: 0.98 }, locusB: { B: 0.7, b: 0.3 } },
     diseases: { cystinuria: 0.02 },
     blurb: 'A heavy hound on tiny legs, with the second-best nose in dogs and a bay you can hear across a valley.',
   },
   {
     key: 'bloodhound', name: 'Bloodhound', group: 'Hound', weight: 95,
-    traits: { biddability: 34, sociability: 80, energy: 56, stability: 74, preyDrive: 70, persistence: 98, independence: 82, alertness: 40, vocality: 84, handling: 84, structure: 40, longevity: 18, fertility: 64, substance: 86, muzzle: 84, earSet: 0 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.2, aw: 0, at: 0.8, a: 0 }, locusB: { B: 0.65, b: 0.35 }, locusE: { Em: 0.1, E: 0.9, e: 0 } },
+    traits: { biddability: 34, sociability: 80, energy: 56, stability: 74, preyDrive: 70, persistence: 98, independence: 82, alertness: 40, vocality: 84, handling: 84, structure: 40, longevity: 18, fertility: 64, substance: 86, muzzle: 84, earSet: 0, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.2, aw: 0, at: 0.8, a: 0 }, locusB: { B: 0.65, b: 0.35 }, locusE: { Em: 0.1, E: 0.9, e: 0 } },
     diseases: {},
     blurb: 'The finest nose on earth attached to a gentle, drooling, short-lived giant that follows a scent until it drops.',
   },
   {
     key: 'afghan', name: 'Afghan Hound', group: 'Sighthound', weight: 55,
-    traits: { biddability: 18, sociability: 34, energy: 62, stability: 46, preyDrive: 92, persistence: 50, independence: 96, alertness: 60, vocality: 24, handling: 36, structure: 72, longevity: 66, fertility: 52, substance: 28, muzzle: 90, earSet: 4 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, locusE: { Em: 0.5, E: 0.3, e: 0.2 }, locusK: { KB: 0.25, kbr: 0.15, ky: 0.6 }, locusA: { ay: 0.7, aw: 0.1, at: 0.15, a: 0.05 }, intensity: { I: 0.5, i: 0.5 } },
+    traits: { biddability: 18, sociability: 34, energy: 62, stability: 46, preyDrive: 92, persistence: 50, independence: 96, alertness: 60, vocality: 24, handling: 36, structure: 72, longevity: 66, fertility: 52, substance: 28, muzzle: 90, earSet: 4, tailSet: 18 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: straight, furnishings: smoothFace, locusE: { Em: 0.5, E: 0.3, e: 0.2 }, locusK: { KB: 0.25, kbr: 0.15, ky: 0.6 }, locusA: { ay: 0.7, aw: 0.1, at: 0.15, a: 0.05 }, intensity: { I: 0.5, i: 0.5 } },
     diseases: {},
     blurb: 'The supermodel: silk coat, aristocratic disdain, and the least trainable temperament in this bank.',
   },
   {
     key: 'ridgeback', name: 'Rhodesian Ridgeback', group: 'Hound', weight: 80,
-    traits: { biddability: 50, sociability: 50, energy: 66, stability: 70, preyDrive: 88, persistence: 82, independence: 72, alertness: 84, vocality: 26, handling: 62, structure: 70, longevity: 58, fertility: 66, substance: 62, muzzle: 74, earSet: 6 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.5, E: 0.5, e: 0 }, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusB: { B: 0.85, b: 0.15 }, locusS: { S: 0.95, sp: 0.05 } },
+    traits: { biddability: 50, sociability: 50, energy: 66, stability: 70, preyDrive: 88, persistence: 82, independence: 72, alertness: 84, vocality: 26, handling: 62, structure: 70, longevity: 58, fertility: 66, substance: 62, muzzle: 74, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.5, E: 0.5, e: 0 }, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusB: { B: 0.85, b: 0.15 }, locusS: { S: 0.95, sp: 0.05 } },
     diseases: { dm: 0.1 },
     blurb: 'A lion hound: wheaten, powerful, quiet, and with a ridge of backward-growing hair down the spine.',
   },
   {
     key: 'mastiff', name: 'English Mastiff', group: 'Giant / Guardian', weight: 180,
-    traits: { biddability: 54, sociability: 62, energy: 22, stability: 80, preyDrive: 28, persistence: 60, independence: 50, alertness: 76, vocality: 30, handling: 78, structure: 30, longevity: 8, fertility: 50, substance: 100, muzzle: 34, earSet: 8 },
-    alleles: { coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.95, E: 0.05, e: 0 }, locusK: { KB: 0.05, kbr: 0.35, ky: 0.6 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusS: { S: 0.95, sp: 0.05 } },
+    traits: { biddability: 54, sociability: 62, energy: 22, stability: 80, preyDrive: 28, persistence: 60, independence: 50, alertness: 76, vocality: 30, handling: 78, structure: 30, longevity: 8, fertility: 50, substance: 100, muzzle: 34, earSet: 8, tailSet: 30 },
+    alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.95, E: 0.05, e: 0 }, locusK: { KB: 0.05, kbr: 0.35, ky: 0.6 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusS: { S: 0.95, sp: 0.05 } },
     diseases: { dcm: 0.06, cystinuria: 0.04 },
     blurb: 'The heaviest dog in this bank. Placid, dignified, devoted, and rarely alive past seven.',
   },
   {
     key: 'leonberger', name: 'Leonberger', group: 'Giant / Working', weight: 130,
-    traits: { biddability: 68, sociability: 78, energy: 48, stability: 78, preyDrive: 34, persistence: 64, independence: 40, alertness: 62, vocality: 36, handling: 82, structure: 44, longevity: 14, fertility: 60, substance: 82, muzzle: 66, earSet: 6 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 1, E: 0, e: 0 }, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusS: { S: 0.95, sp: 0.05 } },
+    traits: { biddability: 68, sociability: 78, energy: 48, stability: 78, preyDrive: 34, persistence: 64, independence: 40, alertness: 62, vocality: 36, handling: 82, structure: 44, longevity: 14, fertility: 60, substance: 82, muzzle: 66, earSet: 6, tailSet: 44 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 1, E: 0, e: 0 }, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusS: { S: 0.95, sp: 0.05 } },
     diseases: {},
     blurb: 'A lion-coloured, black-masked gentle giant bred to look like a lion and behave like a nanny. Gone by eight.',
   },
   {
     key: 'keeshond', name: 'Keeshond', group: 'Spitz', weight: 38,
-    traits: { biddability: 70, sociability: 84, energy: 60, stability: 62, preyDrive: 40, persistence: 56, independence: 42, alertness: 84, vocality: 82, handling: 74, structure: 64, longevity: 70, fertility: 64, substance: 56, muzzle: 60, earSet: 94 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0, aw: 1, at: 0, a: 0 }, locusE: { Em: 0, E: 1, e: 0 } },
+    traits: { biddability: 70, sociability: 84, energy: 60, stability: 62, preyDrive: 40, persistence: 56, independence: 42, alertness: 84, vocality: 82, handling: 74, structure: 64, longevity: 70, fertility: 64, substance: 56, muzzle: 60, earSet: 94, tailSet: 92 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0, aw: 1, at: 0, a: 0 }, locusE: { Em: 0, E: 1, e: 0 } },
     diseases: {},
     blurb: 'The smiling Dutchman: a wolf-grey barge dog that loves everyone and announces everyone.',
   },
   {
     key: 'lhasa', name: 'Lhasa Apso', group: 'Companion', weight: 14,
-    traits: { biddability: 36, sociability: 44, energy: 40, stability: 62, preyDrive: 30, persistence: 68, independence: 78, alertness: 90, vocality: 66, handling: 40, structure: 60, longevity: 82, fertility: 50, substance: 54, muzzle: 40, earSet: 6 },
+    traits: { biddability: 36, sociability: 44, energy: 40, stability: 62, preyDrive: 30, persistence: 68, independence: 78, alertness: 90, vocality: 66, handling: 40, structure: 60, longevity: 82, fertility: 50, substance: 54, muzzle: 40, earSet: 6, tailSet: 82 },
     alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsLittle, chondro: { Cd: 0.6, cd: 0.4 }, locusA: { ay: 0.7, aw: 0.05, at: 0.2, a: 0.05 }, locusS: { S: 0.6, sp: 0.4 } },
     diseases: {},
     blurb: 'A Tibetan monastery sentinel. Suspicious of strangers, very long lived, and floor-length in coat.',
   },
   {
     key: 'coton', name: 'Coton de Tulear', group: 'Companion', weight: 11,
-    traits: { biddability: 74, sociability: 90, energy: 50, stability: 62, preyDrive: 24, persistence: 44, independence: 20, alertness: 60, vocality: 52, handling: 80, structure: 62, longevity: 82, fertility: 56, substance: 44, muzzle: 52, earSet: 6 },
-    alleles: { coatLength: coatLong, curl: { Cu: 0.15, cu: 0.85 }, furnishings: bearded, shedding: shedsLittle, locusE: { Em: 0, E: 0.1, e: 0.9 }, intensity: { I: 0.05, i: 0.95 } },
+    traits: { biddability: 74, sociability: 90, energy: 50, stability: 62, preyDrive: 24, persistence: 44, independence: 20, alertness: 60, vocality: 52, handling: 80, structure: 62, longevity: 82, fertility: 56, substance: 44, muzzle: 52, earSet: 6, tailSet: 64 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.15, cu: 0.85 }, furnishings: bearded, shedding: shedsLittle, locusE: { Em: 0, E: 0.1, e: 0.9 }, intensity: { I: 0.05, i: 0.95 } },
     diseases: { huu: 0.03 },
     blurb: 'A cotton-coated Madagascan lapdog with an unusually sunny disposition and a very long life.',
   },
   {
     key: 'griffon', name: 'Brussels Griffon', group: 'Companion', weight: 9,
-    traits: { biddability: 54, sociability: 50, energy: 54, stability: 40, preyDrive: 44, persistence: 60, independence: 34, alertness: 80, vocality: 66, handling: 46, structure: 52, longevity: 72, fertility: 32, substance: 48, muzzle: 6, earSet: 60 },
+    traits: { biddability: 54, sociability: 50, energy: 54, stability: 40, preyDrive: 44, persistence: 60, independence: 34, alertness: 80, vocality: 66, handling: 46, structure: 52, longevity: 72, fertility: 32, substance: 48, muzzle: 6, earSet: 60, tailSet: 70 },
     alleles: { coatLength: { L: 0.5, l: 0.5 }, curl: straight, furnishings: { F: 0.7, f: 0.3 }, locusE: { Em: 0.6, E: 0.1, e: 0.3 }, locusA: { ay: 0.7, aw: 0, at: 0.2, a: 0.1 }, locusK: { KB: 0.2, kbr: 0, ky: 0.8 } },
     diseases: {},
     blurb: 'A tiny bearded dog with an almost human face and the self-regard to match. Tiny litters, difficult whelping.',
   },
   {
     key: 'japaneseChin', name: 'Japanese Chin', group: 'Companion', weight: 8,
-    traits: { biddability: 50, sociability: 70, energy: 36, stability: 56, preyDrive: 22, persistence: 40, independence: 50, alertness: 60, vocality: 36, handling: 62, structure: 48, longevity: 74, fertility: 36, substance: 36, muzzle: 4, earSet: 4 },
+    traits: { biddability: 50, sociability: 70, energy: 36, stability: 56, preyDrive: 22, persistence: 40, independence: 50, alertness: 60, vocality: 36, handling: 62, structure: 48, longevity: 74, fertility: 36, substance: 36, muzzle: 4, earSet: 4, tailSet: 82 },
     alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, locusK: { KB: 0.95, kbr: 0, ky: 0.05 }, locusS: { S: 0, sp: 1 }, locusE: { Em: 0, E: 0.85, e: 0.15 } },
     diseases: {},
     blurb: 'Cat-like, quiet and flat-faced: an ancient Japanese court dog that washes its face with its paws.',
@@ -1279,22 +1282,22 @@ export const BREEDS: BreedProfile[] = [
   },
   {
     key: 'lagotto', name: 'Lagotto Romagnolo', group: 'Gundog', weight: 32,
-    traits: { biddability: 80, sociability: 68, energy: 70, stability: 64, preyDrive: 60, persistence: 82, independence: 40, alertness: 70, vocality: 48, handling: 70, structure: 70, longevity: 74, fertility: 66, substance: 52, muzzle: 60, earSet: 6 },
-    alleles: { coatLength: coatLong, curl: curly, furnishings: bearded, shedding: shedsLittle, locusE: { Em: 0, E: 0.4, e: 0.6 }, locusB: { B: 0.4, b: 0.6 }, locusS: { S: 0.4, sp: 0.6 }, intensity: { I: 0.5, i: 0.5 } },
+    traits: { biddability: 80, sociability: 68, energy: 70, stability: 64, preyDrive: 60, persistence: 82, independence: 40, alertness: 70, vocality: 48, handling: 70, structure: 70, longevity: 74, fertility: 66, substance: 52, muzzle: 60, earSet: 6, tailSet: 44 },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: curly, furnishings: bearded, shedding: shedsLittle, locusE: { Em: 0, E: 0.4, e: 0.6 }, locusB: { B: 0.4, b: 0.6 }, locusS: { S: 0.4, sp: 0.6 }, intensity: { I: 0.5, i: 0.5 } },
     diseases: {},
     blurb: 'The Italian truffle dog: a small, curly, non-shedding water retriever with a nose for fungus and a sweet nature.',
   },
   {
     key: 'chessie', name: 'Chesapeake Bay Retriever', group: 'Gundog', weight: 70,
-    traits: { biddability: 66, sociability: 46, energy: 80, stability: 70, preyDrive: 70, persistence: 92, independence: 60, alertness: 82, vocality: 40, handling: 62, structure: 64, longevity: 60, fertility: 70, substance: 72, muzzle: 66, earSet: 8 },
-    alleles: { coatLength: coatShort, curl: { Cu: 0.5, cu: 0.5 }, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0, E: 0.3, e: 0.7 }, locusB: { B: 0, b: 1 }, intensity: { I: 0.5, i: 0.5 }, locusS: { S: 0.98, sp: 0.02 } },
+    traits: { biddability: 66, sociability: 46, energy: 80, stability: 70, preyDrive: 70, persistence: 92, independence: 60, alertness: 82, vocality: 40, handling: 62, structure: 64, longevity: 60, fertility: 70, substance: 72, muzzle: 66, earSet: 8, tailSet: 44 },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: { Cu: 0.5, cu: 0.5 }, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0, E: 0.3, e: 0.7 }, locusB: { B: 0, b: 1 }, intensity: { I: 0.5, i: 0.5 }, locusS: { S: 0.98, sp: 0.02 } },
     diseases: { prcdPRA: 0.1, eic: 0.08, dm: 0.1 },
     blurb: 'The toughest retriever: an oily wavy coat that sheds ice water, a protective streak, and the will to break ice for a duck.',
   },
   {
     key: 'toller', name: 'Nova Scotia Duck Tolling Retriever', group: 'Gundog', weight: 42,
     traits: { biddability: 84, sociability: 62, energy: 88, stability: 56, preyDrive: 80, persistence: 82, independence: 40, alertness: 78, vocality: 66, handling: 62, structure: 72, longevity: 70, fertility: 68, substance: 44, muzzle: 68, earSet: 8 },
-    alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, locusE: { Em: 0, E: 0.02, e: 0.98 }, intensity: { I: 0.9, i: 0.1 }, locusB: { B: 0.85, b: 0.15 }, locusS: { S: 0.3, sp: 0.7 } },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, locusE: { Em: 0, E: 0.02, e: 0.98 }, intensity: { I: 0.9, i: 0.1 }, locusB: { B: 0.85, b: 0.15 }, locusS: { S: 0.3, sp: 0.7 } },
     diseases: { prcdPRA: 0.08, cea: 0.05 },
     blurb: 'The smallest retriever: fox-red, white-trimmed, quick-witted, and a screamer when excited.',
   },

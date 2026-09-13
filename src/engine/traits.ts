@@ -38,7 +38,7 @@ export type BehaviorTrait =
 
 export type HealthTrait = 'structure' | 'longevity' | 'fertility';
 
-export type FormTrait = 'size' | 'substance' | 'muzzle' | 'earSet';
+export type FormTrait = 'size' | 'substance' | 'muzzle' | 'earSet' | 'tailSet';
 
 export type PolyTrait = BehaviorTrait | HealthTrait | FormTrait;
 
@@ -112,6 +112,17 @@ export const TRAITS: Record<PolyTrait, TraitDef> = {
     low: 'Fully dropped',
     high: 'Fully erect',
     blurb: 'Where the ear sits. Drop ears trap moisture; erect ears hear better.',
+    category: 'form',
+    h2: 0.55,
+    sd: 12,
+    depression: 0,
+  },
+  tailSet: {
+    key: 'tailSet',
+    label: 'Tail carriage',
+    low: 'Low, whip-like',
+    high: 'Curled over the back',
+    blurb: 'How the tail is carried. A sighthound trails it low; a Spitz curls it tight over the back.',
     category: 'form',
     h2: 0.55,
     sd: 12,

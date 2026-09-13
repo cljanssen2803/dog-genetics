@@ -22,7 +22,7 @@ import {
   assessDifficulty,
 } from '../engine/standard';
 import { BEHAVIOR_TRAITS, HEALTH_TRAITS, type PolyTrait, TRAITS } from '../engine/traits';
-import type { CoatKind, EarType } from '../engine/phenotype';
+import { type CoatKind, type EarType, type TailType, TAIL_LABEL } from '../engine/phenotype';
 
 export type Want = 'dontCare' | 'low' | 'middle' | 'high';
 
@@ -38,6 +38,7 @@ export interface EditorState {
   coatKinds: CoatKind[];
   coatPriority: Priority;
   earTypes: EarType[];
+  tailTypes: TailType[];
   colorText: string;
   healthPriority: Priority;
 }
@@ -86,6 +87,7 @@ export function editorStateFrom(standard: BreedStandard): EditorState {
     coatKinds: standard.coatGoal?.kinds ?? [],
     coatPriority: standard.coatGoal?.priority ?? 0,
     earTypes: standard.earGoal?.types ?? [],
+    tailTypes: standard.tailGoal?.types ?? [],
     colorText: standard.colorGoal?.text ?? '',
     healthPriority: standard.healthPriority,
   };
@@ -135,6 +137,8 @@ export function standardFrom(state: EditorState): BreedStandard {
 
   if (state.earTypes.length > 0) next.earGoal = { types: state.earTypes, priority: 2 };
   else delete next.earGoal;
+  if (state.tailTypes.length > 0) next.tailGoal = { types: state.tailTypes, priority: 2 };
+  else delete next.tailGoal;
 
   if (state.colorText.trim()) next.colorGoal = { text: state.colorText.trim(), priority: 1 };
   else delete next.colorGoal;
@@ -347,6 +351,29 @@ export function StandardFields({
                 }`}
               >
                 {label}
+              </button>
+            ))}
+          </div>
+          <div className="text-[13px] font-semibold mb-2">Tail</div>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {(Object.keys(TAIL_LABEL) as TailType[]).map((type) => (
+              <button
+                key={type}
+                onClick={() =>
+                  setState((s) => ({
+                    ...s,
+                    tailTypes: s.tailTypes.includes(type)
+                      ? s.tailTypes.filter((x) => x !== type)
+                      : [...s.tailTypes, type],
+                  }))
+                }
+                className={`rounded-full border px-3 py-1.5 text-[12px] font-medium ${
+                  state.tailTypes.includes(type)
+                    ? 'bg-[var(--brand)] text-white border-transparent'
+                    : 'bg-[var(--bg-2)] border-[var(--line)] text-[var(--text-soft)]'
+                }`}
+              >
+                {TAIL_LABEL[type].replace(' tail', '').replace('Natural ', '')}
               </button>
             ))}
           </div>

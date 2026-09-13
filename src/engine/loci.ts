@@ -104,6 +104,17 @@ export const LOCI: LocusDef[] = [
     note: 'Reduced shedding needs two copies, and only helps if the coat structure cooperates.',
   },
   {
+    key: 'undercoat',
+    name: 'Undercoat',
+    gene: 'UND-1',
+    category: 'coat',
+    alleles: [
+      { code: 'U', symbol: 'U', label: 'Dense undercoat' },
+      { code: 'u', symbol: 'u', label: 'Single coat' },
+    ],
+    note: 'One copy gives the plush, woolly undercoat of a Husky or Labrador — warm, water-shedding, and blown out in great clumps twice a year. (A gameplay gene: real dogs manage this with several.)',
+  },
+  {
     key: 'hairlessDom',
     name: 'Hairlessness (dominant)',
     gene: 'FOXI3',

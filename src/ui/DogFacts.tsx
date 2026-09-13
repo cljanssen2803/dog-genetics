@@ -31,6 +31,7 @@ import {
   resolveColor,
   resolveEars,
   resolveTail,
+  TAIL_BLURB,
 } from '../engine/phenotype';
 import { LOCI, genopairSymbol } from '../engine/loci';
 import { scoreDog } from '../engine/standard';
@@ -131,7 +132,7 @@ export function describeDog(dog: Dog, project: Project): DogFacts {
     colour: colour.name,
     coat: coat.label,
     ears: EAR_LABEL[resolveEars(dog.observed.earSet)],
-    tail: resolveTail(dog.genotype) === 'bobtail' ? 'natural bobtail' : 'full tail',
+    tail: TAIL_BLURB[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind)],
     eyes: colour.eyeName,
     nose: colour.noseName,
     build: buildFull,

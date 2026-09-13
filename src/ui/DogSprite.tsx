@@ -32,6 +32,7 @@ import {
   resolveCoat,
   resolveColor,
   resolveEars,
+  resolveSilhouette,
   resolveTail,
 } from '../engine/phenotype';
 
@@ -73,9 +74,47 @@ const FACE: Record<CoatKind, { eye: [number, number]; nose: [number, number] }> 
   hairless: { eye: [81.3, 22.5], nose: [88.6, 25.0] },
 };
 
+/**
+ * Bodies beyond the eight coats: a racy sighthound, a heavy flat-faced bull
+ * type, and a Spitz. Until their artwork lands the fallback body stands in,
+ * stretched the right way. When a file arrives, add it to HAVE below and the
+ * sprite starts using it.
+ */
+const SILHOUETTE_SRC: Record<'sighthound' | 'bull' | 'spitz', { file: string; fallback: CoatKind }> = {
+  sighthound: { file: 'body-sighthound.png', fallback: 'smooth' },
+  bull: { file: 'body-bull.png', fallback: 'smooth' },
+  spitz: { file: 'body-spitz.png', fallback: 'doubleThick' },
+};
+
 const TAIL_SRC: Record<TailType, string> = {
   full: 'tail-full.png',
   bobtail: 'tail-bob.png',
+  screw: 'tail-screw.png',
+  whip: 'tail-whip.png',
+  plume: 'tail-plume.png',
+  sickle: 'tail-sickle.png',
+  curled: 'tail-curled.png',
+};
+
+/**
+ * Which of the ROUND FOUR files (see docs/sprite-brief.md) exist yet in
+ * public/sprites. Add a filename here when its artwork lands; until then the
+ * stand-ins below are used.
+ */
+const HAVE = new Set<string>([]);
+
+/**
+ * Stand-ins for tails whose artwork is still to come, built from the two
+ * tails we do have: the full tail swung over the back, thinned and dropped,
+ * fattened into a plume; the bobtail tightened into a screw. They are honest
+ * about the dog, if not pretty.
+ */
+const TAIL_STANDIN: Partial<Record<TailType, { src: TailType; transform: string }>> = {
+  curled: { src: 'full', transform: 'rotate(-118deg) scale(0.72, 0.9)' },
+  sickle: { src: 'full', transform: 'rotate(-80deg) scale(0.9)' },
+  whip: { src: 'full', transform: 'rotate(22deg) scale(1.05, 0.55)' },
+  plume: { src: 'full', transform: 'rotate(-18deg) scale(1.08, 1.35)' },
+  screw: { src: 'bobtail', transform: 'scale(0.8)' },
 };
 
 /**
@@ -125,6 +164,12 @@ const TAIL_FIT: Record<TailType, Fit> = {
   // join can never open into a gap on a body whose rump sits differently.
   full: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
   bobtail: { anchor: [26, 43], target: [27.5, 45.5], scale: 1.1 },
+  // Placeholders, refined once each piece is measured.
+  screw: { anchor: [26, 43], target: [27.5, 45.5], scale: 1.1 },
+  whip: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
+  plume: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
+  sickle: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
+  curled: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
 };
 
 function fitStyle(fit: Fit): { transform: string; transformOrigin: string } {
@@ -200,7 +245,9 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
           className={wagging ? 'wagging' : undefined}
           style={{ position: 'absolute', inset: 0, transformOrigin: `${art.tailFit.target[0]}% ${art.tailFit.target[1]}%` }}
         >
-          <Layer src={art.tailSrc} colour={art.base} fit={art.tailFit} />
+          <div style={{ position: 'absolute', inset: 0, transform: art.tailStandin, transformOrigin: `${art.tailFit.target[0]}% ${art.tailFit.target[1]}%` }}>
+            <Layer src={art.tailSrc} colour={art.base} fit={art.tailFit} />
+          </div>
         </div>
 
         {/* The dog itself, carrying all the markings. */}
@@ -354,8 +401,27 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: 
   const coat = resolveCoat(dog.genotype, weight);
   const colour = resolveColor(dog.genotype);
   const ears = resolveEars(dog.observed.earSet);
-  const tail = resolveTail(dog.genotype);
+  const tail = resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind);
   const shortLegs = legShortening(dog.genotype);
+
+  // Which body. The coat, unless the build or head is distinctive enough to
+  // deserve its own silhouette. Without the artwork, stretch the fallback.
+  const silhouette = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, dog.observed.tailSet);
+  let bodySrc = BODY_SRC[coat.kind];
+  let standinStretch = '';
+  if (silhouette === 'sighthound' || silhouette === 'bull' || silhouette === 'spitz') {
+    const want = SILHOUETTE_SRC[silhouette];
+    if (HAVE.has(want.file)) {
+      bodySrc = want.file;
+    } else {
+      bodySrc = BODY_SRC[want.fallback];
+      standinStretch = silhouette === 'sighthound' ? ' scale(0.88, 1.06)' : silhouette === 'bull' ? ' scale(1.14, 0.92)' : '';
+    }
+  }
+
+  // The tail: the real file if it exists, else a stand-in built from one we have.
+  const standin = HAVE.has(TAIL_SRC[tail]) ? undefined : TAIL_STANDIN[tail];
+  const tailKey: TailType = standin ? standin.src : tail;
   const noise = makeNoise(dog.seedValue ?? 1);
 
   // Body build and size, applied by scaling rather than extra artwork.
@@ -370,17 +436,18 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: 
   const legSquash = shortLegs === 2 ? 0.82 : shortLegs === 1 ? 0.91 : 1;
   const stretch = shortLegs > 0 ? 1.1 : 1;
 
-  const bodyTransform = `scale(${(sizeScale * substance * stretch).toFixed(3)}, ${(sizeScale * legSquash).toFixed(3)})`;
+  const bodyTransform = `scale(${(sizeScale * substance * stretch).toFixed(3)}, ${(sizeScale * legSquash).toFixed(3)})${standinStretch}`;
 
   const trueColour = coat.hairless ? shade(colour.base, 26) : colour.base;
   const base = forShading(trueColour);
 
   return {
-    bodySrc: BODY_SRC[coat.kind],
+    bodySrc,
     earSrc: EAR_SRC[ears],
-    tailSrc: TAIL_SRC[tail],
+    tailSrc: TAIL_SRC[tailKey],
+    tailStandin: standin?.transform,
     earFit: EAR_FIT[ears],
-    tailFit: TAIL_FIT[tail],
+    tailFit: TAIL_FIT[tailKey],
     bodyTransform,
     base,
     // Ear leather is genuinely darker than body coat, and the contrast is what

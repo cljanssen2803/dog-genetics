@@ -40,7 +40,12 @@ export class Rng {
    */
   next(): number {
     this.cursor = (this.cursor + 0x6d2b79f5) >>> 0;
-    let t = this.cursor;
+    // The seed is folded in here, not stored in the cursor, so a snapshot
+    // stays a plain "how many draws so far" and the seed stays readable.
+    // (An earlier version forgot this line, and every seed gave the same
+    // sequence. Two saves with different seeds have never looked different
+    // until now.)
+    let t = (this.cursor + this.seed) >>> 0;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
