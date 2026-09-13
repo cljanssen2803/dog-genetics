@@ -57,6 +57,8 @@ export interface DogFacts {
   coat: string;
   ears: string;
   tail: string;
+  eyes: string;
+  nose: string;
   build: string;
   muzzle: string;
   score: number;
@@ -130,6 +132,8 @@ export function describeDog(dog: Dog, project: Project): DogFacts {
     coat: coat.label,
     ears: EAR_LABEL[resolveEars(dog.observed.earSet)],
     tail: resolveTail(dog.genotype) === 'bobtail' ? 'natural bobtail' : 'full tail',
+    eyes: colour.eyeName,
+    nose: colour.noseName,
     build: buildFull,
     muzzle,
     score: score.total,
@@ -253,7 +257,7 @@ export function dogDescription(dog: Dog, project: Project, includeGenotype: bool
   lines.push('IMAGE PROMPT');
   lines.push(
     `A ${f.weightLbs.toFixed(0)} lb ${f.sexWord} dog of ${f.breed.toLowerCase()} appearance. ` +
-      `${f.colour} coat colour. ${f.coat}. ${f.ears}, ${f.tail}. ${cap(f.build)}, ${f.muzzle}. ` +
+      `${f.colour} coat colour, ${f.eyes} eyes, ${f.nose} nose. ${f.coat}. ${f.ears}, ${f.tail}. ${cap(f.build)}, ${f.muzzle}. ` +
       `${f.grown ? 'Adult' : 'Young'}, ${f.age} old. ` +
       'Standing in side profile, full body visible, natural daylight, realistic.',
   );
@@ -266,6 +270,7 @@ export function dogDescription(dog: Dog, project: Project, includeGenotype: bool
   lines.push(`Colour: ${f.colour}`);
   lines.push(`Coat: ${f.coat}`);
   lines.push(`Ears: ${f.ears}. Tail: ${f.tail}`);
+  lines.push(`Eyes: ${f.eyes}. Nose: ${f.nose}`);
   lines.push(`Build: ${f.build}. Face: ${f.muzzle}`);
   lines.push(
     `${project.standard.name} score: ${f.score}/100 (likely to produce ${f.producesScore}/100)${

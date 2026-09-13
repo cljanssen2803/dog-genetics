@@ -33,6 +33,9 @@ export interface CoatColor {
   /** Nose and lip colour — a genuine tell for chocolate and dilute dogs. */
   nose: string;
   eye: string;
+  /** Plain words for the export and the detail sheet. */
+  noseName: string;
+  eyeName: string;
   merle: boolean;
   doubleMerle: boolean;
   harlequin: boolean;
@@ -87,6 +90,8 @@ export function resolveColor(g: Genotype): CoatColor {
       accent: '#f0e7dc',
       nose: '#e0b3b3',
       eye: '#c9b8d8',
+      noseName: 'pink',
+      eyeName: 'pale lilac',
       merle: false,
       doubleMerle: false,
       harlequin: false,
@@ -228,12 +233,37 @@ export function resolveColor(g: Genotype): CoatColor {
   else if (white >= 0.15) name += ' and white';
   if (ticked) name += ', ticked';
 
-  // Eye colour: merle and the Husky blue-eye gene both do it, but only one of
-  // them is harmless.
-  let eye = '#5a3d28';
-  if (copies(g, 'blueEyes', 'Be') >= 1 || doubleMerle) eye = '#7fb4d4';
-  else if (merle) eye = '#8aa5b8';
-  else if (dilute) eye = '#9a8757';
+  // Eye colour. Dark brown is the default. The Husky gene gives blue eyes on
+  // any coat with no health cost; double merle gives them at a cost. A single
+  // merle copy often washes the eye to a blue-grey. Chocolate dogs cannot make
+  // dark pigment anywhere, so their eyes go amber; dilute lightens them too.
+  let eye = '#4a3220';
+  let eyeName = 'dark brown';
+  if (copies(g, 'blueEyes', 'Be') >= 1 || doubleMerle) {
+    eye = '#7fb4d4';
+    eyeName = 'blue';
+  } else if (merle && eumelaninBody) {
+    eye = '#7e9db5';
+    eyeName = 'blue-grey';
+  } else if (brown && dilute) {
+    eye = '#c9ad6e';
+    eyeName = 'pale amber';
+  } else if (brown || cocoaBrown) {
+    eye = '#a8783a';
+    eyeName = 'amber';
+  } else if (dilute) {
+    eye = '#b8975a';
+    eyeName = 'light amber';
+  } else if (clearRed && creamCopies === 2) {
+    eye = '#6b4a2e';
+    eyeName = 'hazel';
+  }
+
+  const noseName =
+    dark.name === 'Black' ? 'black'
+    : dark.name === 'Blue' ? 'slate grey'
+    : dark.name === 'Chocolate' || dark.name === 'Cocoa' ? 'brown'
+    : 'pale lilac';
 
   return {
     name,
@@ -241,6 +271,8 @@ export function resolveColor(g: Genotype): CoatColor {
     accent,
     nose: dark.nose,
     eye,
+    noseName,
+    eyeName,
     merle,
     doubleMerle,
     harlequin,

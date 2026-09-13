@@ -56,6 +56,23 @@ const EAR_SRC: Record<EarType, string> = {
   drop: 'ear-drop.png',
 };
 
+/**
+ * Where the artist put the eye and the nose on each body, as percentages of
+ * the canvas — measured from the artwork's own dark pixels. Every body is a
+ * little different, so each has its own pair.
+ */
+const FACE: Record<CoatKind, { eye: [number, number]; nose: [number, number] }> = {
+  smooth: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
+  short: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
+  silky: { eye: [83.2, 21.7], nose: [91.3, 24.6] },
+  long: { eye: [84.5, 20.7], nose: [92.7, 24.4] },
+  doubleThick: { eye: [81.6, 22.4], nose: [89.1, 24.9] },
+  wire: { eye: [81.8, 19.6], nose: [91.0, 24.7] },
+  wavyFurnished: { eye: [82.1, 21.7], nose: [90.1, 25.0] },
+  curly: { eye: [83.0, 21.9], nose: [90.7, 24.6] },
+  hairless: { eye: [81.3, 22.5], nose: [88.6, 25.0] },
+};
+
 const TAIL_SRC: Record<TailType, string> = {
   full: 'tail-full.png',
   bobtail: 'tail-bob.png',
@@ -193,8 +210,49 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
 
         {/* Ear in front. Slightly darker, as ear leather usually is. */}
         <Layer src={art.earSrc} colour={art.earColour} fit={art.earFit} />
+
+        {/* Eye and nose, in the colours the genes give them. Drawn last and
+            unmasked, over the artwork's own dark dots, so a blue eye or a
+            liver nose actually shows. */}
+        <Face face={art.face} eye={art.eyeColour} nose={art.noseColour} />
       </div>
     </div>
+  );
+}
+
+/** The eye (iris, pupil, catchlight) and the nose, as coloured dots. */
+function Face({
+  face,
+  eye,
+  nose,
+}: {
+  face: { eye: [number, number]; nose: [number, number] };
+  eye: string;
+  nose: string;
+}) {
+  const dot = (cx: number, cy: number, w: number, h: number, fill: string, extra?: React.CSSProperties) => (
+    <div
+      style={{
+        position: 'absolute',
+        left: `${cx - w / 2}%`,
+        top: `${cy - h / 2}%`,
+        width: `${w}%`,
+        height: `${h}%`,
+        borderRadius: '50%',
+        background: fill,
+        ...extra,
+      }}
+    />
+  );
+  return (
+    <>
+      {/* Iris, pupil, catchlight. Height is width × canvas aspect so it is round. */}
+      {dot(face.eye[0], face.eye[1], 1.9, 1.9 * 1.333, eye, { boxShadow: '0 0 0 0.6px rgba(0,0,0,0.35)' })}
+      {dot(face.eye[0] + 0.15, face.eye[1] + 0.2, 0.9, 0.9 * 1.333, '#1a1512')}
+      {dot(face.eye[0] - 0.35, face.eye[1] - 0.45, 0.5, 0.5 * 1.333, 'rgba(255,255,255,0.85)')}
+      {/* Nose, slightly wider than tall, with a soft edge. */}
+      {dot(face.nose[0], face.nose[1], 2.6, 2.6 * 1.1, nose, { boxShadow: '0 0 0 0.5px rgba(0,0,0,0.25)' })}
+    </>
   );
 }
 
@@ -328,6 +386,9 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: 
     // Ear leather is genuinely darker than body coat, and the contrast is what
     // makes an ear read as an ear rather than a bump on the skull.
     earColour: shade(base, -32),
+    face: FACE[coat.kind],
+    eyeColour: colour.eye,
+    noseColour: colour.nose,
     colorName: colour.name,
     coatLabel: coat.label,
     markings: (

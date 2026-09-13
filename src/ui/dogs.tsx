@@ -258,6 +258,7 @@ export function DogDetailSheet({
             />
             <StatRow label="Coat" value={coat.label} />
             <StatRow label="Colour" value={color.name} />
+            <StatRow label="Eyes and nose" value={`${color.eyeName} eyes, ${color.noseName} nose`} />
             {dog.tests.dna && (
               <StatRow
                 label="Hidden genes carried"
