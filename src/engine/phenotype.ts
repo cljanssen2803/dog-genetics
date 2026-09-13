@@ -596,14 +596,15 @@ export function resolveSilhouette(
     if (substance > 70 && muzzle >= 50 && earSet > 80 && !coat.undercoat) return 'egg';
     // Heavy dogs: jowly with a shortish muzzle, plain with a real one.
     if (substance > 84) return muzzle < 46 ? 'jowl' : 'heavy';
-    if (substance < 46 && muzzle > 60 && !coat.undercoat) return sizeLbs > 50 ? 'tallHound' : 'sighthound';
-    // Small, compact, square: the terrier body.
-    if (sizeLbs < 30 && muzzle >= 40 && earSet > 30 && !coat.undercoat) return 'terrier';
     // A giant smooth dog with a long head — a Great Dane — is a sighthound
     // frame scaled up, and the build factor widens it to suit.
     if (sizeLbs > 95 && muzzle > 60 && substance < 78 && !coat.undercoat) return 'tallHound';
     // The athletic pointing and scenting dogs: lean, deep-chested, long-headed.
     if (!coat.undercoat && substance >= 36 && substance < 66 && muzzle > 66 && sizeLbs >= 35 && earSet < 58) return 'pointer';
+    // The true sighthounds: lighter still.
+    if (substance < 46 && muzzle > 60 && !coat.undercoat) return sizeLbs > 50 ? 'tallHound' : 'sighthound';
+    // Small, compact, square: the terrier body.
+    if (sizeLbs < 30 && muzzle >= 40 && earSet > 30 && !coat.undercoat) return 'terrier';
     // The plush-coated retriever frame: a Labrador, a Chessie.
     if (coat.undercoat && substance >= 50 && muzzle > 50 && sizeLbs >= 40) return 'retriever';
   }
