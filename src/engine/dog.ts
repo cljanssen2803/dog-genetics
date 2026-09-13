@@ -33,6 +33,7 @@ import {
 } from './loci';
 import { BREED_BY_KEY, type BreedProfile, DEFAULT_ALLELES, WILDCARD_ALLELES, WILDCARD_CHANCE } from './breeds';
 import type { Sex } from './names';
+import { QUIRK_BY_KEY } from './quirks';
 
 export type { Sex };
 
@@ -140,6 +141,36 @@ export interface Dog {
   titles?: string[];
   /** Points accumulated toward the next title. */
   showPoints?: number;
+  /** Pinned to the top of the kennel by the player. */
+  favourite?: boolean;
+  /**
+   * The dog's life, one line at a time: birth, decisions, litters, shows,
+   * a new home, retirement, death. Read back as prose on the Story tab.
+   */
+  events?: DogEvent[];
+}
+
+export interface DogEvent {
+  month: number;
+  kind:
+    | 'birth'
+    | 'arrived'
+    | 'kept'
+    | 'litter'
+    | 'show'
+    | 'title'
+    | 'placed'
+    | 'postcard'
+    | 'retired'
+    | 'died'
+    | 'rare'
+    | 'mutation';
+  text: string;
+}
+
+/** Append to a dog's life, creating the list on first use. */
+export function remember(dog: Dog, month: number, kind: DogEvent['kind'], text: string) {
+  (dog.events ??= []).push({ month, kind, text });
 }
 
 // ---------------------------------------------------------------------------
@@ -373,7 +404,11 @@ function drawGenotype(rng: Rng, breed: BreedProfile | undefined, wildcards: bool
   for (const locus of LOCI) {
     let table: Record<string, number>;
 
-    if (locus.category === 'disease') {
+    if (locus.category === 'quirk') {
+      // Quirk genes are not breed-specific; every dog draws from the same pool.
+      const freq = QUIRK_BY_KEY[locus.key]?.frequency ?? 0.1;
+      table = { Q: freq, n: 1 - freq };
+    } else if (locus.category === 'disease') {
       // Disease frequencies are listed per breed. Anything not listed still
       // gets a whisper of background frequency, so no gene pool is ever
       // guaranteed spotless.

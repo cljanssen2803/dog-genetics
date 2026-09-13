@@ -36,6 +36,8 @@ import {
 } from '../engine/phenotype';
 import { LOCI, LOCUS_BY_KEY, genopairSymbol } from '../engine/loci';
 import { scoreDog } from '../engine/standard';
+import { lifeStory, quirkLines } from '../game/story';
+import { pendingQuirks } from '../engine/quirks';
 import { describeCoi } from '../engine/pedigree';
 import { DogPortrait } from './DogPortrait';
 import { Button, Card, Chip, Explain, Section, Sheet, StatRow, TraitBar } from './components';
@@ -115,7 +117,7 @@ export function DogDetailSheet({
   onShowPedigree?: (dog: Dog) => void;
 }) {
   const { project, refresh, say, nerdMode } = useGame();
-  const [tab, setTab] = useState<'overview' | 'health' | 'genes' | 'decide'>('overview');
+  const [tab, setTab] = useState<'overview' | 'story' | 'health' | 'genes' | 'decide'>('overview');
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState('');
   const [exportText, setExportText] = useState<string | null>(null);
@@ -224,6 +226,7 @@ export function DogDetailSheet({
           [
             ['overview', 'Overview'],
             ['health', 'Health'],
+            ['story', 'Story'],
             ['decide', 'Decide'],
             ...(nerdMode ? ([['genes', 'Genes']] as const) : []),
           ] as const
@@ -386,6 +389,74 @@ export function DogDetailSheet({
       )}
 
       {/* --------------------------------------------------------- DECIDE -- */}
+      {tab === 'story' && (
+        <>
+          <div className="flex gap-2 mb-4">
+            <Button
+              small
+              tone={dog.favourite ? 'accent' : 'secondary'}
+              full
+              onClick={() => {
+                dog.favourite = !dog.favourite;
+                say(dog.favourite ? `${dog.name} pinned to the top of the kennel.` : `${dog.name} unpinned.`);
+                refresh();
+              }}
+            >
+              {dog.favourite ? '★ Favourite' : '☆ Favourite'}
+            </Button>
+            <Button
+              small
+              tone={project.heartDogId === dog.id ? 'accent' : 'secondary'}
+              full
+              onClick={() => {
+                project.heartDogId = project.heartDogId === dog.id ? undefined : dog.id;
+                say(project.heartDogId ? `${dog.name} is your heart dog.` : 'Heart dog cleared.');
+                refresh();
+              }}
+            >
+              {project.heartDogId === dog.id ? '♥ Heart dog' : '♡ Heart dog'}
+            </Button>
+          </div>
+
+          <Section title="Habits" subtitle="Inherited, like everything else. Watch for them in the puppies.">
+            <div className="card p-3">
+              {quirkLines(dog, project).length === 0 ? (
+                <p className="text-[13px] text-[var(--text-faint)] leading-relaxed">
+                  {ageMonths(dog, project.month) < 6
+                    ? 'Too young to have shown any habits yet. They appear as the puppy grows.'
+                    : `${dog.name} has no particular habits. Some dogs are simply easy.`}
+                </p>
+              ) : (
+                quirkLines(dog, project).map((line, i) => (
+                  <p key={i} className="text-[13px] leading-relaxed py-1.5 border-b border-[var(--line)] last:border-0">
+                    {line}
+                  </p>
+                ))
+              )}
+              {nerdMode && pendingQuirks(dog.genotype, ageMonths(dog, project.month)).length > 0 && (
+                <p className="text-[11.5px] text-[var(--text-faint)] mt-2">
+                  Not yet shown (Nerd Mode):{' '}
+                  {pendingQuirks(dog.genotype, ageMonths(dog, project.month))
+                    .map((q) => q.gene)
+                    .join(', ')}
+                </p>
+              )}
+            </div>
+          </Section>
+
+          <Section title={`${dog.name}'s story`}>
+            <div className="card p-3">
+              {lifeStory(dog, project).map((p, i) => (
+                <div key={i} className="flex gap-3 py-2 border-b border-[var(--line)] last:border-0">
+                  <span className="flex-none w-14 text-[11px] text-[var(--text-faint)] pt-0.5">{p.year}</span>
+                  <p className="text-[13px] leading-relaxed flex-1">{p.text}</p>
+                </div>
+              ))}
+            </div>
+          </Section>
+        </>
+      )}
+
       {tab === 'decide' && (
         <>
           <div className="card p-3 mb-4">
@@ -563,6 +634,7 @@ function GenotypeTable({ dog }: { dog: Dog }) {
     { label: 'Colour', category: 'color' as const },
     { label: 'Body form', category: 'form' as const },
     { label: 'Disease', category: 'disease' as const },
+    { label: 'Habits (personality genes)', category: 'quirk' as const },
   ];
 
   return (

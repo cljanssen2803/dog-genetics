@@ -20,7 +20,7 @@
  * would be impossible, whereas fourteen stencils cover every one of them.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Dog } from '../engine/dog';
 import { sizeToPounds } from '../engine/traits';
 import {
@@ -147,6 +147,14 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
   const furFilter = size < 110 ? 'fur-edge-s' : size < 170 ? 'fur-edge-m' : 'fur-edge-l';
   const art = useMemo(() => describe(dog, Math.max(0.6, size * 0.005), furFilter), [dog, size, furFilter]);
 
+  // Tap the dog and it wags. Purely for the pleasure of it.
+  const [wagging, setWagging] = useState(false);
+  const wag = () => {
+    if (wagging) return;
+    setWagging(true);
+    window.setTimeout(() => setWagging(false), 720);
+  };
+
   return (
     <div
       className={`relative ${className}`}
@@ -160,10 +168,16 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
       }}
       role="img"
       aria-label={`${dog.name}, ${art.colorName}, ${art.coatLabel}`}
+      onPointerDown={wag}
     >
       <div style={{ position: 'absolute', inset: 0, transform: art.bodyTransform }}>
-        {/* Tail sits behind the body. */}
-        <Layer src={art.tailSrc} colour={art.base} fit={art.tailFit} />
+        {/* Tail sits behind the body. The wrapper wags about the tail root. */}
+        <div
+          className={wagging ? 'wagging' : undefined}
+          style={{ position: 'absolute', inset: 0, transformOrigin: `${art.tailFit.target[0]}% ${art.tailFit.target[1]}%` }}
+        >
+          <Layer src={art.tailSrc} colour={art.base} fit={art.tailFit} />
+        </div>
 
         {/* The dog itself, carrying all the markings. */}
         <Layer src={art.bodySrc} colour={art.base}>

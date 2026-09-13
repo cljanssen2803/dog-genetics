@@ -137,9 +137,39 @@ nav,
   animation: fade-in 0.18s ease-out;
 }
 
+/* A tail wag, played when a portrait is tapped. Pivots at the tail root. */
+@keyframes wag {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-11deg); }
+  45% { transform: rotate(10deg); }
+  70% { transform: rotate(-7deg); }
+  100% { transform: rotate(0deg); }
+}
+.wagging {
+  animation: wag 0.7s ease-in-out;
+}
+
+/* Confetti for a first place. Soft colours, short, no fireworks. */
+@keyframes confetti-fall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(70vh) rotate(540deg); opacity: 0; }
+}
+.confetti {
+  position: fixed;
+  top: 0;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: confetti-fall 2.2s ease-in forwards;
+  z-index: 70;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sheet-in,
-  .fade-in {
+  .fade-in,
+  .wagging,
+  .confetti {
     animation: none;
   }
 }

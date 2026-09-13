@@ -17,6 +17,8 @@
  * Whichever allele appears earlier in the list is the one that shows.
  */
 
+import { QUIRKS } from './quirks';
+
 export type AlleleCode = string;
 /** The two copies a dog carries at one gene. Always stored dominant-first. */
 export type Genopair = [AlleleCode, AlleleCode];
@@ -37,7 +39,7 @@ export interface LocusDef {
   name: string;
   /** Real gene symbol, shown in Nerd Mode. */
   gene: string;
-  category: 'coat' | 'color' | 'form' | 'disease';
+  category: 'coat' | 'color' | 'form' | 'disease' | 'quirk';
   /** Strongest allele first. */
   alleles: AlleleDef[];
   /**
@@ -312,6 +314,24 @@ export const LOCI: LocusDef[] = [
   ...diseaseLocus('eic', 'Exercise-induced collapse', 'DNM1', 'Collapse after intense exercise.'),
   ...diseaseLocus('pll', 'Primary lens luxation', 'ADAMTS17', 'The lens slips out of place, a painful emergency.'),
   ...diseaseLocus('dcm', 'Dilated cardiomyopathy', 'PDK4', 'The heart enlarges and weakens, often without warning.'),
+
+  // ============================================================== QUIRKS ===
+  // Personality habits, each on its own made-up gene. They ride the same
+  // inheritance machinery as everything else, which is the whole point: a
+  // recessive habit can skip a generation and turn up in a grandchild.
+  ...QUIRKS.map(
+    (q): LocusDef => ({
+      key: q.key,
+      name: q.text.replace(/\{[a-z]+\}/g, '…').replace(/\s+/g, ' ').slice(0, 48),
+      gene: q.gene,
+      category: 'quirk',
+      alleles: [
+        { code: 'Q', symbol: q.mode === 'dominant' ? 'Q' : 'Q', label: 'Has the habit' },
+        { code: 'n', symbol: 'n', label: 'Does not' },
+      ],
+      incomplete: q.mode === 'recessive',
+    }),
+  ),
 ];
 
 /**

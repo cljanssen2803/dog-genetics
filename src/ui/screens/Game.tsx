@@ -34,6 +34,10 @@ import { buildGenerationReport, type GenerationReport } from '../../game/analyti
 import { Tutorial } from '../Tutorial';
 import { ShowSheet } from './ShowSheet';
 import { ExpertSheet } from './ExpertSheet';
+import { BreedBookSheet, MilestoneSheet } from './BreedBook';
+import { DogPortrait } from '../DogPortrait';
+import { checkMilestones } from '../../game/story';
+import type { Milestone } from '../../game/project';
 import { reputationTier } from '../../game/project';
 
 type Tab = 'project' | 'kennel' | 'breed' | 'puppies' | 'pedigree' | 'analytics';
@@ -58,12 +62,21 @@ export function Game({ onExit }: { onExit: () => void }) {
   const [editorState, setEditorState] = useState<EditorState | null>(null);
   const [showsOpen, setShowsOpen] = useState(false);
   const [expertOpen, setExpertOpen] = useState(false);
+  const [breedBookOpen, setBreedBookOpen] = useState(false);
+
+  const [milestones, setMilestones] = useState<Milestone[] | null>(null);
+
+  const afterTime = (reports: MonthReport[]) => {
+    setTimeReport(reports);
+    const fresh = checkMilestones(project);
+    if (fresh.length > 0) setMilestones(fresh);
+    refresh();
+  };
 
   const advance = (months: number) => {
     const reports: MonthReport[] = [];
     for (let i = 0; i < months; i++) reports.push(advanceMonth(project));
-    setTimeReport(reports);
-    refresh();
+    afterTime(reports);
   };
 
   /** Jump forward until something worth looking at happens. */
@@ -74,8 +87,7 @@ export function Game({ onExit }: { onExit: () => void }) {
       reports.push(report);
       if (report.births.length > 0 || report.deaths.length > 0) break;
     }
-    setTimeReport(reports);
-    refresh();
+    afterTime(reports);
   };
 
   const closeGeneration = () => {
@@ -126,6 +138,7 @@ export function Game({ onExit }: { onExit: () => void }) {
               onEditStandard={() => setEditorState(editorStateFrom(project.standard))}
               onShows={() => setShowsOpen(true)}
               onExpert={() => setExpertOpen(true)}
+              onBreedBook={() => setBreedBookOpen(true)}
             />
           )}
           {tab === 'kennel' && <KennelTab onShowPedigree={showPedigree} />}
@@ -223,6 +236,8 @@ export function Game({ onExit }: { onExit: () => void }) {
       {expertOpen && <ExpertSheet onClose={() => setExpertOpen(false)} />}
 
       {timeReport && <TimeSheet reports={timeReport} onClose={() => setTimeReport(null)} />}
+      {!timeReport && milestones && <MilestoneSheet milestones={milestones} onClose={() => setMilestones(null)} />}
+      {breedBookOpen && <BreedBookSheet onClose={() => setBreedBookOpen(false)} />}
       {genReport && <GenerationReportSheet report={genReport} onClose={() => setGenReport(null)} />}
 
       <Sheet open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Settings">
@@ -307,6 +322,7 @@ function ProjectTab({
   onEditStandard,
   onShows,
   onExpert,
+  onBreedBook,
 }: {
   onCloseGeneration: () => void;
   onAdvance: (months: number) => void;
@@ -314,11 +330,13 @@ function ProjectTab({
   onEditStandard: () => void;
   onShows: () => void;
   onExpert: () => void;
+  onBreedBook: () => void;
 }) {
   const { project } = useGame();
   const difficulty = useMemo(() => assessDifficulty(project.standard), [project.standard]);
   const standing = reputationTier(project.reputation ?? 0);
   const titled = activeDogs(project).filter((d) => d.titles && d.titles.length > 0);
+  const heart = project.heartDogId ? project.dogs[project.heartDogId] : undefined;
 
   const traitGoals = Object.entries(project.standard.traitGoals).filter(
     ([, g]) => g && g.priority > 0,
@@ -335,6 +353,27 @@ function ProjectTab({
           <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">{project.standard.vision}</p>
         )}
       </Card>
+
+      {heart && (
+        <Card className="mb-4 border-rust/50">
+          <div className="flex items-center gap-3">
+            <DogPortrait dog={heart} size={64} />
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-semibold text-rust">♥ Heart dog</div>
+              <div className="display text-[15px] font-semibold truncate">{heart.name}</div>
+              <div className="text-[12px] text-[var(--text-faint)]">
+                {heart.status === 'kennel' ? 'The one this is all about.' : heart.status === 'deceased' ? 'Remembered.' : 'In a new home.'}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      <Section title="Your breed" subtitle="The book of everything you have made so far.">
+        <Button full tone="secondary" onClick={onBreedBook}>
+          Open the breed book
+        </Button>
+      </Section>
 
       <Section title="Time">
         <Card>
@@ -489,7 +528,8 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
     } else {
       list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
     }
-    return list;
+    // Favourites always float to the top, whatever the sort.
+    return list.slice().sort((a, b) => Number(!!b.favourite) - Number(!!a.favourite));
   }, [project, project.month, filter, sort, gene]);
 
   const retired = Object.values(project.dogs).filter(
@@ -587,6 +627,7 @@ function TimeSheet({ reports, onClose }: { reports: MonthReport[]; onClose: () =
   const deaths = reports.flatMap((r) => r.deaths);
   const warnings = reports[reports.length - 1]?.warnings ?? [];
   const mutations = reports.flatMap((r) => r.mutations);
+  const postcards = reports.flatMap((r) => r.postcards ?? []);
   const months = reports.length;
 
   return (
@@ -655,6 +696,17 @@ function TimeSheet({ reports, onClose }: { reports: MonthReport[]; onClose: () =
               <div className="text-[12.5px] text-[var(--text-soft)]">
                 Died at {(d.age / 12).toFixed(1)} years. {d.cause}.
               </div>
+            </Card>
+          ))}
+        </Section>
+      )}
+
+      {postcards.length > 0 && (
+        <Section title="Post" subtitle="News from dogs in their new homes. Nothing to do — just nice to hear.">
+          {postcards.map((p, i) => (
+            <Card key={i} className="mb-2 border-clay/40">
+              <div className="text-[11px] font-semibold text-clay mb-0.5">A postcard from {p.name}</div>
+              <p className="text-[13px] leading-relaxed italic">{p.text}</p>
             </Card>
           ))}
         </Section>

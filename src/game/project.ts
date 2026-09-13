@@ -16,9 +16,11 @@ import {
   breedingEligibility,
   createFounder,
   createMixedFounder,
+  formatAge,
   idNumber,
   newDogId,
   primeIdCounter,
+  remember,
 } from '../engine/dog';
 import {
   GESTATION_MONTHS,
@@ -38,6 +40,7 @@ import { type BreedStandard, scoreDog } from '../engine/standard';
 import { ALL_TRAITS, type PolyTrait, sizeToPounds } from '../engine/traits';
 import { BREEDS } from '../engine/breeds';
 import { LOCUS_BY_KEY } from '../engine/loci';
+import { quirkText, visibleQuirks } from '../engine/quirks';
 import { findRarities, resolveCoat, resolveColor } from '../engine/phenotype';
 import type { Sex } from '../engine/names';
 
@@ -69,6 +72,14 @@ export interface Discovery {
   dogId: string;
   dogName: string;
   month: number;
+}
+
+export interface Milestone {
+  key: string;
+  month: number;
+  title: string;
+  text: string;
+  dogIds: string[];
 }
 
 export interface LogEntry {
@@ -114,6 +125,10 @@ export interface Project {
   lastShown?: Record<string, number>;
   /** Total show points won. A respected kennel attracts better outside dogs. */
   reputation?: number;
+  /** The one dog this project is really about, chosen by the player. */
+  heartDogId?: string;
+  /** Moments worth remembering, in order. */
+  milestones?: Milestone[];
 
   kennelCapacity: number;
   /** Kept only so older saves still load. Health information is always known. */
@@ -179,6 +194,25 @@ export function breedingPopulation(project: Project): Dog[] {
 export function ancestorInfluenceFor(project: Project, dogId: string): number {
   const population = breedingPopulation(project);
   return ancestorInfluence(dogId, population, lookupDog(project));
+}
+
+/** Every living descendant of a dog, however many generations down. */
+export function descendantsOf(project: Project, dogId: string): Dog[] {
+  const seen = new Set<string>();
+  const out: Dog[] = [];
+  const walk = (id: string) => {
+    const d = project.dogs[id];
+    if (!d) return;
+    for (const childId of d.offspringIds) {
+      if (seen.has(childId)) continue;
+      seen.add(childId);
+      const child = project.dogs[childId];
+      if (child && child.status !== 'deceased') out.push(child);
+      walk(childId);
+    }
+  };
+  walk(dogId);
+  return out;
 }
 
 export function puppiesOf(project: Project, litterId: string): Dog[] {
@@ -329,6 +363,7 @@ function generateFoundation(project: Project, founderBreeds: string[] | undefine
       wildcards: true,
     });
     project.dogs[dog.id] = dog;
+    remember(dog, 0, 'arrived', `Came to the kennel as one of the ${size} founding dogs, a ${dog.breedLabel.toLowerCase()} of ${formatAge(ageMonths(dog, 0))}.`);
     recordRarities(project, dog);
   }
 
@@ -340,7 +375,10 @@ function recordRarities(project: Project, dog: Dog) {
   const coat = resolveCoat(dog.genotype, sizeToPounds(dog.observed.size));
   const color = resolveColor(dog.genotype);
   for (const find of findRarities(dog.genotype, coat, color)) {
-    if (!dog.rarities.includes(find.key)) dog.rarities.push(find.key);
+    if (!dog.rarities.includes(find.key)) {
+      dog.rarities.push(find.key);
+      remember(dog, project.month, 'rare', `${find.title} — ${find.blurb}`);
+    }
     if (!project.discoveries.some((d) => d.key === find.key)) {
       project.discoveries.push({
         key: find.key,
@@ -373,6 +411,44 @@ export interface MonthReport {
   warnings: string[];
   /** Genes that appeared from nowhere this month. */
   mutations: string[];
+  postcards: { name: string; text: string }[];
+}
+
+/** A short note from a dog's new home, coloured by where it went and who it is. */
+function postcardFrom(rng: Rng, dog: Dog, month: number): string {
+  const he = dog.sex === 'M' ? 'he' : 'she';
+  const He = dog.sex === 'M' ? 'He' : 'She';
+  const quirks = visibleQuirks(dog.genotype, ageMonths(dog, month));
+  const quirkLine = quirks.length ? ` ${quirkText(rng.pick(quirks), dog.name, dog.sex)}` : '';
+  const byHome: Record<string, string[]> = {
+    familyCompanion: [
+      `${He} has appointed ${dog.sex === 'M' ? 'himself' : 'herself'} guardian of the youngest child and sleeps outside the bedroom door.`,
+      `${He} goes to school pick-up every day and has a fan club at the gate.`,
+      `${He} is, the family report, the best decision they ever made.`,
+    ],
+    seniorHome: [
+      `${He} and ${dog.sex === 'M' ? 'his' : 'her'} owner do the same slow walk every morning and know everyone on it by name.`,
+      `${He} has learned exactly when the kettle goes on and is always there for it.`,
+      `${He} is a gentle, steady presence and ${dog.sex === 'M' ? 'his' : 'her'} owner says the house feels different with ${dog.sex === 'M' ? 'him' : 'her'} in it.`,
+    ],
+    activeHome: [
+      `${He} has finished ${dog.sex === 'M' ? 'his' : 'her'} first long hike and slept for two days.`,
+      `${He} swims every weekend now and has never once come out of the lake voluntarily.`,
+      `${He} runs with ${dog.sex === 'M' ? 'his' : 'her'} owner every morning and is faster than ${he} was.`,
+    ],
+    workingHome: [
+      `${He} has turned out to be a natural and works every day now.`,
+      `${He} took to the job in a week and the farmer says ${he} thinks with ${dog.sex === 'M' ? 'his' : 'her'} own head.`,
+      `${He} is, by all accounts, the best working dog they have had.`,
+    ],
+    farmHome: [
+      `${He} has cleared the barn of rats and is now working on the woodpile.`,
+      `${He} sleeps in the hay and has adopted an orphaned lamb.`,
+      `${He} has the run of forty acres and uses every one of them.`,
+    ],
+  };
+  const lines = byHome[dog.placement ?? 'familyCompanion'] ?? byHome.familyCompanion;
+  return `${rng.pick(lines)}${quirkLine}`;
 }
 
 /**
@@ -390,6 +466,7 @@ export function advanceMonth(project: Project): MonthReport {
     matured: [],
     warnings: [],
     mutations: [],
+    postcards: [],
   };
 
   // --- Births --------------------------------------------------------------
@@ -415,6 +492,15 @@ export function advanceMonth(project: Project): MonthReport {
       project.dogs[puppy.id] = puppy;
       sire.offspringIds.push(puppy.id);
       dam.offspringIds.push(puppy.id);
+      remember(
+        puppy,
+        project.month,
+        'birth',
+        `Born to ${dam.name} and ${sire.name}, one of ${result.puppies.length} in the litter${
+          result.lost.length ? `, ${result.lost.length} lost` : ''
+        }.`,
+      );
+      if (puppy.mutation) remember(puppy, project.month, 'mutation', `Born carrying ${puppy.mutation}. Neither parent had it.`);
 
       for (const find of result.discoveries.filter((d) => d.puppyId === puppy.id)) {
         if (!project.discoveries.some((d) => d.key === find.key)) {
@@ -445,6 +531,8 @@ export function advanceMonth(project: Project): MonthReport {
     sire.littersProduced += 1;
     dam.littersProduced += 1;
     project.lastLitter[dam.id] = project.month;
+    remember(dam, project.month, 'litter', `Whelped ${result.puppies.length} puppies by ${sire.name}${dam.littersProduced === 1 ? ' — her first litter' : ''}.`);
+    remember(sire, project.month, 'litter', `Sired ${result.puppies.length} puppies out of ${dam.name}${sire.littersProduced === 1 ? ' — his first litter' : ''}.`);
 
     const litter: Litter = {
       id: result.litterId,
@@ -507,8 +595,16 @@ export function advanceMonth(project: Project): MonthReport {
       dog.status = 'deceased';
       dog.deathMonth = project.month;
       dog.deathCause = cause;
-      report.deaths.push({ name: dog.name, age, cause });
-      addLog(project, 'death', `${dog.name} died at ${(age / 12).toFixed(1)} years. ${cause}.`);
+      const legacy = descendantsOf(project, dog.id).length;
+      const years = (age / 12).toFixed(1);
+      const gently =
+        cause === 'Old age'
+          ? `Passed peacefully in ${dog.sex === 'M' ? 'his' : 'her'} sleep at ${years} years, after a good life.`
+          : `Lost suddenly at ${years} years — ${cause.toLowerCase()}.`;
+      const legacyText = legacy > 0 ? ` ${dog.sex === 'M' ? 'He' : 'She'} leaves ${legacy} descendant${legacy === 1 ? '' : 's'} in the kennel.` : '';
+      remember(dog, project.month, 'died', gently + legacyText);
+      report.deaths.push({ name: dog.name, age, cause: gently + legacyText });
+      addLog(project, 'death', `${dog.name}: ${gently}${legacyText}`);
       continue;
     }
 
@@ -517,11 +613,23 @@ export function advanceMonth(project: Project): MonthReport {
       const retireAt = dog.sex === 'F' ? 84 : 120;
       if (age >= retireAt) {
         dog.breedingRetired = true;
-        addLog(project, 'decision', `${dog.name} has retired from breeding at ${(age / 12).toFixed(1)} years.`);
+        remember(dog, project.month, 'retired', `Retired from breeding at ${(age / 12).toFixed(1)} years, and now spends the days in the sunny end of the yard.`);
+        addLog(project, 'decision', `${dog.name} has retired at ${(age / 12).toFixed(1)} years.`);
       }
     }
 
     if (age === 24) report.matured.push(dog.name);
+  }
+
+  // --- Postcards -----------------------------------------------------------
+  // Dogs in pet homes occasionally write. Nothing to do, nothing to answer —
+  // just news that the dog you placed is having a good life.
+  for (const dog of Object.values(project.dogs)) {
+    if (dog.status !== 'placed' || !dog.placement) continue;
+    if (!rng.chance(0.025)) continue;
+    const note = postcardFrom(rng, dog, project.month);
+    remember(dog, project.month, 'postcard', note);
+    report.postcards.push({ name: dog.name, text: note });
   }
 
   // --- Warnings ------------------------------------------------------------
@@ -657,6 +765,7 @@ export function placeDog(project: Project, dogId: string, placement: PlacementTy
   dog.placement = placement;
   dog.retention = 'pet';
   dog.breedingRetired = true;
+  remember(dog, project.month, 'placed', `Went to a ${PLACEMENT_LABEL[placement].toLowerCase()} at ${formatAge(ageMonths(dog, project.month))}.`);
 
   const fits = placementFit(dog);
   const rank = fits.findIndex((f) => f.type === placement);
@@ -673,12 +782,17 @@ export function placeDog(project: Project, dogId: string, placement: PlacementTy
 export function setRetention(project: Project, dogId: string, choice: Dog['retention']): void {
   const dog = project.dogs[dogId];
   if (!dog) return;
+  const before = dog.retention;
   dog.retention = choice;
   if (choice === 'retainNoBreed') {
     dog.breedingRetired = true;
     addLog(project, 'decision', `${dog.name} will be kept but not bred.`);
+    if (before !== choice) remember(dog, project.month, 'kept', 'Kept as a companion rather than a breeding dog.');
   }
-  if (choice === 'keep') addLog(project, 'decision', `${dog.name} was retained for breeding.`);
+  if (choice === 'keep') {
+    addLog(project, 'decision', `${dog.name} was retained for breeding.`);
+    if (before !== choice) remember(dog, project.month, 'kept', `Kept for breeding at ${formatAge(ageMonths(dog, project.month))}.`);
+  }
   project.updatedAt = Date.now();
 }
 
@@ -796,6 +910,7 @@ export function adoptOutsideDog(project: Project, dog: Dog): string {
   }
   const adopted: Dog = { ...dog, status: 'kennel' };
   project.dogs[adopted.id] = adopted;
+  remember(adopted, project.month, 'arrived', `Brought in as an outcross — a ${adopted.breedLabel.toLowerCase()} of ${formatAge(ageMonths(adopted, project.month))} — to bring fresh blood to the kennel.`);
   project.candidates = project.candidates.filter((c) => c.id !== dog.id);
   recordRarities(project, adopted);
   addLog(project, 'decision', `${adopted.name} (${adopted.breedLabel}) joined the kennel as an outcross.`);

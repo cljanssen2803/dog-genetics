@@ -22,7 +22,7 @@
  *     thrown against finished adults.
  */
 
-import { type Dog, ageMonths } from '../engine/dog';
+import { type Dog, ageMonths, remember } from '../engine/dog';
 import { scoreDog } from '../engine/standard';
 import { BREEDS } from '../engine/breeds';
 import { type Project, addLog, commitRng, rngFor } from './project';
@@ -271,6 +271,13 @@ export function runShow(project: Project, dogId: string): ShowResult | null {
   commitRng(project, rng);
 
   const critique = writeCritique(dog, judge, { type, soundness, showmanship }, placed, bestInShow);
+
+  if (placed === 1) {
+    remember(dog, project.month, 'show', `Won the ${CLASS_LABEL[eligibility.showClass]} class under ${judge.name}${bestInShow ? ' and took Best in Show' : ''}.`);
+  } else if (placed > 0) {
+    remember(dog, project.month, 'show', `Placed ${ordinal(placed)} in ${CLASS_LABEL[eligibility.showClass]} under ${judge.name}.`);
+  }
+  if (newTitle) remember(dog, project.month, 'title', `Earned the title of ${newTitle}.`);
 
   if (placed === 1) {
     addLog(project, 'milestone', `${dog.name} won the ${CLASS_LABEL[eligibility.showClass]} class${bestInShow ? ' and took Best in Show' : ''}.`);

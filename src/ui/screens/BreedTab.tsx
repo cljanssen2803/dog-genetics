@@ -24,6 +24,7 @@ import { goalGaps, populationWarnings } from '../../game/analytics';
 import { BreedPicker } from './NewProject';
 import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, describeDog } from '../DogFacts';
 import { BEHAVIOR_TRAITS } from '../../engine/traits';
+import { quirkOdds, quirkText } from '../../engine/quirks';
 
 const VERDICT_TONE: Record<MatchVerdict, 'good' | 'neutral' | 'info' | 'warn' | 'bad'> = {
   'Excellent match': 'good',
@@ -398,6 +399,23 @@ function PairingSheet({
           )}
         </div>
       </Section>
+
+      {(() => {
+        const odds = quirkOdds(preview.sire.genotype, preview.dam.genotype).filter((o) => o.chance >= 0.2).slice(0, 5);
+        return odds.length > 0 ? (
+          <Section title="Habits the puppies might inherit" subtitle="Personality runs in families too.">
+            <div className="card p-3">
+              {odds.map((o) => (
+                <StatRow
+                  key={o.quirk.key}
+                  label={quirkText(o.quirk, 'a puppy', 'M').replace(/^(He|She|His|Her)\b/, 'A puppy').replace(/\bhis\b/g, 'its').replace(/\bhe\b/g, 'it')}
+                  value={`${Math.round(o.chance * 100)}%`}
+                />
+              ))}
+            </div>
+          </Section>
+        ) : null;
+      })()}
 
       {preview.coatOutcomes.length > 0 && (
         <Section title="Coat outcomes">

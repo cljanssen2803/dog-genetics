@@ -15,7 +15,8 @@
 import { del, get, set } from 'idb-keyval';
 import type { Project } from './project';
 import { ensureIds } from './project';
-import { hashString } from '../engine/rng';
+import { Rng, hashString } from '../engine/rng';
+import { QUIRKS } from '../engine/quirks';
 
 const INDEX_KEY = 'dogGenetics.projectIndex';
 const PROJECT_KEY = (id: string) => `dogGenetics.project.${id}`;
@@ -147,6 +148,19 @@ function migrate(project: Project): Project {
   for (const dog of Object.values(project.dogs)) {
     if (typeof dog.seedValue !== 'number') {
       dog.seedValue = hashString(dog.id) % 2147483646;
+    }
+    // Saves written before personality genes existed. Draw them now from the
+    // dog's own seed, so the same dog always gets the same habits — and so
+    // the inheritance code never sees a missing gene and hands out every
+    // habit at once.
+    const missing = QUIRKS.filter((q) => !dog.genotype[q.key]);
+    if (missing.length > 0) {
+      const rng = new Rng(dog.seedValue ^ 0x51ab);
+      for (const q of missing) {
+        const a = rng.chance(q.frequency) ? 'Q' : 'n';
+        const b = rng.chance(q.frequency) ? 'Q' : 'n';
+        dog.genotype[q.key] = a === 'Q' || b === 'Q' ? ['Q', a === 'Q' && b === 'Q' ? 'Q' : 'n'] : ['n', 'n'];
+      }
     }
   }
   return project;

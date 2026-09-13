@@ -130,6 +130,8 @@ function ResultView({
         : 'Unplaced';
 
   return (
+    <>
+      {result.placement === 1 && <Confetti seed={result.dogId.length + result.points} />}
     <Sheet
       open
       onClose={onClose}
@@ -218,5 +220,31 @@ function ResultView({
         </p>
       )}
     </Sheet>
+    </>
+  );
+}
+
+/** A short, soft shower of paper for a first place. */
+function Confetti({ seed }: { seed: number }) {
+  const colours = ['#c0703a', '#6f8f5f', '#d4a020', '#9c3b4b', '#4a7c95', '#b8956a'];
+  const pieces = Array.from({ length: 26 }, (_, i) => {
+    const t = (seed * 31 + i * 17) % 100;
+    return {
+      left: `${(i * 37 + t) % 100}%`,
+      delay: `${((i * 13) % 9) * 0.08}s`,
+      colour: colours[(i + seed) % colours.length],
+      rotate: (i * 47) % 360,
+    };
+  });
+  return (
+    <>
+      {pieces.map((p, i) => (
+        <span
+          key={i}
+          className="confetti"
+          style={{ left: p.left, animationDelay: p.delay, background: p.colour, transform: `rotate(${p.rotate}deg)` }}
+        />
+      ))}
+    </>
   );
 }
