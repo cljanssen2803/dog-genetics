@@ -10,10 +10,11 @@ import { GameProvider } from './ui/GameContext';
 import { Home } from './ui/screens/Home';
 import { NewProject } from './ui/screens/NewProject';
 import { Game } from './ui/screens/Game';
+import { Lab } from './ui/screens/Lab';
 import type { Project } from './game/project';
 import { loadProject, loadSettings, saveSettings } from './game/storage';
 
-type Route = { name: 'home' } | { name: 'new' } | { name: 'game'; project: Project };
+type Route = { name: 'home' } | { name: 'new' } | { name: 'lab' } | { name: 'game'; project: Project };
 
 export default function App() {
   const [route, setRoute] = useState<Route>({ name: 'home' });
@@ -69,11 +70,19 @@ export default function App() {
     <>
       <SpriteFilters />
       {route.name === 'home' && (
-        <Home onOpen={(id) => void open(id)} onNew={() => setRoute({ name: 'new' })} />
+        <Home onOpen={(id) => void open(id)} onNew={() => setRoute({ name: 'new' })} onLab={() => setRoute({ name: 'lab' })} />
       )}
 
       {route.name === 'new' && (
-        <NewProject onCreated={(id) => void open(id)} onCancel={() => setRoute({ name: 'home' })} />
+        <NewProject
+          onCreated={(id) => void open(id)}
+          onCancel={() => setRoute({ name: 'home' })}
+          onLab={() => setRoute({ name: 'lab' })}
+        />
+      )}
+
+      {route.name === 'lab' && (
+        <Lab onBack={() => setRoute({ name: 'home' })} onCreated={(id) => void open(id)} />
       )}
 
       {route.name === 'game' && (

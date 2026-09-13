@@ -37,7 +37,7 @@ function Gallery() {
           const coat = resolveCoat(dog.genotype, lbs);
           const colour = resolveColor(dog.genotype);
           const tail = TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind)];
-          const body = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, dog.observed.tailSet);
+          const body = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, lbs);
           return (
             <div key={key} className="card p-2">
               <DogSprite dog={dog} size={300} />

@@ -18,6 +18,7 @@
  */
 
 import type { PolyTrait } from './traits';
+import { BREED_COLOURS, SINGLE_COATED } from './breedColours';
 
 export interface BreedProfile {
   key: string;
@@ -55,12 +56,12 @@ export const DEFAULT_ALLELES: Record<string, Record<string, number>> = {
   locusB: { B: 0.88, b: 0.12 },
   locusD: { D: 0.88, d: 0.12 },
   cocoa: { Co: 1, co: 0 },
-  locusS: { S: 0.7, sp: 0.3 },
+  locusS: { S: 0.8, sp: 0.2 },
   merle: { M: 0, m: 1 },
   harlequin: { H: 0, h: 1 },
   intensity: { I: 0.6, i: 0.4 },
   albino: { N: 1, al: 0 },
-  ticking: { T: 0.15, t: 0.85 },
+  ticking: { T: 0.05, t: 0.95 },
   blueEyes: { Be: 0, be: 1 },
   bobtail: { Bt: 0, bt: 1 },
 };
@@ -598,7 +599,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 84, sociability: 42, energy: 78, stability: 58, preyDrive: 80,
       persistence: 86, independence: 42, alertness: 92, vocality: 58, handling: 62,
-      structure: 34, longevity: 44, fertility: 72, substance: 66, muzzle: 72, earSet: 92, tailSet: 30,
+      structure: 34, longevity: 44, fertility: 72, substance: 66, muzzle: 72, earSet: 92, tailSet: 40,
     },
     alleles: { undercoat: plush,
       coatLength: { L: 0.72, l: 0.28 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
@@ -695,7 +696,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 52, sociability: 58, energy: 34, stability: 56, preyDrive: 92,
       persistence: 30, independence: 54, alertness: 48, vocality: 20, handling: 66,
-      structure: 74, longevity: 62, fertility: 66, substance: 18, muzzle: 86, earSet: 40, tailSet: 8,
+      structure: 74, longevity: 62, fertility: 66, substance: 12, muzzle: 86, earSet: 40, tailSet: 8,
     },
     alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
@@ -713,7 +714,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 56, sociability: 60, energy: 40, stability: 48, preyDrive: 90,
       persistence: 32, independence: 44, alertness: 54, vocality: 18, handling: 60,
-      structure: 76, longevity: 78, fertility: 66, substance: 16, muzzle: 84, earSet: 42, tailSet: 8,
+      structure: 76, longevity: 78, fertility: 66, substance: 10, muzzle: 84, earSet: 42, tailSet: 8,
     },
     alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
@@ -769,7 +770,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 28, sociability: 74, energy: 92, stability: 66, preyDrive: 88,
       persistence: 90, independence: 88, alertness: 54, vocality: 76, handling: 64,
-      structure: 78, longevity: 74, fertility: 74, substance: 46, muzzle: 74, earSet: 94, tailSet: 72,
+      structure: 78, longevity: 74, fertility: 74, substance: 46, muzzle: 74, earSet: 94, tailSet: 76,
     },
     alleles: { undercoat: plush,
       coatLength: { L: 0.85, l: 0.15 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
@@ -829,7 +830,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 62, sociability: 72, energy: 40, stability: 56, preyDrive: 44,
       persistence: 46, independence: 36, alertness: 62, vocality: 44, handling: 78,
-      structure: 40, longevity: 12, fertility: 58, substance: 76, muzzle: 70, earSet: 30, tailSet: 24,
+      structure: 40, longevity: 12, fertility: 58, substance: 58, muzzle: 70, earSet: 30, tailSet: 24,
     },
     alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
@@ -1302,6 +1303,14 @@ export const BREEDS: BreedProfile[] = [
     blurb: 'The smallest retriever: fox-red, white-trimmed, quick-witted, and a screamer when excited.',
   },
 ];
+
+// The breed-standard colour tables (breedColours.ts) win over whatever colour
+// genes the entries above carry, so every breed looks like its standard.
+for (const breed of BREEDS) {
+  const standard = BREED_COLOURS[breed.key];
+  if (standard) breed.alleles = { ...(breed.alleles ?? {}), ...standard };
+  if (SINGLE_COATED.includes(breed.key)) breed.alleles = { ...(breed.alleles ?? {}), undercoat: singleCoat };
+}
 
 export const BREED_BY_KEY: Record<string, BreedProfile> = Object.fromEntries(
   BREEDS.map((b) => [b.key, b]),

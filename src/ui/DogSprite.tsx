@@ -34,6 +34,7 @@ import {
   resolveEars,
   resolveSilhouette,
   resolveTail,
+  type Silhouette,
 } from '../engine/phenotype';
 
 const BASE = `${import.meta.env.BASE_URL}sprites/`;
@@ -62,7 +63,11 @@ const EAR_SRC: Record<EarType, string> = {
  * the canvas — measured from the artwork's own dark pixels. Every body is a
  * little different, so each has its own pair.
  */
-const FACE: Record<CoatKind, { eye: [number, number]; nose: [number, number] }> = {
+const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }> = {
+  sighthound: { eye: [82.0, 17.8], nose: [90.9, 23.4] },
+  bull: { eye: [86.5, 26.0], nose: [91.5, 29.7] },
+  heavy: { eye: [83.3, 23.4], nose: [91.1, 27.6] },
+  spitz: { eye: [81.5, 21.3], nose: [89.5, 25.0] },
   smooth: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
   short: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
   silky: { eye: [83.2, 21.7], nose: [91.3, 24.6] },
@@ -80,10 +85,24 @@ const FACE: Record<CoatKind, { eye: [number, number]; nose: [number, number] }> 
  * stretched the right way. When a file arrives, add it to HAVE below and the
  * sprite starts using it.
  */
-const SILHOUETTE_SRC: Record<'sighthound' | 'bull' | 'spitz', { file: string; fallback: CoatKind }> = {
+const SILHOUETTE_SRC: Record<'sighthound' | 'bull' | 'heavy' | 'spitz', { file: string; fallback: CoatKind }> = {
   sighthound: { file: 'body-sighthound.png', fallback: 'smooth' },
   bull: { file: 'body-bull.png', fallback: 'smooth' },
+  heavy: { file: 'body-heavy.png', fallback: 'smooth' },
   spitz: { file: 'body-spitz.png', fallback: 'doubleThick' },
+};
+
+/**
+ * Where the ears and tail attach on each body, as percentages of the canvas.
+ * The eight coat bodies share one skeleton; the four build bodies each have
+ * their own, measured from the artwork (top-rear of the skull, and the top of
+ * the rump). Anything not listed uses the shared skeleton.
+ */
+const RIG: Partial<Record<Silhouette, { ear: [number, number]; tail: [number, number] }>> = {
+  sighthound: { ear: [76.5, 18.5], tail: [29, 47] },
+  bull: { ear: [79.5, 24], tail: [28, 52] },
+  heavy: { ear: [76.5, 21], tail: [29, 50] },
+  spitz: { ear: [75, 19], tail: [28, 49] },
 };
 
 const TAIL_SRC: Record<TailType, string> = {
@@ -101,7 +120,16 @@ const TAIL_SRC: Record<TailType, string> = {
  * public/sprites. Add a filename here when its artwork lands; until then the
  * stand-ins below are used.
  */
-const HAVE = new Set<string>([]);
+const HAVE = new Set<string>([
+  'body-sighthound.png',
+  'body-bull.png',
+  'body-heavy.png',
+  'body-spitz.png',
+  'tail-whip.png',
+  'tail-plume.png',
+  'tail-sickle.png',
+  'tail-curled.png',
+]);
 
 /**
  * Stand-ins for tails whose artwork is still to come, built from the two
@@ -139,6 +167,8 @@ interface Fit {
   /** Where that point belongs on the dog. */
   target: [number, number];
   scale: number;
+  /** Degrees, clockwise, about the anchor. For tails drawn at the wrong carriage. */
+  rotate?: number;
 }
 
 /**
@@ -164,20 +194,33 @@ const TAIL_FIT: Record<TailType, Fit> = {
   // join can never open into a gap on a body whose rump sits differently.
   full: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
   bobtail: { anchor: [26, 43], target: [27.5, 45.5], scale: 1.1 },
-  // Placeholders, refined once each piece is measured.
-  screw: { anchor: [26, 43], target: [27.5, 45.5], scale: 1.1 },
-  whip: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
-  plume: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
-  sickle: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
-  curled: { anchor: [25, 47], target: [27.5, 47.5], scale: 1.08 },
+  // No screw-tail art yet: the bobtail, a touch smaller, stands in.
+  screw: { anchor: [26, 43], target: [27.5, 45.5], scale: 0.85 },
+  // The whip was drawn trailing straight back; swung down so it hangs
+  // between the hocks like a real sighthound's.
+  whip: { anchor: [52, 46.5], target: [27.5, 47.5], scale: 0.75, rotate: -30 },
+  // The plume was drawn flying straight up; tipped back to a flag.
+  plume: { anchor: [51, 74], target: [27.5, 47.5], scale: 0.7, rotate: -20 },
+  sickle: { anchor: [51, 76], target: [28, 48], scale: 0.65 },
+  curled: { anchor: [59.5, 63], target: [28, 48], scale: 0.75 },
 };
+
+/** A fit moved to a different body's attachment point. */
+function retarget(fit: Fit, target: [number, number] | undefined, base: [number, number]): Fit {
+  if (!target) return fit;
+  // Keep the small deliberate offset each piece has from the shared point
+  // (a root pushed into the rump, an ear sat a touch back).
+  return { ...fit, target: [target[0] + (fit.target[0] - base[0]), target[1] + (fit.target[1] - base[1])] };
+}
+const SHARED_EAR: [number, number] = [74.5, 19];
+const SHARED_TAIL: [number, number] = [27.5, 47.5];
 
 function fitStyle(fit: Fit): { transform: string; transformOrigin: string } {
   return {
     transformOrigin: `${fit.anchor[0]}% ${fit.anchor[1]}%`,
     transform: `translate(${(fit.target[0] - fit.anchor[0]).toFixed(2)}%, ${(
       fit.target[1] - fit.anchor[1]
-    ).toFixed(2)}%) scale(${fit.scale})`,
+    ).toFixed(2)}%) rotate(${fit.rotate ?? 0}deg) scale(${fit.scale})`,
   };
 }
 
@@ -406,22 +449,38 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: 
 
   // Which body. The coat, unless the build or head is distinctive enough to
   // deserve its own silhouette. Without the artwork, stretch the fallback.
-  const silhouette = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, dog.observed.tailSet);
+  const silhouette = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight);
   let bodySrc = BODY_SRC[coat.kind];
   let standinStretch = '';
-  if (silhouette === 'sighthound' || silhouette === 'bull' || silhouette === 'spitz') {
+  let rig: { ear: [number, number]; tail: [number, number] } | undefined;
+  let face = FACE[coat.kind];
+  if (silhouette === 'sighthound' || silhouette === 'bull' || silhouette === 'heavy' || silhouette === 'spitz') {
     const want = SILHOUETTE_SRC[silhouette];
     if (HAVE.has(want.file)) {
       bodySrc = want.file;
+      rig = RIG[silhouette];
+      face = FACE[silhouette];
     } else {
       bodySrc = BODY_SRC[want.fallback];
-      standinStretch = silhouette === 'sighthound' ? ' scale(0.88, 1.06)' : silhouette === 'bull' ? ' scale(1.14, 0.92)' : '';
+      standinStretch = silhouette === 'sighthound' ? ' scale(0.88, 1.06)' : silhouette === 'bull' || silhouette === 'heavy' ? ' scale(1.14, 0.92)' : '';
     }
   }
 
   // The tail: the real file if it exists, else a stand-in built from one we have.
   const standin = HAVE.has(TAIL_SRC[tail]) ? undefined : TAIL_STANDIN[tail];
-  const tailKey: TailType = standin ? standin.src : tail;
+  let tailKey: TailType = standin ? standin.src : tail;
+  let tailFit = TAIL_FIT[tailKey];
+  // The bushy full tail belongs on a coated dog. A smooth-coated hound or
+  // Dalmatian carries a sleek one: the whip artwork, held out in a sabre. A
+  // plush-coated shepherd type carries a furry one: the plume, hanging.
+  const smoothKind = coat.kind === 'smooth' || coat.kind === 'short' || coat.kind === 'hairless';
+  if ((tail === 'full' || tail === 'whip') && silhouette === 'spitz') {
+    tailKey = 'plume';
+    tailFit = { ...TAIL_FIT.plume, rotate: tail === 'whip' ? 74 : 62, scale: 0.6 };
+  } else if (tail === 'full' && smoothKind) {
+    tailKey = 'whip';
+    tailFit = { ...TAIL_FIT.whip, rotate: -8, scale: coat.undercoat ? 0.8 : 0.72 };
+  }
   const noise = makeNoise(dog.seedValue ?? 1);
 
   // Body build and size, applied by scaling rather than extra artwork.
@@ -431,10 +490,24 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: 
   // how size reads to the eye: 5 lb to 15 lb is a bigger visual jump than
   // 100 lb to 110 lb.
   const sizeScale = 0.46 + 0.7 * Math.min(1, Math.max(0, (Math.log(visual) - Math.log(4)) / (Math.log(170) - Math.log(4))));
-  const substance = 0.94 + (dog.observed.substance / 100) * 0.14;
+  // Build widens the dog a little. On the bull and heavy bodies it does more,
+  // because the artwork is drawn at the burly extreme: a Boxer shares the
+  // Bulldog's frame but is a much leaner animal.
+  const burly = silhouette === 'bull' || silhouette === 'heavy';
+  // A shepherd type (plush coat, pricked ears, tail carried low) borrows the
+  // Spitz body but is a leaner, longer animal, so it is narrowed a touch.
+  const shepherd = silhouette === 'spitz' && dog.observed.tailSet < 60;
+  // The sighthound body is narrowed further still for the lightest dogs.
+  const substance = burly
+    ? 0.8 + (dog.observed.substance / 100) * 0.24
+    : silhouette === 'sighthound'
+      ? 0.84 + (dog.observed.substance / 100) * 0.22
+      : (shepherd ? 0.84 : 0.94) + (dog.observed.substance / 100) * 0.14;
   // Short-legged dogs read as longer and lower rather than simply smaller.
-  const legSquash = shortLegs === 2 ? 0.82 : shortLegs === 1 ? 0.91 : 1;
-  const stretch = shortLegs > 0 ? 1.1 : 1;
+  // Short-legged dogs read as longer and lower; so does a shepherd type,
+  // which is a longer, leaner animal than the Spitz whose body it borrows.
+  const legSquash = shortLegs === 2 ? 0.82 : shortLegs === 1 ? 0.91 : shepherd ? 0.93 : 1;
+  const stretch = shortLegs > 0 ? 1.1 : shepherd ? 1.1 : 1;
 
   const bodyTransform = `scale(${(sizeScale * substance * stretch).toFixed(3)}, ${(sizeScale * legSquash).toFixed(3)})${standinStretch}`;
 
@@ -446,14 +519,22 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: 
     earSrc: EAR_SRC[ears],
     tailSrc: TAIL_SRC[tailKey],
     tailStandin: standin?.transform,
-    earFit: EAR_FIT[ears],
-    tailFit: TAIL_FIT[tailKey],
+    earFit: retarget(
+      ears === 'drop' && coat.undercoat
+        ? { ...EAR_FIT.drop, scale: EAR_FIT.drop.scale * 0.8 }
+        : silhouette === 'sighthound'
+          ? { ...EAR_FIT[ears], scale: EAR_FIT[ears].scale * 0.7 }
+          : EAR_FIT[ears],
+      rig?.ear,
+      SHARED_EAR,
+    ),
+    tailFit: retarget(tailFit, rig?.tail, SHARED_TAIL),
     bodyTransform,
     base,
     // Ear leather is genuinely darker than body coat, and the contrast is what
     // makes an ear read as an ear rather than a bump on the skull.
     earColour: shade(base, -32),
-    face: FACE[coat.kind],
+    face,
     eyeColour: colour.eye,
     noseColour: colour.nose,
     colorName: colour.name,
@@ -464,6 +545,7 @@ function describe(dog: Dog, blurPx: number, furFilter = 'fur-edge-m', drawLbs?: 
         base={base}
         accent={forShading(colour.accent)}
         noise={noise}
+        face={face}
         blurPx={blurPx}
         furFilter={furFilter}
       />
@@ -487,6 +569,7 @@ function Markings({
   noise,
   blurPx,
   furFilter,
+  face,
 }: {
   colour: ReturnType<typeof resolveColor>;
   base: string;
@@ -495,10 +578,16 @@ function Markings({
   /** Softening for the white markings, scaled to how big the dog is drawn. */
   blurPx: number;
   furFilter: string;
+  /** Where this body's eye and nose are, so head markings land on the head. */
+  face: { eye: [number, number]; nose: [number, number] };
 }) {
   const shapes: React.ReactNode[] = [];
   const fleck = contrastInk(base);
   const light = shade(base, 40);
+  // Head markings were measured on the smooth body. Other bodies carry their
+  // heads elsewhere, so everything on the face is shifted by the difference.
+  const hx = face.eye[0] - 80.6;
+  const hy = face.eye[1] - 21.9;
 
   const blob = (
     key: string,
@@ -584,8 +673,8 @@ function Markings({
       blob('tp-leg2', 36, 68, 9, 24, accent, 0.95),
       blob('tp-leg3', 62, 66, 9, 26, accent, 0.95),
       blob('tp-leg4', 72, 68, 9, 24, accent, 0.95),
-      blob('tp-muzzle', 84, 20, 10, 10, accent, 0.9),
-      blob('tp-brow', 80, 13, 5, 4, accent, 0.85),
+      blob('tp-muzzle', 84 + hx, 20 + hy, 10, 10, accent, 0.9),
+      blob('tp-brow', 80 + hx, 13 + hy, 5, 4, accent, 0.85),
       blob('tp-chest', 72, 44, 10, 14, accent, 0.8),
     );
     shapes.push(
@@ -645,6 +734,8 @@ function Markings({
     // The chest marking runs down the FRONT of the chest, between the forelegs.
     // Seen from the side that is a narrow strip at the leading edge, not a
     // patch on the shoulder.
+    // A ticked, mostly-white dog is white everywhere: the spots come later.
+    if (colour.ticked && w >= 0.85) marks.push(blob('w-all', 12, 6, 84, 90, white));
     marks.push(...patch('w-chest', 73, 43, 8, 21, white));
     marks.push(blob('w-toe1', 24, 85, 7, 9, white));
     marks.push(blob('w-toe2', 36, 87, 7, 8, white));
@@ -652,8 +743,8 @@ function Markings({
     marks.push(blob('w-toe4', 72, 87, 7, 8, white));
 
     if (w > 0.25) {
-      marks.push(blob('w-throat', 77, 30, 7, 13, white));
-      marks.push(blob('w-blaze', 85, 11, 4, 12, white, 0.95));
+      marks.push(blob('w-throat', 77 + hx, 30 + hy, 7, 13, white));
+      marks.push(blob('w-blaze', 85 + hx, 11 + hy, 4, 12, white, 0.95));
       marks.push(blob('w-tailtip', 7, 43, 10, 10, white, 0.9));
       marks.push(blob('w-sock1', 24, 74, 8, 16, white));
       marks.push(blob('w-sock2', 62, 74, 8, 16, white));
@@ -682,17 +773,27 @@ function Markings({
   // Ticking is flecks of colour appearing IN white markings. On a solid dog
   // there is no white for it to appear in, and scattering dots over a coloured
   // coat just looks like the dog needs a bath.
-  if (colour.ticked && colour.white > 0.2) {
-    for (let i = 0; i < 16; i++) {
-      shapes.push(
-        blob(`t${i}`, 22 + noise() * 56, 66 + noise() * 24, 0.8, 1.1, fleck, 0.45),
-      );
+  if (colour.ticked && colour.white >= 0.85) {
+    // A mostly-white ticked dog is a Dalmatian: bold round spots of the
+    // coat's own colour, all over, head included.
+    const spots: React.ReactNode[] = [];
+    for (let i = 0; i < 34; i++) {
+      const s = 1.6 + noise() * 2.6;
+      spots.push(blob(`t${i}`, 18 + noise() * 66, 14 + noise() * 74, s, s * 1.25, colour.base, 0.95));
+    }
+    spots.push(blob('t-head', 82 + hx + noise() * 6, 16 + hy + noise() * 6, 3, 3.6, colour.base, 0.95));
+    shapes.push(<div key="spots" style={{ position: 'absolute', inset: 0 }}>{spots}</div>);
+  } else if (colour.ticked && colour.white > 0.2) {
+    // Ticking proper: a peppering of small flecks in the white.
+    for (let i = 0; i < 40; i++) {
+      const s = 0.9 + noise() * 0.9;
+      shapes.push(blob(`t${i}`, 20 + noise() * 60, 40 + noise() * 50, s, s * 1.3, fleck, 0.6));
     }
   }
 
   // --- Dark mask over the muzzle -------------------------------------------
   if (colour.mask) {
-    shapes.push(blob('mask', 82, 16, 14, 16, '#2a2521', 0.8));
+    shapes.push(blob('mask', 82 + hx, 16 + hy, 14, 16, '#2a2521', 0.8));
   }
 
   // Soft highlight along the topline, which stops flat colours looking dead.

@@ -29,9 +29,11 @@ type Mode = 'choose' | 'custom' | 'designer';
 export function NewProject({
   onCreated,
   onCancel,
+  onLab,
 }: {
   onCreated: (id: string) => void;
   onCancel: () => void;
+  onLab: () => void;
 }) {
   const [mode, setMode] = useState<Mode>('choose');
 
@@ -81,6 +83,14 @@ export function NewProject({
         </Section>
 
         <Section title="Build your own">
+          <PresetCard
+            title="The Lab"
+            tagline="Start from the features, not the breeds"
+            body="Tick what you want — size, coat, colour, ears, tail, temperament — and watch the dog appear. The Lab tells you which breeds carry the genes and explains each one, then starts the project for you."
+            bullets={[]}
+            onStart={onLab}
+            action="Open the Lab"
+          />
           <PresetCard
             title="Custom breed"
             tagline="Define every goal yourself"

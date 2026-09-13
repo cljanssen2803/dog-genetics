@@ -137,6 +137,10 @@ export function resolveColor(g: Genotype): CoatColor {
   if (harlequin) white = Math.max(white, 0.6);
 
   const ticked = copies(g, 'ticking', 'T') >= 1 && white > 0.1;
+  // Ticking on a piebald dog is the Dalmatian pattern: the white takes over
+  // the whole coat and the colour survives only as spots.
+  const spotted = ticked && whiteCopies === 2 && !merle;
+  if (spotted) white = 0.9;
 
   let base = dark.hex;
   let accent = red.hex;
@@ -229,9 +233,10 @@ export function resolveColor(g: Genotype): CoatColor {
     merleSubtle = true;
   }
 
-  if (white >= 0.5 && !doubleMerle && !harlequin) name += ', heavily marked white';
+  if (spotted) name += ', white with spots';
+  else if (white >= 0.5 && !doubleMerle && !harlequin) name += ', heavily marked white';
   else if (white >= 0.15) name += ' and white';
-  if (ticked) name += ', ticked';
+  if (ticked && !spotted) name += ', ticked';
 
   // Eye colour. Dark brown is the default. The Husky gene gives blue eyes on
   // any coat with no health cost; double merle gives them at a cost. A single
@@ -469,7 +474,7 @@ export function resolveTail(g: Genotype, tailSet = 48, muzzle = 50, coat?: CoatK
   if (muzzle < 30 && tailSet < 68) return 'screw';
   if (tailSet >= 68) return 'sickle';
   if (tailSet <= 26) return 'whip';
-  if (coat === 'long' || coat === 'silky' || coat === 'wavyFurnished') return 'plume';
+  if (coat === 'long' || coat === 'silky' || coat === 'wavyFurnished' || coat === 'doubleThick') return 'plume';
   return 'full';
 }
 
@@ -501,22 +506,26 @@ export const TAIL_BLURB: Record<TailType, string> = {
  * flat-faced bull type. A thick double coat with pricked ears and a tail over
  * the back is a Spitz, and gets its own too.
  */
-export type Silhouette = CoatKind | 'sighthound' | 'bull' | 'spitz';
+export type Silhouette = CoatKind | 'sighthound' | 'bull' | 'heavy' | 'spitz';
 
 export function resolveSilhouette(
   coat: CoatProfile,
   substance: number,
   muzzle: number,
   earSet: number,
-  tailSet: number,
+  sizeLbs: number,
 ): Silhouette {
   const plain = coat.kind === 'smooth' || coat.kind === 'short' || coat.kind === 'doubleThick';
   // Thresholds are loose on purpose: a dog's visible build wanders a good
   // twenty points either side of its breed's average.
-  if (plain && coat.undercoat && earSet > 68 && tailSet >= 64) return 'spitz';
+  if (plain && coat.undercoat && earSet > 68) return 'spitz';
   if (coat.kind === 'smooth' || coat.kind === 'short') {
-    if (muzzle <= 30 || substance > 84) return 'bull';
-    if (substance < 40 && muzzle > 60 && !coat.undercoat) return 'sighthound';
+    if (muzzle <= 30) return 'bull';
+    if (substance > 84) return 'heavy';
+    if (substance < 46 && muzzle > 60 && !coat.undercoat) return 'sighthound';
+    // A giant smooth dog with a long head — a Great Dane — is a sighthound
+    // frame scaled up, and the build factor widens it to suit.
+    if (sizeLbs > 95 && muzzle > 60 && substance < 78 && !coat.undercoat) return 'sighthound';
   }
   return coat.kind;
 }

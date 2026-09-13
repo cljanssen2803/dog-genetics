@@ -308,3 +308,16 @@ Drop them in a folder and tell me where. I run the cleaner, measure each one,
 and add its filename to the `HAVE` list in `src/ui/DogSprite.tsx` — at that
 moment the stand-in switches off and the real piece is used. One file at a
 time is fine; the code copes with any subset.
+
+### ROUND FOUR RESULT — delivered 2026-09-13
+
+Eight files came back: four bodies (sighthound, bull, a heavy long-muzzled
+mastiff type that was not asked for but is very useful, and spitz) and four
+tails (whip, plume, sickle, curled). The screw tail was not drawn; the bobtail
+stands in for it, a touch smaller. Sickle and curled were drawn curling the
+wrong way (tip pointing backward) and were mirrored before cleaning. The whip
+came back trailing straight out and the plume flying straight up; both are
+rotated in code (`TAIL_FIT` in DogSprite.tsx) rather than redrawn.
+
+Still wanted, at leisure: **29. Screw tail** as briefed above, and the
+ROUND THREE pattern stencils.

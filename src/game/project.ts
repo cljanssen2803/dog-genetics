@@ -127,6 +127,8 @@ export interface Project {
   reputation?: number;
   /** The one dog this project is really about, chosen by the player. */
   heartDogId?: string;
+  /** The breeds the foundation was drawn from, for anyone shopping for more of the same. */
+  founderBreeds?: string[];
   /** Moments worth remembering, in order. */
   milestones?: Milestone[];
 
@@ -262,6 +264,7 @@ export function createProject(opts: NewProjectOptions): Project {
     id: `proj_${seed.toString(36)}_${Date.now().toString(36)}`,
     name: opts.name,
     standard: opts.standard,
+    founderBreeds: opts.founderBreeds,
     seed,
     rngCursor: 0,
     month: 0,

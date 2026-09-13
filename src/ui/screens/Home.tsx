@@ -21,9 +21,11 @@ import {
 export function Home({
   onOpen,
   onNew,
+  onLab,
 }: {
   onOpen: (id: string) => void;
   onNew: () => void;
+  onLab: () => void;
 }) {
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
   const [backupOpen, setBackupOpen] = useState(false);
@@ -86,6 +88,19 @@ export function Home({
         <Button full onClick={onNew} className="mb-3">
           + New breeding project
         </Button>
+
+        <Card onClick={onLab} className="mb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-[26px]">🧪</span>
+            <div className="flex-1">
+              <div className="display font-semibold text-[16px]">The Lab</div>
+              <div className="text-[12px] text-[var(--text-faint)] leading-snug">
+                Tick the features you want, see the dog, and find out which breeds carry the genes.
+              </div>
+            </div>
+            <span className="text-[var(--text-faint)] text-[20px]">›</span>
+          </div>
+        </Card>
 
         <Button full tone="secondary" onClick={() => setBackupOpen(true)}>
           Backup and restore

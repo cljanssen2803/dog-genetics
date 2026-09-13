@@ -157,7 +157,18 @@ function maybeOutcross(project: Project) {
   if (!needsHelp) return false;
   if (kennelCount(project) >= project.kennelCapacity) return false;
 
-  const candidates = searchOutsideDogs(project, { kind: 'random' }, 3);
+  // A competent breeder shops for the sex the kennel is short of, and from
+  // the breeds the project was built on, so the outsider actually helps.
+  const active = activeDogs(project);
+  const males = active.filter((d) => d.sex === 'M').length;
+  const females = active.filter((d) => d.sex === 'F').length;
+  const sex = males <= females ? 'M' : 'F';
+  const founders = project.founderBreeds ?? [];
+  const search =
+    founders.length > 0
+      ? ({ kind: 'breed', breedKey: founders[project.generation % founders.length], sex } as const)
+      : ({ kind: 'random', sex } as const);
+  const candidates = searchOutsideDogs(project, search, 3);
   const best = candidates
     .slice()
     .sort((a, b) => scoreDog(b, project.standard).total - scoreDog(a, project.standard).total)[0];
