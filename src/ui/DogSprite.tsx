@@ -593,7 +593,7 @@ function describe(dog: Dog, drawLbs?: number) {
             ? ROUND_EAR_FIT
             : silhouette === 'spitz' && ears === 'erect'
               // Spitz ears are small, thick triangles, not Shepherd sails.
-              ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * 0.72 }
+              ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * (shortLegs > 0 ? 0.6 : 0.72) }
               : EAR_FIT[ears],
       rig?.ear,
       SHARED_EAR,
