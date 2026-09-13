@@ -78,23 +78,63 @@ export function Card({
   );
 }
 
+/**
+ * Every section heading gets a little icon in a coloured badge. Callers can
+ * pass one; otherwise it is guessed from the title, so the whole app picked
+ * them up at once without touching every screen.
+ */
+const SECTION_ICONS: [RegExp, string][] = [
+  [/breed book|your breed|standard|aiming/i, '📖'],
+  [/^time$|generation|progress|history|snapshot|right now|numbers/i, '⏳'],
+  [/expert|stuck/i, '🧑‍🏫'],
+  [/show|line-up|judge|critique|scored|champion/i, '🏆'],
+  [/litter|puppies|born|whelp|expected/i, '🐾'],
+  [/death|retire|place in a pet|delete/i, '🍂'],
+  [/attention|warning|cost/i, '⚠️'],
+  [/health|carriers|disease/i, '🩺'],
+  [/diversity|pedigree|family|parents|whose/i, '🌳'],
+  [/coat/i, '🧶'],
+  [/habit|story|post|discover|something new|changed/i, '✨'],
+  [/genetic|polygenic|carries|seed/i, '🧬'],
+  [/size|body/i, '📏'],
+  [/name/i, '✏️'],
+  [/project|preset|build your own|focus/i, '🏡'],
+  [/improve|likely/i, '📈'],
+  [/how long/i, '🗓️'],
+];
+
+function sectionIcon(title: string): string {
+  for (const [pattern, icon] of SECTION_ICONS) if (pattern.test(title)) return icon;
+  return '🐶';
+}
+
 export function Section({
   title,
   subtitle,
   right,
+  icon,
   children,
 }: {
   title: string;
   subtitle?: string;
   right?: ReactNode;
+  icon?: string;
   children: ReactNode;
 }) {
   return (
-    <section className="mb-5">
-      <header className="flex items-end justify-between gap-3 mb-2 px-1">
-        <div>
-          <h2 className="display text-[17px] font-semibold leading-tight">{title}</h2>
-          {subtitle && <p className="text-[12px] text-[var(--text-faint)] mt-0.5">{subtitle}</p>}
+    <section className="mb-8">
+      <header className="flex items-start justify-between gap-3 mb-3 px-1">
+        <div className="flex items-start gap-2.5 min-w-0">
+          <span
+            aria-hidden="true"
+            className="flex-none w-8 h-8 rounded-xl bg-[var(--bg-2)] border-2 border-[var(--line)] flex items-center justify-center text-[16px] leading-none"
+          >
+            {icon ?? sectionIcon(title)}
+          </span>
+          <div className="min-w-0 pt-0.5">
+            <h2 className="display text-[17px] leading-tight">{title}</h2>
+            {subtitle && <p className="text-[12px] text-[var(--text-faint)] mt-0.5 leading-snug">{subtitle}</p>}
+          </div>
         </div>
         {right}
       </header>
