@@ -128,3 +128,20 @@ heavy curl-tailed Spitz types (Chow, Akita).
 
 **10 — Piebald** (`mark-piebald.png`) — the true patchy one, if the extended
 Irish stand-in ever bothers you. Prompt 3 above.
+
+**11 — Flat-faced long coat body** (`body-flatlong.png`) — for Pekingese,
+Shih Tzu, Lhasa Apso, Japanese Chin and Brussels Griffon. Today they are
+drawn on the long-coated body, which has a normal snout.
+
+> Flat vector illustration of a dog, side profile facing right, standing
+> square with all four legs visible. Pure white fur with soft light-grey cel
+> shading only — absolutely no colour, no brown, no black. Clean simple
+> shapes, minimal or no outline. Transparent background, PNG with alpha.
+> 1448 × 1086 canvas, the dog centred with its feet on a ground line 975
+> pixels from the top. This dog is a small, long-coated, FLAT-FACED type like
+> a Pekingese or Shih Tzu: a broad round head with a very short, pushed-in
+> muzzle and the nose set high between the eyes, a heavy mane of long
+> straight hair around the neck and shoulders, long hair skirting the body
+> down to the ground, and feathered legs. NO ears and NO tail — those are
+> separate pieces. No background, no scenery, no ground shadow, no text.
+> Children's picture-book style, warm and appealing, not photorealistic.

@@ -24,13 +24,17 @@ const SHOWCASE = [
 
 function Gallery() {
   const rng = new Rng(4242);
+  // ?breeds=dachshund,corgi narrows the page to a few breeds for comparison.
+  const only = new URLSearchParams(window.location.search).get('breeds');
+  const keys = only ? only.split(',').filter((k) => BREED_BY_KEY[k]) : SHOWCASE;
+  const size = Number(new URLSearchParams(window.location.search).get('size') ?? 300);
   return (
     <div className="paper min-h-full p-4">
       <SpriteFilters />
       <h1 className="display text-[22px] font-semibold mb-1">Does it look like the breed?</h1>
       <p className="text-[13px] text-[var(--text-soft)] mb-4">One generated founder per breed, real renderer.</p>
-      <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-        {SHOWCASE.map((key) => {
+      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${size}px, 1fr))` }}>
+        {keys.map((key) => {
           const breed = BREED_BY_KEY[key];
           const dog = createFounder(rng, { breedKey: key, sex: 'F', name: breed.name, currentMonth: 0, ageMonths: 30, wildcards: false });
           const lbs = sizeToPounds(dog.observed.size);
@@ -40,7 +44,7 @@ function Gallery() {
           const body = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, lbs);
           return (
             <div key={key} className="card p-2">
-              <DogSprite dog={dog} size={300} />
+              <DogSprite dog={dog} size={size} />
               <div className="text-[12.5px] font-semibold mt-1">{breed.name}</div>
               <div className="text-[10.5px] text-[var(--text-faint)] leading-snug">
                 {lbs.toFixed(0)} lb · {colour.name}

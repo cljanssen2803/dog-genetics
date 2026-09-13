@@ -567,8 +567,12 @@ function describe(dog: Dog, drawLbs?: number) {
   // which is a longer, leaner animal than the Spitz whose body it borrows.
   // The whole body is squashed, not just the legs (there is one body image),
   // so the stretch widens it back into a long, low dog rather than a small one.
-  const legSquash = shortLegs === 2 ? 0.62 : shortLegs === 1 ? 0.8 : shepherd ? 0.93 : 1;
-  const stretch = shortLegs === 2 ? 1.26 : shortLegs === 1 ? 1.15 : shepherd ? 1.1 : 1;
+  // Only a little longer: too much stretch and a 20 lb Dachshund is drawn
+  // as wide as a 50 lb Basset, which reads as a big dog rather than a low one.
+  // No stretch at all for short legs: squashing the height already makes
+  // the dog read as long, and a Scottie is low without being a sausage.
+  const legSquash = shortLegs === 2 ? 0.66 : shortLegs === 1 ? 0.82 : shepherd ? 0.93 : 1;
+  const stretch = shepherd ? 1.1 : 1;
 
   const bodyTransform = `scale(${(sizeScale * substance * stretch).toFixed(3)}, ${(sizeScale * legSquash).toFixed(3)})${standinStretch}`;
 
