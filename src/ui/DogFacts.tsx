@@ -32,6 +32,7 @@ import {
   resolveEars,
   resolveTail,
   TAIL_BLURB,
+  RARITY_OF,
 } from '../engine/phenotype';
 import { LOCI, genopairSymbol } from '../engine/loci';
 import { scoreDog } from '../engine/standard';
@@ -234,7 +235,7 @@ export function NameLine({ f }: { f: DogFacts }) {
       )}
       <span className="display font-semibold text-[15px] truncate">{f.name}</span>
       <span className="text-[13px] text-[var(--text-faint)]">{f.sexSymbol}</span>
-      {f.rarities.length > 0 && <Chip tone="rare">rare</Chip>}
+      {f.rarities.some((key) => RARITY_OF[key] && RARITY_OF[key] !== 'uncommon') && <Chip tone="rare">rare</Chip>}
     </div>
   );
 }

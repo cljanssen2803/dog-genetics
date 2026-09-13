@@ -98,8 +98,8 @@ export const LOCI: LocusDef[] = [
     gene: 'MC5R',
     category: 'coat',
     alleles: [
-      { code: 'Sh', symbol: 'T', label: 'Normal shedding' },
-      { code: 'sh', symbol: 't', label: 'Reduced shedding' },
+      { code: 'Sh', symbol: 'Sh', label: 'Normal shedding' },
+      { code: 'sh', symbol: 'sh', label: 'Reduced shedding' },
     ],
     note: 'Reduced shedding needs two copies, and only helps if the coat structure cooperates.',
   },
@@ -121,8 +121,8 @@ export const LOCI: LocusDef[] = [
     category: 'coat',
     lethalHomozygous: 'Hd',
     alleles: [
-      { code: 'Hd', symbol: 'Hr', label: 'Hairless' },
-      { code: 'hd', symbol: 'hr', label: 'Coated' },
+      { code: 'Hd', symbol: 'Hd', label: 'Hairless' },
+      { code: 'hd', symbol: 'hd', label: 'Coated' },
     ],
     note: 'The Chinese Crested gene. One copy makes a hairless dog. Two copies are fatal before birth, so hairless bred to hairless always loses part of the litter and still produces coated puppies.',
   },

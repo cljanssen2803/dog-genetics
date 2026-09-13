@@ -84,7 +84,7 @@ export function Card({
  * them up at once without touching every screen.
  */
 const SECTION_ICONS: [RegExp, string][] = [
-  [/breed book|your breed|standard|aiming/i, '📖'],
+  [/breed book|your breed$|standard|aiming/i, '📖'],
   [/^time$|generation|progress|history|snapshot|right now|numbers/i, '⏳'],
   [/expert|stuck/i, '🧑‍🏫'],
   [/show|line-up|judge|critique|scored|champion/i, '🏆'],
@@ -96,6 +96,11 @@ const SECTION_ICONS: [RegExp, string][] = [
   [/coat/i, '🧶'],
   [/habit|story|post|discover|something new|changed/i, '✨'],
   [/genetic|polygenic|carries|seed/i, '🧬'],
+  [/temperament/i, '🧠'],
+  [/constitution/i, '💪'],
+  [/retention/i, '📌'],
+  [/breed status|establish/i, '🏅'],
+  [/warning|population/i, '⚠️'],
   [/size|body/i, '📏'],
   [/name/i, '✏️'],
   [/project|preset|build your own|focus/i, '🏡'],
@@ -305,7 +310,7 @@ export function Sheet({
           <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line)]" />
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="display text-[19px] font-semibold leading-tight truncate">{title}</h3>
+              <h3 className="display text-[19px] font-semibold leading-tight">{title}</h3>
               {subtitle && (
                 <div className="text-[12px] text-[var(--text-faint)] mt-0.5">{subtitle}</div>
               )}

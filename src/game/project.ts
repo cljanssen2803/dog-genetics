@@ -299,7 +299,14 @@ export function createProject(opts: NewProjectOptions): Project {
  * rather than the very top — so there is always somewhere to go.
  */
 function pickFoundationBreeds(rng: Rng, standard: BreedStandard, count: number): string[] {
-  const scored = BREEDS.map((breed) => {
+  // Size first: a breed that is wildly the wrong size can still score
+  // respectably on temperament, and a 90 lb Bouvier in a 12 lb project is a
+  // joke rather than a challenge.
+  const size = standard.traitGoals.size;
+  const low = size?.preferredLow ?? 0;
+  const high = size?.preferredHigh ?? 1000;
+  const plausible = BREEDS.filter((b) => b.weight >= low * 0.45 && b.weight <= high * 2.2);
+  const scored = (plausible.length >= 8 ? plausible : BREEDS).map((breed) => {
     let total = 0;
     for (let i = 0; i < 3; i++) {
       const sample = createFounder(rng, {

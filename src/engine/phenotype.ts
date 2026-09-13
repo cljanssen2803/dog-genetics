@@ -778,6 +778,14 @@ export const RARITY_ORDER: Rarity[] = ['uncommon', 'rare', 'very rare', 'legenda
  * found here gets logged in the project's discovery book the first time it
  * appears, so hunting hidden recessives becomes its own long game.
  */
+/** How rare each find is, by key — for badges that should only shout about the real ones. */
+export const RARITY_OF: Record<string, Rarity> = {
+  lilac: 'rare', cocoa: 'very rare', doubleBrown: 'legendary', lilacMerle: 'legendary', harlequin: 'very rare',
+  hairlessRec: 'very rare', hairlessDom: 'rare', rainbow: 'legendary', rainbowCarrier: 'legendary', albino: 'legendary',
+  fluffyShortLeg: 'uncommon', blueEyes: 'uncommon', bobtail: 'uncommon', dudley: 'uncommon', platinum: 'very rare',
+  blueBrindle: 'rare',
+};
+
 export function findRarities(g: Genotype, coat: CoatProfile, color: CoatColor): RareFind[] {
   const found: RareFind[] = [];
   const add = (key: string, title: string, rarity: Rarity, blurb: string) =>
@@ -818,8 +826,11 @@ export function findRarities(g: Genotype, coat: CoatProfile, color: CoatColor): 
   if (copies(g, 'albino', 'al') === 2) {
     add('albino', 'Albino', 'legendary', 'True albinism. Breathtaking, genuinely fragile, and ethically loaded.');
   }
-  if (longCoat && (coat.kind === 'silky' || coat.kind === 'long') && copies(g, 'chondro', 'Cd') >= 1) {
-    add('fluffyShortLeg', 'Fluffy short-leg', 'rare', 'A long coat riding on a short-legged frame.');
+  // The "fluffy" of a smooth short-legged breed (a fluffy Corgi). The
+  // furnished terriers and the Pekingese are long-coated and low by design,
+  // so the coat must be the plain silky kind for this to count.
+  if (longCoat && coat.kind === 'silky' && !coat.undercoat && copies(g, 'chondro', 'Cd') >= 1) {
+    add('fluffyShortLeg', 'Fluffy short-leg', 'uncommon', 'A long silky coat riding on a short-legged frame.');
   }
   if (copies(g, 'blueEyes', 'Be') >= 1 && !merle) {
     add('blueEyes', 'Safe blue eyes', 'uncommon', 'Blue eyes with no merle involved, so no hearing or sight risk attached.');

@@ -31,6 +31,8 @@ import { EAR_LABEL, TAIL_LABEL } from '../../engine/phenotype';
  * "General appearance", "Temperament", "Faults" — because reading your own
  * requirements back as a formal document is oddly moving.
  */
+const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
 export function writtenStandard(project: Project): string[] {
   const s: BreedStandard = project.standard;
   const paras: string[] = [];
@@ -82,7 +84,7 @@ export function writtenStandard(project: Project): string[] {
     if (!goal || goal.priority === 0) continue;
     temper.push(`${TRAITS[trait].label.toLowerCase()} ${describeRange(goal, 'low', 'moderate', 'high')}`);
   }
-  if (temper.length) paras.push(`TEMPERAMENT. ${temper.join('; ')}.`);
+  if (temper.length) paras.push(`TEMPERAMENT. ${cap(temper.join('; '))}.`);
 
   const health: string[] = [];
   for (const trait of ['structure', 'longevity', 'fertility'] as PolyTrait[]) {
@@ -90,7 +92,7 @@ export function writtenStandard(project: Project): string[] {
     if (!goal || goal.priority === 0) continue;
     health.push(`${TRAITS[trait].label.toLowerCase()} is ${PRIORITY_LABEL[goal.priority].toLowerCase() === "don't care" ? 'unimportant' : 'a priority'}`);
   }
-  paras.push(`HEALTH. ${health.length ? health.join('; ') + '. ' : ''}Inherited disease is a ${s.healthPriority >= 3 ? 'serious' : 'moderate'} fault. Affected dogs are not bred from.`);
+  paras.push(`HEALTH. ${health.length ? cap(health.join('; ')) + '. ' : ''}Inherited disease is a ${s.healthPriority >= 3 ? 'serious' : 'moderate'} fault. Affected dogs are not bred from.`);
 
   paras.push('FAULTS. Any departure from the foregoing points should be considered a fault, and the seriousness with which it is regarded should be in exact proportion to its degree.');
   return paras;

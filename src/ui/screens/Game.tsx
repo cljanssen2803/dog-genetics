@@ -115,6 +115,9 @@ export function Game({ onExit }: { onExit: () => void }) {
             <div className="text-[11px] opacity-75">
               Year {(project.month / 12).toFixed(1)} · Generation {project.generation} · Kennel{' '}
               {kennelCount(project)}/{project.kennelCapacity}
+              {activeDogs(project).length > kennelCount(project)
+                ? ` · ${activeDogs(project).length - kennelCount(project)} retired`
+                : ''}
             </div>
           </div>
           <button
@@ -693,9 +696,7 @@ function TimeSheet({ reports, onClose }: { reports: MonthReport[]; onClose: () =
           {deaths.map((d, i) => (
             <Card key={i} className="mb-2">
               <div className="text-[14px] font-semibold">{d.name}</div>
-              <div className="text-[12.5px] text-[var(--text-soft)]">
-                Died at {(d.age / 12).toFixed(1)} years. {d.cause}.
-              </div>
+              <div className="text-[12.5px] text-[var(--text-soft)]">{d.cause}</div>
             </Card>
           ))}
         </Section>
