@@ -88,7 +88,7 @@ export const BREED_COLOURS: Record<string, Table> = {
   golden: { locusE: E_RED, locusK: K_BLACK, ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I(0.4), curl: { Cu: 0.08, cu: 0.92 } },
   cocker: { locusE: E(0, 0.4), locusK: K(0.7, 0), locusA: A(0.4, 0, 0.6), locusS: S(0.5), ticking: T(0.5), locusB: B(0.2), locusD: D_FULL, intensity: I_MIX },
   // Orange and white, liver and white.
-  brittany: { locusE: E(0, 0.65), locusK: K(0.7, 0), locusA: A_FAWN, locusS: S_PIED, ticking: T(0.5), locusB: B(0.5), locusD: D_FULL, intensity: I_DEEP },
+  brittany: { locusE: E(0, 0.85), locusK: K(0.7, 0), locusA: A_FAWN, locusS: S_PIED, ticking: T(0.5), locusB: B(0.5), locusD: D_FULL, intensity: I_DEEP },
   portugueseWater: { locusE: E(0, 0.1), locusK: K_BLACK, locusS: S(0.4), ticking: T_NONE, locusB: B(0.25), locusD: D_FULL },
   borderCollie: { locusE: E_SOLID, locusK: K(0.75, 0), locusA: A(0.1, 0, 0.3), locusS: S(0.6), ticking: T_NONE, locusB: B(0.15), locusD: D_FULL, merle: M(0.1) },
   ausShepherd: { locusE: E_SOLID, locusK: K(0.6, 0), locusA: A(0, 0, 0.8), locusS: S(0.6), ticking: T_NONE, locusB: B(0.3), locusD: D_FULL, merle: M(0.3) },

@@ -145,6 +145,7 @@ const HAVE = new Set<string>([
   'body-lowheavy.png',
   'body-flatlong.png',
   'ear-hound.png',
+  'ear-spaniel.png',
 ]);
 
 /**
@@ -200,6 +201,8 @@ interface Fit {
 const ROUND_EAR_FIT: Fit = { anchor: [72, 41], target: [74.5, 19], scale: 0.42 };
 /** The long hound ear: hangs from its top edge, past the jaw. */
 const HOUND_EAR_FIT: Fit = { anchor: [70, 29], target: [75.5, 17], scale: 0.5 };
+/** The feathered spaniel ear, for the silky-coated drop-eared breeds. */
+const SPANIEL_EAR_FIT: Fit = { anchor: [80, 18], target: [75.5, 17], scale: 0.45 };
 
 const EAR_FIT: Record<EarType, Fit> = {
   erect: { anchor: [65.8, 77.2], target: [74.5, 19], scale: 0.27 },
@@ -549,13 +552,10 @@ function describe(dog: Dog, drawLbs?: number) {
   // Long-eared dogs: smooth hounds with a real muzzle (Basset, Bloodhound,
   // Dachshund) and the single-coated silky breeds (spaniels, Shih Tzu,
   // Cavalier). Plush-coated retrievers and the bull types keep short ears.
-  const houndEars =
-    ears === 'drop' &&
-    !coat.undercoat &&
-    !coat.hairless &&
-    silhouette !== 'sighthound' &&
-    silhouette !== 'bull' &&
-    ((coat.kind === 'smooth' || coat.kind === 'short') ? dog.observed.muzzle > 55 : coat.kind === 'silky' || coat.kind === 'long' || silhouette === 'flatLong');
+  const longEared =
+    ears === 'drop' && !coat.undercoat && !coat.hairless && silhouette !== 'sighthound' && silhouette !== 'bull';
+  const houndEars = longEared && (coat.kind === 'smooth' || coat.kind === 'short') && dog.observed.muzzle > 55;
+  const spanielEars = longEared && !houndEars && (coat.kind === 'silky' || coat.kind === 'long' || silhouette === 'flatLong');
 
   // The tail: the real file if it exists, else a stand-in built from one we have.
   const standin = HAVE.has(TAIL_SRC[tail]) ? undefined : TAIL_STANDIN[tail];
@@ -616,7 +616,7 @@ function describe(dog: Dog, drawLbs?: number) {
 
   return {
     bodySrc,
-    earSrc: roundEars ? 'ear-round.png' : houndEars ? 'ear-hound.png' : EAR_SRC[ears],
+    earSrc: roundEars ? 'ear-round.png' : houndEars ? 'ear-hound.png' : spanielEars ? 'ear-spaniel.png' : EAR_SRC[ears],
     tailSrc: TAIL_SRC[tailKey],
     tailStandin: standin?.transform,
     earFit: retarget(
@@ -628,6 +628,8 @@ function describe(dog: Dog, drawLbs?: number) {
             ? ROUND_EAR_FIT
             : houndEars
               ? HOUND_EAR_FIT
+              : spanielEars
+                ? SPANIEL_EAR_FIT
             : silhouette === 'spitz' && ears === 'erect'
               // Spitz ears are small, thick triangles, not Shepherd sails.
               ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * (shortLegs > 0 ? 0.6 : 0.72) }
