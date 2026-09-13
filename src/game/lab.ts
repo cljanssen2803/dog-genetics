@@ -264,6 +264,26 @@ const coatFeatures: LabFeature[] = [
     },
   },
   {
+    key: 'coatCorded',
+    group: 'coat',
+    label: 'Corded (mop) coat',
+    exclusive: 'coat',
+    gene: 'Two curl copies (KRT71) on a long coat, plus the undercoat gene: the curls felt into cords. A gameplay reading — real cords are not mapped to one gene.',
+    recipe: 'Komondor and Puli have it. Or build it: a Poodle for the curls and a plush-coated breed for the undercoat, then select for both.',
+    conflicts: [{ key: 'lowShed', why: 'cords do not shed, but the low-shed gene has nothing to add' }],
+    odds: (b) => homo(b, 'curl', 'Cu') * homo(b, 'coatLength', 'l') * atLeastOne(b, 'undercoat', 'U'),
+    carrierOdds: (b) => atLeastOne(b, 'curl', 'Cu') * atLeastOne(b, 'undercoat', 'U'),
+    apply: (d) => {
+      setPair(d, 'coatLength', 'l');
+      setPair(d, 'curl', 'Cu');
+      setPair(d, 'undercoat', 'U');
+      setPair(d, 'furnishings', 'f');
+    },
+    goal: (s) => {
+      s.coatGoal = { kinds: ['corded'], priority: 4 };
+    },
+  },
+  {
     key: 'coatHairless',
     group: 'coat',
     label: 'Hairless',

@@ -267,6 +267,7 @@ export function StandardFields({
                 ['wire', 'Wiry'],
                 ['wavyFurnished', 'Wavy furnished'],
                 ['curly', 'Curly'],
+                ['corded', 'Corded'],
                 ['hairless', 'Hairless'],
               ] as [CoatKind, string][]
             ).map(([kind, label]) => (

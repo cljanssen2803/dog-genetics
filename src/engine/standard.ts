@@ -369,6 +369,11 @@ export function scoreDog(
  * carrying a coat it does not wear.
  */
 const COAT_REQUIREMENTS: Record<CoatKind, { locus: string; allele: string; needed: number }[]> = {
+  corded: [
+    { locus: 'curl', allele: 'Cu', needed: 2 },
+    { locus: 'coatLength', allele: 'l', needed: 2 },
+    { locus: 'undercoat', allele: 'U', needed: 1 },
+  ],
   curly: [
     { locus: 'curl', allele: 'Cu', needed: 2 },
     { locus: 'coatLength', allele: 'l', needed: 2 },

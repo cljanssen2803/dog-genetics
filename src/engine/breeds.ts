@@ -1305,6 +1305,20 @@ export const BREEDS: BreedProfile[] = [
     blurb: 'The smallest retriever: fox-red, white-trimmed, quick-witted, and a screamer when excited.',
   },  // ============================================================ ADDED 2026-09-13 ===
   {
+    key: 'komondor', name: 'Komondor', group: 'Working', weight: 110,
+    traits: { biddability: 34, sociability: 30, energy: 40, stability: 68, preyDrive: 50, persistence: 84, independence: 92, alertness: 92, vocality: 60, handling: 40, structure: 60, longevity: 60, fertility: 46, substance: 82, muzzle: 56, earSet: 6, tailSet: 40 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: curly, furnishings: smoothFace, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'A white mop that guards sheep. The cords take two years to form and a day to dry.',
+  },
+  {
+    key: 'puli', name: 'Puli', group: 'Herding', weight: 30,
+    traits: { biddability: 72, sociability: 56, energy: 86, stability: 60, preyDrive: 66, persistence: 80, independence: 60, alertness: 92, vocality: 82, handling: 60, structure: 76, longevity: 74, fertility: 66, substance: 46, muzzle: 60, earSet: 6, tailSet: 88 },
+    alleles: { undercoat: plush, coatLength: coatLong, curl: curly, furnishings: smoothFace, shedding: shedsLittle },
+    diseases: {},
+    blurb: 'A bouncing black Hungarian herding dog in dreadlocks, with a tail curled into the coat.',
+  },
+  {
     key: 'irishSetter', name: 'Irish Setter', group: 'Gundog', weight: 65,
     traits: { biddability: 70, sociability: 88, energy: 88, stability: 50, preyDrive: 72, persistence: 66, independence: 44, alertness: 62, vocality: 50, handling: 78, structure: 62, longevity: 60, fertility: 70, substance: 46, muzzle: 80, earSet: 4, tailSet: 44 },
     alleles: { undercoat: singleCoat, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily },

@@ -194,6 +194,8 @@ export const BREED_COLOURS: Record<string, Table> = {
   affenpinscher: { locusE: E_SOLID, locusK: K(0.8, 0), locusA: A(0.5, 0, 0.5), ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL },
   silky: { locusE: E_SOLID, locusK: K_NONE, locusA: A_TAN, ...NO_WHITE, locusB: B_BLACK, locusD: D(0.6), intensity: I_DEEP },
   toyPoodle: { locusE: E(0, 0.45), locusK: K(0.6, 0), locusA: A_FAWN, ...NO_WHITE, locusB: B(0.2), locusD: D(0.15), intensity: I_MIX },
+  komondor: WHITE_DOG,
+  puli: { locusE: E_SOLID, locusK: K(0.85, 0), locusA: A_FAWN, ...NO_WHITE, locusB: B_BLACK, locusD: D(0.1) },
 };
 
 function I(i: number) {

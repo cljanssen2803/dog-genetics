@@ -163,3 +163,12 @@ white silhouette with no shading, scaled up 1.32× and dropped to the ground
 line; a shaded redo would be welcome). Ears: bat, rose, short drop. Tails:
 otter, flag, sabre. Stencils: true piebald, colour patches, ticking. All
 wired in. The tasselled ear was not used (nothing to hang it on yet).
+
+### DELIVERED 2026-09-13 (late)
+
+Bodies: rough hound (Wolfhound), wrinkle (Shar-Pei), corded (Komondor/Puli —
+new "corded" coat: two curl copies + long coat + the undercoat gene), tall
+sighthound (Greyhound, Dane), feathered sighthound (Saluki/Borzoi/Afghan),
+retriever (Lab, Chessie), pointer (Vizsla, Weimaraner, GSP, Doberman,
+Dalmatian). One of the two plain smooth bodies was a near-duplicate and was
+not installed. Komondor and Puli added as breeds.
