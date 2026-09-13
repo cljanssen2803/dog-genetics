@@ -134,7 +134,7 @@ function LitterBlock({
           {alive.length === 0 ? (
             <Empty>No puppies from this litter survived.</Empty>
           ) : (
-            alive.map((puppy) => <PuppyCard key={puppy.id} puppy={puppy} onOpen={onOpenDog} />)
+            alive.map((puppy, i) => <PuppyCard key={puppy.id} puppy={puppy} onOpen={onOpenDog} index={i} />)
           )}
         </div>
       )}
@@ -142,7 +142,7 @@ function LitterBlock({
   );
 }
 
-function PuppyCard({ puppy, onOpen }: { puppy: Dog; onOpen: (dog: Dog) => void }) {
+function PuppyCard({ puppy, onOpen, index = 0 }: { puppy: Dog; onOpen: (dog: Dog) => void; index?: number }) {
   const { project, refresh, say } = useGame();
   const f = describeDog(puppy, project);
   const score = scoreDog(puppy, project.standard);
@@ -168,6 +168,7 @@ function PuppyCard({ puppy, onOpen }: { puppy: Dog; onOpen: (dog: Dog) => void }
   };
 
   return (
+    <div className="pop-in" style={{ animationDelay: `${Math.min(index, 8) * 0.07}s` }}>
     <Card className="mb-2">
       <button onClick={() => onOpen(puppy)} className="w-full text-left flex gap-3 mb-2">
         <DogPortrait dog={puppy} size={84} />
@@ -229,6 +230,7 @@ function PuppyCard({ puppy, onOpen }: { puppy: Dog; onOpen: (dog: Dog) => void }
         </Button>
       </div>
     </Card>
+    </div>
   );
 }
 

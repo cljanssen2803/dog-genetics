@@ -21,7 +21,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { type Dog, currentWeight } from '../engine/dog';
+import { type Dog, ageMonths, currentWeight } from '../engine/dog';
 import { useGameMaybe } from './GameContext';
 import { sizeToPounds } from '../engine/traits';
 import {
@@ -306,6 +306,9 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
   const game = useGameMaybe();
   const nowLbs = game ? currentWeight(dog, game.project.month) : sizeToPounds(dog.observed.size);
   const art = useMemo(() => describe(dog, nowLbs), [dog, nowLbs]);
+  // Each dog breathes and blinks on its own clock, set by its seed.
+  const phase = ((dog.seedValue ?? 0) % 1000) / 1000;
+  const newborn = !!game && ageMonths(dog, game.project.month) < 1 && dog.status !== 'placed';
 
   // Tap the dog and it wags. Purely for the pleasure of it.
   const [wagging, setWagging] = useState(false);
@@ -333,6 +336,7 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
       {/* Scaled about the feet, so a small dog stands on the same ground as a big
           one instead of floating in the middle of the box. */}
       <div style={{ position: 'absolute', inset: 0, transform: art.bodyTransform, transformOrigin: '50% 88%' }}>
+       <div className="breathing" style={{ position: 'absolute', inset: 0, animationDelay: `${(-phase * 3.4).toFixed(2)}s` }}>
         {/* Tail sits behind the body. The wrapper wags about the tail root. */}
         <div
           className={wagging ? 'wagging' : undefined}
@@ -348,14 +352,27 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
           {art.markings}
         </Layer>
 
-        {/* Ear in front. Slightly darker, as ear leather usually is. */}
-        <Layer src={art.earSrc} colour={art.earColour} fit={art.earFit} />
+        {/* Ear in front. Slightly darker, as ear leather usually is. It flicks
+            with the wag, pivoting where it joins the skull. */}
+        <div
+          className={wagging ? 'flicking' : undefined}
+          style={{ position: 'absolute', inset: 0, transformOrigin: `${art.earFit.target[0]}% ${art.earFit.target[1]}%` }}
+        >
+          <Layer src={art.earSrc} colour={art.earColour} fit={art.earFit} />
+        </div>
 
         {/* Eye and nose, in the colours the genes give them. Drawn last and
             unmasked, over the artwork's own dark dots, so a blue eye or a
             liver nose actually shows. */}
-        <Face face={art.face} eye={art.eyeColour} nose={art.noseColour} />
+        <Face face={art.face} eye={art.eyeColour} nose={art.noseColour} phase={phase} asleep={newborn} />
+       </div>
       </div>
+      {newborn && (
+        <>
+          <span className="zz" style={{ left: '78%', top: '10%' }}>z</span>
+          <span className="zz" style={{ left: '84%', top: '4%', animationDelay: '1.2s' }}>z</span>
+        </>
+      )}
     </div>
   );
 }
@@ -365,10 +382,16 @@ function Face({
   face,
   eye,
   nose,
+  phase = 0,
+  asleep = false,
 }: {
   face: { eye: [number, number]; nose: [number, number] };
   eye: string;
   nose: string;
+  /** 0-1, where in its blink cycle this dog starts. */
+  phase?: number;
+  /** Newborns keep their eyes shut. */
+  asleep?: boolean;
 }) {
   const dot = (cx: number, cy: number, w: number, h: number, fill: string, extra?: React.CSSProperties) => (
     <div
@@ -386,10 +409,23 @@ function Face({
   );
   return (
     <>
-      {/* Iris, pupil, catchlight. Height is width × canvas aspect so it is round. */}
-      {dot(face.eye[0], face.eye[1], 1.9, 1.9 * 1.333, eye, { boxShadow: '0 0 0 0.6px rgba(0,0,0,0.35)' })}
-      {dot(face.eye[0] + 0.15, face.eye[1] + 0.2, 0.9, 0.9 * 1.333, '#1a1512')}
-      {dot(face.eye[0] - 0.35, face.eye[1] - 0.45, 0.5, 0.5 * 1.333, 'rgba(255,255,255,0.85)')}
+      {/* The eye blinks as one: iris, pupil and catchlight squash together
+          about the eye's centre line. A sleeping newborn is drawn shut. */}
+      <div
+        className={asleep ? undefined : 'blinking'}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          transformOrigin: `${face.eye[0]}% ${face.eye[1]}%`,
+          transform: asleep ? 'scaleY(0.12)' : undefined,
+          animationDelay: `${(-phase * 5.2).toFixed(2)}s`,
+        }}
+      >
+        {/* Iris, pupil, catchlight. Height is width × canvas aspect so it is round. */}
+        {dot(face.eye[0], face.eye[1], 1.9, 1.9 * 1.333, eye, { boxShadow: '0 0 0 0.6px rgba(0,0,0,0.35)' })}
+        {dot(face.eye[0] + 0.15, face.eye[1] + 0.2, 0.9, 0.9 * 1.333, '#1a1512')}
+        {dot(face.eye[0] - 0.35, face.eye[1] - 0.45, 0.5, 0.5 * 1.333, 'rgba(255,255,255,0.85)')}
+      </div>
       {/* Nose, slightly wider than tall, with a soft edge. */}
       {dot(face.nose[0], face.nose[1], 2.6, 2.6 * 1.1, nose, { boxShadow: '0 0 0 0.5px rgba(0,0,0,0.25)' })}
     </>
@@ -777,6 +813,7 @@ function Markings({
       stars.push(
         <div
           key={`s${i}`}
+          className="twinkle"
           style={{
             position: 'absolute',
             left: `${22 + noise() * 66}%`,
@@ -785,6 +822,7 @@ function Markings({
             height: `${s * 1.33}%`,
             background: 'white',
             opacity: 0.85,
+            animationDelay: `${(-noise() * 1.6).toFixed(2)}s`,
             clipPath: 'polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%)',
           }}
         />,

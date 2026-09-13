@@ -119,6 +119,7 @@ export function DogDetailSheet({
 }) {
   const { project, refresh, say, nerdMode } = useGame();
   const [tab, setTab] = useState<'overview' | 'story' | 'health' | 'genes' | 'decide'>('overview');
+  const [hearts, setHearts] = useState<number[]>([]);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState('');
   const [exportText, setExportText] = useState<string | null>(null);
@@ -167,8 +168,15 @@ export function DogDetailSheet({
       }
       subtitle={`${STAGE_LABEL[stage]} · ${formatAge(age)} · ${dog.breedLabel}`}
     >
-      <div className="flex justify-center mb-2">
-        <DogPortrait dog={dog} size={200} />
+      <div className="flex justify-center mb-2 relative">
+        <div className="trot-in" key={dog.id}>
+          <DogPortrait dog={dog} size={200} />
+        </div>
+        {hearts.map((h) => (
+          <span key={h} className="heart-float" style={{ top: '40%' }}>
+            ♥
+          </span>
+        ))}
       </div>
 
       <div className="flex gap-2 mb-4">
@@ -400,6 +408,11 @@ export function DogDetailSheet({
               full
               onClick={() => {
                 dog.favourite = !dog.favourite;
+                if (dog.favourite) {
+                  const id = Date.now();
+                  setHearts((hs) => [...hs, id]);
+                  window.setTimeout(() => setHearts((hs) => hs.filter((x) => x !== id)), 1200);
+                }
                 say(dog.favourite ? `${dog.name} pinned to the top of the kennel.` : `${dog.name} unpinned.`);
                 refresh();
               }}

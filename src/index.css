@@ -149,6 +149,100 @@ nav,
   animation: wag 0.7s ease-in-out;
 }
 
+/* Ears flick when the dog is tapped, in time with the wag. */
+@keyframes flick {
+  0% { transform: rotate(0deg); }
+  30% { transform: rotate(-9deg); }
+  60% { transform: rotate(5deg); }
+  100% { transform: rotate(0deg); }
+}
+.flicking {
+  animation: flick 0.5s ease-out;
+}
+
+/* Every dog breathes: a barely-there rise and fall about the feet. Each dog
+   starts at a different point in the cycle so a kennel never breathes in
+   unison, which would look like a screensaver. */
+@keyframes breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.006, 1.014); }
+}
+.breathing {
+  animation: breathe 3.4s ease-in-out infinite;
+  transform-origin: 50% 88%;
+}
+
+/* A blink every few seconds. The eye squashes flat for two frames. */
+@keyframes blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  96%, 98% { transform: scaleY(0.08); }
+}
+.blinking {
+  animation: blink 5.2s linear infinite;
+}
+
+/* Sparkles on the legendary coat twinkle out of step with each other. */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.twinkle {
+  animation: twinkle 1.6s ease-in-out infinite;
+}
+
+/* Newborns: a drifting z. */
+@keyframes zz {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+  30% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(6px, -16px) scale(1.1); }
+}
+.zz {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-faint);
+  animation: zz 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+/* A new litter pops onto the screen one puppy at a time. */
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.7) translateY(8px); }
+  70% { opacity: 1; transform: scale(1.04) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+.pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+/* The big portrait on a dog's own page trots in from the left. */
+@keyframes trot-in {
+  0% { opacity: 0; transform: translateX(-28px) translateY(0); }
+  30% { transform: translateX(-16px) translateY(-3px); }
+  60% { transform: translateX(-6px) translateY(0); }
+  80% { transform: translateX(-1px) translateY(-2px); }
+  100% { opacity: 1; transform: translateX(0) translateY(0); }
+}
+.trot-in {
+  animation: trot-in 0.55s ease-out both;
+}
+
+/* A heart floats up when a dog is favourited. */
+@keyframes heart-float {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, -8px) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -46px) scale(1); }
+}
+.heart-float {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  font-size: 22px;
+  color: var(--brand);
+  pointer-events: none;
+  animation: heart-float 1.1s ease-out forwards;
+}
+
 /* Confetti for a first place. Soft colours, short, no fireworks. */
 @keyframes confetti-fall {
   0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
@@ -169,6 +263,14 @@ nav,
   .sheet-in,
   .fade-in,
   .wagging,
+  .flicking,
+  .breathing,
+  .blinking,
+  .twinkle,
+  .zz,
+  .pop-in,
+  .trot-in,
+  .heart-float,
   .confetti {
     animation: none;
   }
