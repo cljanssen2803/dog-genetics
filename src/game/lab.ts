@@ -436,6 +436,26 @@ const colourFeatures: LabFeature[] = [
     },
   },
   {
+    key: 'colDudley',
+    group: 'colour',
+    label: 'Yellow with a Dudley nose',
+    exclusive: 'colour',
+    gene: 'Recessive red (MC1R e/e) over chocolate pigment (TYRP1 b/b). The coat is yellow or red but the nose, eye rims and pads are liver-pink and the eyes amber. Two recessives at once.',
+    recipe: 'Both parents must carry both genes. A yellow dog and a chocolate dog together are the classic route; one puppy in sixteen from double carriers.',
+    odds: (b) => homo(b, 'locusE', 'e') * homo(b, 'locusB', 'b'),
+    carrierOdds: (b) => atLeastOne(b, 'locusE', 'e') * atLeastOne(b, 'locusB', 'b'),
+    conflicts: [{ key: 'merle', why: 'merle only shows on dark pigment' }],
+    apply: (d) => {
+      setPair(d, 'locusE', 'e');
+      setPair(d, 'locusB', 'b');
+      setPair(d, 'locusK', 'ky');
+      setPair(d, 'intensity', 'I');
+    },
+    goal: (s) => {
+      s.colorGoal = { text: 'dudley', priority: 3 };
+    },
+  },
+  {
     key: 'colCream',
     group: 'colour',
     label: 'Cream or white',

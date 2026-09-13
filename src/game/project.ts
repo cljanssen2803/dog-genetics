@@ -39,6 +39,7 @@ import { type NameRegistry, createNameRegistry, pickName, registerName, validate
 import { type BreedStandard, scoreDog } from '../engine/standard';
 import { ALL_TRAITS, type PolyTrait, sizeToPounds } from '../engine/traits';
 import { BREEDS } from '../engine/breeds';
+import { orderPair } from '../engine/loci';
 import { LOCUS_BY_KEY } from '../engine/loci';
 import { quirkText, visibleQuirks } from '../engine/quirks';
 import { findRarities, resolveCoat, resolveColor } from '../engine/phenotype';
@@ -815,7 +816,7 @@ export function renameDog(project: Project, dogId: string, name: string): string
 // ---------------------------------------------------------------------------
 
 export type OutsideSearch =
-  | { kind: 'breed'; breedKey: string; sex?: Sex }
+  | { kind: 'breed'; breedKey: string; sex?: Sex; carrying?: { locus: string; allele: string } }
   | { kind: 'traits'; needs: Partial<Record<PolyTrait, 'high' | 'low'>>; sex?: Sex }
   | { kind: 'random'; sex?: Sex };
 
@@ -850,6 +851,16 @@ export function searchOutsideDogs(project: Project, search: OutsideSearch, count
         nudge: reputationNudge,
         wildcards: true,
       });
+      // A specialist breeder's dog: guaranteed to carry the one gene the
+      // player asked for, as a hidden single copy. This is how a Dudley
+      // Newfoundland or a merle Poodle gets started — one carrier, hunted down.
+      if (search.carrying) {
+        const { locus, allele } = search.carrying;
+        const pair = dog.genotype[locus];
+        if (pair && pair[0] !== allele && pair[1] !== allele) {
+          dog.genotype[locus] = orderPair(locus, allele, rng.chance(0.5) ? pair[0] : pair[1]);
+        }
+      }
     } else if (search.kind === 'traits') {
       // Score every breed against what the player asked for, then pick from
       // the better ones — but never a perfect match.

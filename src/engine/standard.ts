@@ -707,6 +707,63 @@ export function blankStandard(name = 'My breed'): BreedStandard {
 }
 
 /**
+ * PUREBRED WITH A TWIST
+ *
+ * A standard built from a real breed's profile — its size, coat, ears and
+ * the temperament it is known for — plus one thing the breed does not
+ * normally come in: a Dudley Newfoundland, a merle Poodle, a brindle Lab.
+ * The founders come from the breed; the twist has to be hunted for.
+ */
+export function purebredStandard(
+  breed: { name: string; weight: number; traits: Partial<Record<Exclude<PolyTrait, 'size'>, number>>; alleles?: Record<string, Record<string, number>> },
+  twist?: { label: string; colourText: string },
+): BreedStandard {
+  const f = (locus: string, allele: string) => breed.alleles?.[locus]?.[allele] ?? 0;
+  const long = f('coatLength', 'l') >= 0.6;
+  const furnished = f('furnishings', 'F') >= 0.5;
+  const curl = f('curl', 'Cu');
+  const plush = f('undercoat', 'U') >= 0.5;
+  const hairless = f('hairlessDom', 'Hd') >= 0.3 || f('hairlessRec', 'hr') >= 0.6;
+
+  let kinds: CoatKind[];
+  if (hairless) kinds = ['hairless'];
+  else if (curl >= 0.8 && long) kinds = plush ? ['corded', 'curly'] : ['curly'];
+  else if (curl >= 0.4 && furnished) kinds = ['wavyFurnished', 'curly'];
+  else if (long && furnished) kinds = ['long'];
+  else if (long) kinds = plush ? ['doubleThick', 'silky'] : ['silky', 'doubleThick'];
+  else if (furnished) kinds = ['wire'];
+  else kinds = ['smooth', 'short'];
+
+  const earSet = breed.traits.earSet ?? 50;
+  const ears: EarType[] = earSet >= 76 ? ['erect'] : earSet >= 58 ? ['semiErect', 'erect'] : earSet >= 40 ? ['button', 'semiErect'] : ['drop', 'button'];
+
+  const traitGoals: BreedStandard['traitGoals'] = {
+    size: g(4, 'range', Math.round(breed.weight * 0.85), Math.round(breed.weight * 1.15), Math.round(breed.weight * 0.7), Math.round(breed.weight * 1.3)),
+    structure: g(3, 'higher'),
+    longevity: g(2, 'higher'),
+  };
+  // The temperament the breed is known for: anything well away from average.
+  for (const trait of ['biddability', 'sociability', 'energy', 'stability', 'preyDrive', 'independence', 'vocality', 'alertness'] as const) {
+    const mean = breed.traits[trait] ?? 50;
+    if (mean >= 70) traitGoals[trait] = g(2, 'higher');
+    else if (mean <= 30) traitGoals[trait] = g(2, 'lower');
+  }
+
+  return {
+    name: twist ? `${twist.label} ${breed.name}` : breed.name,
+    vision: twist
+      ? `A true-to-type ${breed.name} in a colour the breed does not come in: ${twist.label.toLowerCase()}. The look has to be hunted for and bred back into the breed without losing the breed.`
+      : `A true-to-type ${breed.name}: the size, coat and character of the breed, kept sound.`,
+    traitGoals,
+    derivedGoals: {},
+    coatGoal: { kinds, priority: 3 },
+    earGoal: { types: ears, priority: 2 },
+    colorGoal: twist ? { text: twist.colourText, priority: 4 } : undefined,
+    healthPriority: 3,
+  };
+}
+
+/**
  * DESIGNER CROSS
  *
  * Build a standard that says "take the shape of breed A and the coat of breed

@@ -17,6 +17,7 @@ import {
   assessDifficulty,
   blankStandard,
   designerCrossStandard,
+  purebredStandard,
 } from '../../engine/standard';
 import { BREEDS, BREED_GROUPS, breedFamily } from '../../engine/breeds';
 import type { CoatKind } from '../../engine/phenotype';
@@ -24,7 +25,7 @@ import { createProject } from '../../game/project';
 import { saveProject } from '../../game/storage';
 import { assessEstablishment } from '../../game/analytics';
 
-type Mode = 'choose' | 'custom' | 'designer';
+type Mode = 'choose' | 'custom' | 'designer' | 'purebred';
 
 export function NewProject({
   onCreated,
@@ -48,6 +49,9 @@ export function NewProject({
   }
   if (mode === 'designer') {
     return <DesignerBuilder onBack={() => setMode('choose')} onStart={start} />;
+  }
+  if (mode === 'purebred') {
+    return <PurebredBuilder onBack={() => setMode('choose')} onStart={start} />;
   }
 
   return (
@@ -98,6 +102,14 @@ export function NewProject({
             bullets={[]}
             onStart={() => setMode('custom')}
             action="Open the builder"
+          />
+          <PresetCard
+            title="Purebred with a twist"
+            tagline="One real breed, one colour it never comes in"
+            body="A Dudley Newfoundland. A merle Poodle. A brindle Labrador. Start with a true-to-type population of the breed, then hunt down a carrier of the gene and breed the look in without losing the breed."
+            bullets={[]}
+            onStart={() => setMode('purebred')}
+            action="Choose a breed"
           />
           <PresetCard
             title="Designer cross"
@@ -304,6 +316,99 @@ function DesignerBuilder({
           }
         >
           Create this project
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Purebred with a twist
+// ---------------------------------------------------------------------------
+
+/** Colours and markings a breed can be asked to carry that it normally does not. */
+const TWISTS: { key: string; label: string; colourText: string; blurb: string }[] = [
+  { key: 'dudley', label: 'Dudley', colourText: 'dudley', blurb: 'Yellow or red coat over chocolate pigment: liver-pink nose, amber eyes. Two recessives (e/e and b/b).' },
+  { key: 'chocolate', label: 'Chocolate', colourText: 'chocolate', blurb: 'Brown pigment everywhere. Recessive: both parents must carry it.' },
+  { key: 'blue', label: 'Blue', colourText: 'blue', blurb: 'Dilute black. Recessive.' },
+  { key: 'lilac', label: 'Lilac', colourText: 'lilac', blurb: 'Chocolate and dilute together. Two recessives, one in sixteen from double carriers.' },
+  { key: 'red', label: 'Red', colourText: 'red', blurb: 'Recessive red: all dark pigment switched off in the coat.' },
+  { key: 'cream', label: 'Cream', colourText: 'cream', blurb: 'Recessive red faded to cream by the intensity gene. Two recessives.' },
+  { key: 'brindle', label: 'Brindle', colourText: 'brindle', blurb: 'Dominant over plain, hidden under dominant black. One carrier is enough to start.' },
+  { key: 'merle', label: 'Merle', colourText: 'merle', blurb: 'Dominant. One copy only, ever — never breed merle to merle.' },
+  { key: 'tan', label: 'Black and tan', colourText: 'tan', blurb: 'Tan points. Recessive to fawn, hidden under dominant black.' },
+  { key: 'piebald', label: 'Piebald', colourText: 'white', blurb: 'Large white patches. Two copies for the full patchwork.' },
+  { key: 'harlequin', label: 'Harlequin', colourText: 'harlequin', blurb: 'Merle plus the harlequin modifier. Needs both, and never two harlequin copies.' },
+];
+
+function PurebredBuilder({
+  onBack,
+  onStart,
+}: {
+  onBack: () => void;
+  onStart: (name: string, standard: BreedStandard, founders?: string[]) => void;
+}) {
+  const [breedKey, setBreedKey] = useState('newfoundland');
+  const [twist, setTwist] = useState<string | null>('dudley');
+  const breed = BREEDS.find((b) => b.key === breedKey)!;
+  const chosen = TWISTS.find((t) => t.key === twist) ?? null;
+  const standard = useMemo(
+    () => purebredStandard(breed, chosen ? { label: chosen.label, colourText: chosen.colourText } : undefined),
+    [breed, chosen],
+  );
+  const difficulty = useMemo(() => assessDifficulty(standard), [standard]);
+
+  return (
+    <div className="paper min-h-full">
+      <div className="safe-top" />
+      <div className="max-w-lg mx-auto px-4 pt-4 pb-32">
+        <button onClick={onBack} className="text-[13px] text-[var(--text-faint)] mb-4">
+          ‹ Back
+        </button>
+        <h1 className="display text-[24px] font-semibold mb-1">Purebred with a twist</h1>
+        <p className="text-[13px] text-[var(--text-soft)] leading-relaxed mb-5">
+          The standard is built from the breed itself. The twist is scored on top, so the dogs that
+          count are the ones that look like the breed <em>and</em> wear the new colour.
+        </p>
+
+        <Section title="The breed">
+          <BreedPicker value={breedKey} onChange={setBreedKey} />
+        </Section>
+
+        <Section title="The twist" subtitle="Pick one, or none for a plain purebred project.">
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {TWISTS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTwist(twist === t.key ? null : t.key)}
+                className={`rounded-full border px-3 py-1.5 text-[12px] font-semibold ${
+                  twist === t.key
+                    ? 'bg-[var(--brand)] text-white border-transparent'
+                    : 'bg-[var(--card)] border-[var(--line)] text-[var(--text-soft)]'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {chosen && (
+            <Card>
+              <div className="text-[13px] font-semibold mb-1">{chosen.label} {breed.name}</div>
+              <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed">{chosen.blurb}</p>
+              <p className="text-[12.5px] leading-relaxed mt-2">
+                <span className="font-semibold">How to get it: </span>
+                your founders are ordinary {breed.name}s. Open <em>Find an outside dog</em> on the Breed
+                tab, choose {breed.name}, and tick the gene under <em>Must carry a hidden gene</em> to
+                find a carrier. Breed carrier to carrier and the colour appears in the grandchildren.
+              </p>
+            </Card>
+          )}
+        </Section>
+
+        <DifficultyPanel difficulty={difficulty} />
+
+        <Button full onClick={() => onStart(standard.name, standard, [breedKey])} className="mt-4">
+          Start with {breed.name} founders
         </Button>
       </div>
     </div>

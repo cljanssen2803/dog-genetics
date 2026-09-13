@@ -434,10 +434,34 @@ function PairingSheet({
 // Outside dogs
 // ---------------------------------------------------------------------------
 
+/** Hidden genes a specialist breeder can be asked for. */
+const CARRIER_OPTIONS: { locus: string; allele: string; label: string }[] = [
+  { locus: 'locusE', allele: 'e', label: 'recessive red / yellow' },
+  { locus: 'locusB', allele: 'b', label: 'chocolate' },
+  { locus: 'locusD', allele: 'd', label: 'dilute (blue)' },
+  { locus: 'cocoa', allele: 'co', label: 'cocoa' },
+  { locus: 'intensity', allele: 'i', label: 'cream' },
+  { locus: 'locusK', allele: 'kbr', label: 'brindle' },
+  { locus: 'locusA', allele: 'at', label: 'tan points' },
+  { locus: 'locusS', allele: 'sp', label: 'piebald' },
+  { locus: 'merle', allele: 'M', label: 'merle' },
+  { locus: 'ticking', allele: 'T', label: 'ticking' },
+  { locus: 'blueEyes', allele: 'Be', label: 'blue eyes' },
+  { locus: 'coatLength', allele: 'l', label: 'long coat' },
+  { locus: 'curl', allele: 'Cu', label: 'curl' },
+  { locus: 'furnishings', allele: 'F', label: 'furnishings' },
+  { locus: 'shedding', allele: 'sh', label: 'low shedding' },
+  { locus: 'undercoat', allele: 'U', label: 'undercoat' },
+  { locus: 'hairlessRec', allele: 'hr', label: 'hairless' },
+  { locus: 'chondro', allele: 'Cd', label: 'short legs' },
+  { locus: 'bobtail', allele: 'Bt', label: 'bobtail' },
+];
+
 function OutsideSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { project, refresh, say } = useGame();
   const [mode, setMode] = useState<'breed' | 'traits' | 'random'>('breed');
   const [breedKey, setBreedKey] = useState('miniSchnauzer');
+  const [carrying, setCarrying] = useState<{ locus: string; allele: string } | null>(null);
   const [needs, setNeeds] = useState<Partial<Record<PolyTrait, 'high' | 'low'>>>({});
   const [results, setResults] = useState<Candidate[]>([]);
   const gaps = useMemo(() => goalGaps(project).slice(0, 3), [project, project.month]);
@@ -447,7 +471,7 @@ function OutsideSheet({ open, onClose }: { open: boolean; onClose: () => void })
   const runSearch = () => {
     const search: OutsideSearch =
       mode === 'breed'
-        ? { kind: 'breed', breedKey }
+        ? { kind: 'breed', breedKey, carrying: carrying ?? undefined }
         : mode === 'traits'
           ? { kind: 'traits', needs }
           : { kind: 'random' };
@@ -493,7 +517,37 @@ function OutsideSheet({ open, onClose }: { open: boolean; onClose: () => void })
       />
 
       <div className="mt-3 mb-3">
-        {mode === 'breed' && <BreedPicker value={breedKey} onChange={setBreedKey} />}
+        {mode === 'breed' && (
+          <>
+            <BreedPicker value={breedKey} onChange={setBreedKey} />
+            <Card className="mt-2">
+              <div className="text-[13px] font-semibold mb-1">Must carry a hidden gene</div>
+              <p className="text-[12px] text-[var(--text-soft)] leading-relaxed mb-2">
+                Ask a specialist breeder for a dog of this breed that carries one copy of a gene
+                the breed does not usually show. That is how a Dudley Newfoundland or a merle
+                Poodle begins: one carrier, then patience.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {CARRIER_OPTIONS.map((o) => {
+                  const on = carrying?.locus === o.locus && carrying?.allele === o.allele;
+                  return (
+                    <button
+                      key={`${o.locus}:${o.allele}`}
+                      onClick={() => setCarrying(on ? null : { locus: o.locus, allele: o.allele })}
+                      className={`rounded-full border px-2.5 py-1 text-[11.5px] font-semibold ${
+                        on
+                          ? 'bg-[var(--brand)] text-white border-transparent'
+                          : 'bg-[var(--bg-2)] border-[var(--line)] text-[var(--text-soft)]'
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          </>
+        )}
 
         {mode === 'traits' && (
           <Card>
