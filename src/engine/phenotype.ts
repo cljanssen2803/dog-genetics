@@ -81,6 +81,14 @@ const PHAEOMELANIN = [
   { name: 'Red', hex: '#b9702f' },
 ];
 
+/** Blend two hex colours; t = 0 keeps the first, t = 1 gives the second. */
+function blend(hexA: string, hexB: string, t: number): string {
+  const a = parseInt(hexA.slice(1), 16);
+  const b = parseInt(hexB.slice(1), 16);
+  const ch = (shift: number) => Math.round(((a >> shift) & 255) * (1 - t) + ((b >> shift) & 255) * t);
+  return `#${((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0')}`;
+}
+
 export function resolveColor(g: Genotype): CoatColor {
   // Albinism overrides absolutely everything else.
   if (isAffected(g, 'albino')) {
@@ -172,12 +180,25 @@ export function resolveColor(g: Genotype): CoatColor {
         base = red.hex;
         accent = dark.hex;
         name = `${red.name === 'Red' ? 'Fawn' : red.name} sable`;
-        if (dilute && !brown) name = 'Blue fawn';
+        // Dilute mostly acts on black pigment, but it does cool the red to a
+        // silvery champagne — and the mask and nose go slate. Drawn cooler
+        // than life so it is visibly a different dog.
+        if (dilute && !brown) {
+          name = 'Blue fawn';
+          base = blend(red.hex, '#b9bcc4', 0.45);
+        } else if (dilute && brown) {
+          name = 'Lilac fawn';
+          base = blend(red.hex, '#cbbfc2', 0.45);
+        }
         break;
       case 'aw':
         base = red.hex;
         accent = dark.hex;
         name = 'Wolf sable';
+        if (dilute && !brown) {
+          name = 'Blue wolf sable';
+          base = blend(red.hex, '#b9bcc4', 0.45);
+        }
         break;
       case 'at':
         base = dark.hex;

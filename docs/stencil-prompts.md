@@ -108,3 +108,23 @@ Drop all eight in a folder and tell me where. I will run the cleaner (it
 halves them and strips any ground line), measure each stencil against the
 smooth body, and switch the code from the drawn-in-code markings to the
 stencils one pattern at a time, checking the breed gallery as I go.
+
+---
+
+## Still wanted
+
+**9 — Round bear ear** (`ear-round.png`) — for Chow Chows, and useful for
+Akitas and Samoyeds.
+
+> Flat vector illustration of just one dog's ear, alone on a fully
+> transparent background, 1448 × 1086 canvas. Pure white fur with soft
+> light-grey cel shading only — no colour, no outline. The ear is small,
+> thick, rounded at the tip and carried upright, like a Chow Chow's or a
+> bear's: a plush rounded triangle, wider than it is tall, tilted slightly
+> forward. Draw it roughly where it sits on a dog facing right: the base of
+> the ear at about x = 1075, y = 300 on the canvas, the ear standing up above
+> that. No head, no body, no background, no text. Children's picture-book
+> style, warm and appealing, not photorealistic.
+
+**10 — Piebald** (`mark-piebald.png`) — the true patchy one, if the extended
+Irish stand-in ever bothers you. Prompt 3 above.

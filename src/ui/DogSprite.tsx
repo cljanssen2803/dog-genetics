@@ -341,6 +341,40 @@ function Face({
 }
 
 /**
+ * Where each body sits on the canvas: left, top, right, bottom, as
+ * percentages, measured from the artwork. The marking stencils were drawn on
+ * the smooth body, so on any other body they are stretched from the smooth
+ * body's box to that body's box — a Bulldog's head sits lower and further
+ * forward, and its tan points and blaze have to move with it.
+ */
+const BODY_BOX: Record<string, [number, number, number, number]> = {
+  'body-bull.png': [18.9, 18.4, 93.8, 91.9],
+  'body-curly.png': [19.3, 12.2, 92.3, 89.5],
+  'body-double.png': [19.5, 13.4, 90.6, 91.5],
+  'body-hairless.png': [20.2, 10.5, 90.1, 88.4],
+  'body-heavy.png': [20.3, 15.1, 92.8, 90.1],
+  'body-long.png': [18.0, 11.4, 94.2, 92.3],
+  'body-sighthound.png': [19.5, 12.5, 92.4, 90.8],
+  'body-silky.png': [16.7, 12.3, 92.8, 91.9],
+  'body-smooth.png': [19.5, 13.1, 89.4, 87.3],
+  'body-spitz.png': [20.9, 12.9, 91.2, 91.0],
+  'body-wavy.png': [18.9, 13.1, 91.6, 89.5],
+  'body-wire.png': [18.2, 13.3, 92.4, 90.1],
+};
+
+/** The CSS transform that maps the smooth body's box onto another body's. */
+function stencilFit(bodySrc: string): string | undefined {
+  const from = BODY_BOX['body-smooth.png'];
+  const to = BODY_BOX[bodySrc];
+  if (!to || bodySrc === 'body-smooth.png') return undefined;
+  const sx = (to[2] - to[0]) / (from[2] - from[0]);
+  const sy = (to[3] - to[1]) / (from[3] - from[1]);
+  const dx = to[0] - from[0] * sx;
+  const dy = to[1] - from[1] * sy;
+  return `translate(${dx.toFixed(2)}%, ${dy.toFixed(2)}%) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+}
+
+/**
  * A marking stencil: a white-on-transparent shape drawn on the smooth body's
  * pose, used as a mask and filled with one colour. The body layer clips it,
  * so it cannot spill outside whichever body the dog actually has.
@@ -355,7 +389,7 @@ function Stencil({ src, colour, opacity, transform }: { src: string; colour: str
         backgroundColor: colour,
         opacity,
         transform,
-        transformOrigin: '50% 50%',
+        transformOrigin: '0 0',
         WebkitMaskImage: url,
         maskImage: url,
         WebkitMaskSize: 'contain',
@@ -542,7 +576,10 @@ function describe(dog: Dog, drawLbs?: number) {
         ? { ...EAR_FIT.drop, scale: EAR_FIT.drop.scale * 0.8 }
         : silhouette === 'sighthound'
           ? { ...EAR_FIT[ears], scale: EAR_FIT[ears].scale * 0.7 }
-          : EAR_FIT[ears],
+          : silhouette === 'spitz' && ears === 'erect'
+            // Spitz ears are small, thick triangles, not Shepherd sails.
+            ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * 0.72 }
+            : EAR_FIT[ears],
       rig?.ear,
       SHARED_EAR,
     ),
@@ -564,6 +601,7 @@ function describe(dog: Dog, drawLbs?: number) {
         accent={forShading(colour.accent)}
         noise={noise}
         face={face}
+        fit={stencilFit(bodySrc)}
       />
     ),
   };
@@ -584,6 +622,7 @@ function Markings({
   accent,
   noise,
   face,
+  fit,
 }: {
   colour: ReturnType<typeof resolveColor>;
   base: string;
@@ -591,6 +630,8 @@ function Markings({
   noise: () => number;
   /** Where this body's eye and nose are, so head markings land on the head. */
   face: { eye: [number, number]; nose: [number, number] };
+  /** Stretches the smooth-body stencils onto this body. */
+  fit?: string;
 }) {
   const shapes: React.ReactNode[] = [];
   const light = shade(base, 40);
@@ -627,12 +668,12 @@ function Markings({
   // A hand-drawn stripe stencil, tinted with the dark pigment and kept
   // translucent so it sits in the coat rather than on top of it.
   if (colour.brindle) {
-    shapes.push(<Stencil key="brindle" src="mark-brindle.png" colour={accent} opacity={0.42} />);
+    shapes.push(<Stencil key="brindle" src="mark-brindle.png" colour={accent} opacity={0.42} transform={fit} />);
   }
 
   // --- Tan points ------------------------------------------------------------
   if (colour.tanPoints) {
-    shapes.push(<Stencil key="tan" src="mark-tan.png" colour={accent} opacity={0.95} />);
+    shapes.push(<Stencil key="tan" src="mark-tan.png" colour={accent} opacity={0.95} transform={fit} />);
   }
 
   // --- Merle ---------------------------------------------------------------
@@ -644,7 +685,7 @@ function Markings({
   if (colour.merle) {
     const patchColour = colour.harlequin ? '#1d1a17' : colour.doubleMerle ? shade(base, 40) : forShading(colour.merlePatch);
     const opacity = colour.harlequin ? 0.96 : colour.merleSubtle ? 0.22 : colour.doubleMerle ? 0.35 : 0.9;
-    shapes.push(<Stencil key="merle" src="mark-merle.png" colour={patchColour} opacity={opacity} />);
+    shapes.push(<Stencil key="merle" src="mark-merle.png" colour={patchColour} opacity={opacity} transform={fit} />);
   }
 
   // --- White markings ------------------------------------------------------
@@ -657,8 +698,8 @@ function Markings({
     const src = w >= 0.8 ? 'mark-extreme.png' : w >= 0.5 ? 'mark-piebald.png' : w >= 0.3 ? 'mark-collar.png' : 'mark-irish.png';
     // The extreme-white stencil was drawn a whisker inside the body; grown a
     // touch so no coloured rim shows along the back.
-    const transform = w >= 0.8 ? 'scale(1.035)' : undefined;
-    shapes.push(<Stencil key="white" src={src} colour={white} opacity={1} transform={transform} />);
+    const grow = w >= 0.8 ? ' translate(-1.7%, -1.7%) scale(1.035)' : '';
+    shapes.push(<Stencil key="white" src={src} colour={white} opacity={1} transform={`${fit ?? ''}${grow}`.trim() || undefined} />);
   }
 
   // --- Ticking -------------------------------------------------------------
@@ -685,7 +726,7 @@ function Markings({
 
   // --- Dark mask over the muzzle -------------------------------------------
   if (colour.mask) {
-    shapes.push(blob('mask', 82 + hx, 16 + hy, 14, 16, '#2a2521', 0.8));
+    shapes.push(blob('mask', 82 + hx, 16 + hy, 14, 16, accent, 0.85));
   }
 
   // Soft highlight along the topline, which stops flat colours looking dead.
