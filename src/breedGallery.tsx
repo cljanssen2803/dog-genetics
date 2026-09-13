@@ -10,7 +10,7 @@ import './index.css';
 import { DogSprite, SpriteFilters } from './ui/DogSprite';
 import { createFounder } from './engine/dog';
 import { Rng } from './engine/rng';
-import { BREED_BY_KEY } from './engine/breeds';
+import { BREEDS, BREED_BY_KEY } from './engine/breeds';
 import { TAIL_LABEL, legShortening, resolveCoat, resolveColor, resolveSilhouette, resolveTail } from './engine/phenotype';
 import { sizeToPounds } from './engine/traits';
 
@@ -26,14 +26,15 @@ function Gallery() {
   const rng = new Rng(4242);
   // ?breeds=dachshund,corgi narrows the page to a few breeds for comparison.
   const only = new URLSearchParams(window.location.search).get('breeds');
-  const keys = only ? only.split(',').filter((k) => BREED_BY_KEY[k]) : SHOWCASE;
+  const keys = only === 'all' ? BREEDS.map((b) => b.key) : only ? only.split(',').filter((k) => BREED_BY_KEY[k]) : SHOWCASE;
   const size = Number(new URLSearchParams(window.location.search).get('size') ?? 300);
+  const cols = Number(new URLSearchParams(window.location.search).get('cols') ?? 0);
   return (
     <div className="paper min-h-full p-4">
       <SpriteFilters />
       <h1 className="display text-[22px] font-semibold mb-1">Does it look like the breed?</h1>
       <p className="text-[13px] text-[var(--text-soft)] mb-4">One generated founder per breed, real renderer.</p>
-      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${size}px, 1fr))` }}>
+      <div className="grid gap-3" style={{ gridTemplateColumns: cols ? `repeat(${cols}, 1fr)` : `repeat(auto-fill, minmax(${size}px, 1fr))` }}>
         {keys.map((key) => {
           const breed = BREED_BY_KEY[key];
           const dog = createFounder(rng, { breedKey: key, sex: 'F', name: breed.name, currentMonth: 0, ageMonths: 30, wildcards: false });
@@ -43,7 +44,7 @@ function Gallery() {
           const tail = TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind)];
           const body = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, lbs, legShortening(dog.genotype));
           return (
-            <div key={key} className="card p-2">
+            <div key={key} className="card p-1">
               <DogSprite dog={dog} size={size} />
               <div className="text-[12.5px] font-semibold mt-1">{breed.name}</div>
               <div className="text-[10.5px] text-[var(--text-faint)] leading-snug">

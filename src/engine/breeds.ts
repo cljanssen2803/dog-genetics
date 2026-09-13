@@ -578,7 +578,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 86, sociability: 54, energy: 84, stability: 48, preyDrive: 72,
       persistence: 82, independence: 38, alertness: 88, vocality: 64, handling: 60,
-      structure: 62, longevity: 70, fertility: 68, substance: 52, muzzle: 66, earSet: 34, tailSet: 40,
+      structure: 62, longevity: 70, fertility: 68, substance: 52, muzzle: 66, earSet: 34, tailSet: 44,
     },
     alleles: { undercoat: plush,
       coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
@@ -734,7 +734,7 @@ export const BREEDS: BreedProfile[] = [
       persistence: 72, independence: 94, alertness: 84, vocality: 6, handling: 36,
       structure: 74, longevity: 74, fertility: 34, substance: 40, muzzle: 70, earSet: 96, tailSet: 88,
     },
-    alleles: { undercoat: plush,
+    alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
       locusK: { KB: 0.1, kbr: 0.25, ky: 0.65 }, locusE: { Em: 0, E: 0.98, e: 0.02 },
       locusA: { ay: 0.95, aw: 0, at: 0.05, a: 0 }, locusS: { S: 0.2, sp: 0.8 },
@@ -869,7 +869,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 62, sociability: 80, energy: 30, stability: 78, preyDrive: 22,
       persistence: 56, independence: 38, alertness: 52, vocality: 38, handling: 84,
-      structure: 32, longevity: 12, fertility: 54, substance: 96, muzzle: 42, earSet: 4, tailSet: 40,
+      structure: 32, longevity: 12, fertility: 54, substance: 96, muzzle: 46, earSet: 4, tailSet: 40,
     },
     alleles: { undercoat: plush,
       coatLength: { L: 0.5, l: 0.5 }, curl: straight, furnishings: smoothFace, shedding: shedsHeavily,
@@ -1038,14 +1038,14 @@ export const BREEDS: BreedProfile[] = [
   },
   {
     key: 'amstaff', name: 'American Staffordshire Terrier', group: 'Terrier', weight: 60,
-    traits: { biddability: 66, sociability: 78, energy: 74, stability: 68, preyDrive: 70, persistence: 88, independence: 42, alertness: 66, vocality: 38, handling: 80, structure: 66, longevity: 58, fertility: 68, substance: 84, muzzle: 40, earSet: 56, tailSet: 42 },
+    traits: { biddability: 66, sociability: 78, energy: 74, stability: 68, preyDrive: 70, persistence: 88, independence: 42, alertness: 66, vocality: 38, handling: 80, structure: 66, longevity: 58, fertility: 68, substance: 84, muzzle: 36, earSet: 56, tailSet: 42 },
     alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusK: { KB: 0.35, kbr: 0.35, ky: 0.3 }, locusB: { B: 0.85, b: 0.15 }, locusD: { D: 0.7, d: 0.3 }, locusS: { S: 0.45, sp: 0.55 } },
     diseases: { dm: 0.2, cystinuria: 0.03 },
     blurb: 'Muscular, people-loving and relentless once committed. Blue is common, and so is the spinal disease that travels with the breed.',
   },
   {
     key: 'caneCorso', name: 'Cane Corso', group: 'Guardian', weight: 105,
-    traits: { biddability: 70, sociability: 34, energy: 60, stability: 70, preyDrive: 62, persistence: 82, independence: 48, alertness: 92, vocality: 36, handling: 62, structure: 50, longevity: 26, fertility: 66, substance: 92, muzzle: 38, earSet: 30, tailSet: 36 },
+    traits: { biddability: 70, sociability: 34, energy: 60, stability: 70, preyDrive: 62, persistence: 82, independence: 48, alertness: 92, vocality: 36, handling: 62, structure: 50, longevity: 26, fertility: 66, substance: 92, muzzle: 42, earSet: 30, tailSet: 36 },
     alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.6, E: 0.4, e: 0 }, locusK: { KB: 0.5, kbr: 0.3, ky: 0.2 }, locusA: { ay: 0.9, aw: 0, at: 0.1, a: 0 }, locusD: { D: 0.65, d: 0.35 }, locusS: { S: 0.9, sp: 0.1 } },
     diseases: { dcm: 0.08 },
     blurb: 'An Italian estate guardian: serious, watchful and physically formidable. Not a dog for a first-time owner.',
@@ -1108,14 +1108,14 @@ export const BREEDS: BreedProfile[] = [
   },
   {
     key: 'sheltie', name: 'Shetland Sheepdog', group: 'Herding', weight: 22,
-    traits: { biddability: 90, sociability: 40, energy: 70, stability: 38, preyDrive: 60, persistence: 72, independence: 30, alertness: 92, vocality: 94, handling: 50, structure: 66, longevity: 74, fertility: 62, substance: 42, muzzle: 74, earSet: 60, tailSet: 36 },
+    traits: { biddability: 90, sociability: 40, energy: 70, stability: 38, preyDrive: 60, persistence: 72, independence: 30, alertness: 92, vocality: 94, handling: 50, structure: 66, longevity: 74, fertility: 62, substance: 42, muzzle: 74, earSet: 60, tailSet: 44 },
     alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0.1, kbr: 0, ky: 0.9 }, locusA: { ay: 0.6, aw: 0, at: 0.35, a: 0.05 }, merle: { M: 0.2, m: 0.8 }, locusS: { S: 0.15, sp: 0.85 } },
     diseases: { cea: 0.6, mdr1: 0.15 },
     blurb: 'A miniature Collie that is brilliant, sensitive, and possibly the barkiest dog alive. Eye disease runs through most of the breed.',
   },
   {
     key: 'roughCollie', name: 'Rough Collie', group: 'Herding', weight: 60,
-    traits: { biddability: 84, sociability: 62, energy: 60, stability: 48, preyDrive: 54, persistence: 64, independence: 32, alertness: 84, vocality: 82, handling: 62, structure: 66, longevity: 66, fertility: 64, substance: 44, muzzle: 90, earSet: 62, tailSet: 36 },
+    traits: { biddability: 84, sociability: 62, energy: 60, stability: 48, preyDrive: 54, persistence: 64, independence: 32, alertness: 84, vocality: 82, handling: 62, structure: 66, longevity: 66, fertility: 64, substance: 44, muzzle: 90, earSet: 62, tailSet: 44 },
     alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.65, aw: 0, at: 0.35, a: 0 }, merle: { M: 0.2, m: 0.8 }, locusS: { S: 0.1, sp: 0.9 } },
     diseases: { cea: 0.7, mdr1: 0.35 },
     blurb: 'Lassie. Elegant, gentle, and carrying more eye disease and drug sensitivity than almost any breed.',
@@ -1227,7 +1227,7 @@ export const BREEDS: BreedProfile[] = [
   },
   {
     key: 'mastiff', name: 'English Mastiff', group: 'Giant / Guardian', weight: 180,
-    traits: { biddability: 54, sociability: 62, energy: 22, stability: 80, preyDrive: 28, persistence: 60, independence: 50, alertness: 76, vocality: 30, handling: 78, structure: 30, longevity: 8, fertility: 50, substance: 100, muzzle: 34, earSet: 8, tailSet: 30 },
+    traits: { biddability: 54, sociability: 62, energy: 22, stability: 80, preyDrive: 28, persistence: 60, independence: 50, alertness: 76, vocality: 30, handling: 78, structure: 30, longevity: 8, fertility: 50, substance: 100, muzzle: 42, earSet: 8, tailSet: 30 },
     alleles: { undercoat: singleCoat, coatLength: coatShort, curl: straight, furnishings: smoothFace, locusE: { Em: 0.95, E: 0.05, e: 0 }, locusK: { KB: 0.05, kbr: 0.35, ky: 0.6 }, locusA: { ay: 1, aw: 0, at: 0, a: 0 }, locusS: { S: 0.95, sp: 0.05 } },
     diseases: { dcm: 0.06, cystinuria: 0.04 },
     blurb: 'The heaviest dog in this bank. Placid, dignified, devoted, and rarely alive past seven.',
@@ -1248,7 +1248,7 @@ export const BREEDS: BreedProfile[] = [
   },
   {
     key: 'lhasa', name: 'Lhasa Apso', group: 'Companion', weight: 14,
-    traits: { biddability: 36, sociability: 44, energy: 40, stability: 62, preyDrive: 30, persistence: 68, independence: 78, alertness: 90, vocality: 66, handling: 40, structure: 60, longevity: 82, fertility: 50, substance: 54, muzzle: 40, earSet: 6, tailSet: 82 },
+    traits: { biddability: 36, sociability: 44, energy: 40, stability: 62, preyDrive: 30, persistence: 68, independence: 78, alertness: 90, vocality: 66, handling: 40, structure: 60, longevity: 82, fertility: 50, substance: 54, muzzle: 26, earSet: 6, tailSet: 82 },
     alleles: { coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsLittle, chondro: { Cd: 0.6, cd: 0.4 }, locusA: { ay: 0.7, aw: 0.05, at: 0.2, a: 0.05 }, locusS: { S: 0.6, sp: 0.4 } },
     diseases: {},
     blurb: 'A Tibetan monastery sentinel. Suspicious of strangers, very long lived, and floor-length in coat.',

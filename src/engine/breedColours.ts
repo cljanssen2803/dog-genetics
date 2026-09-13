@@ -77,7 +77,7 @@ export const BREED_COLOURS: Record<string, Table> = {
   chihuahua: { locusE: E(0.15, 0.3), locusK: K(0.15, 0.05), locusA: A(0.5, 0, 0.3), locusS: S(0.4), ticking: T(0.05), locusB: B(0.15), locusD: D(0.15), intensity: I_MIX, merle: M_NONE },
   italianGreyhound: { locusE: E(0, 0.5), locusK: K(0.6, 0), locusA: A_FAWN, locusS: S(0.5), ticking: T_NONE, locusB: B_BLACK, locusD: D(0.4), intensity: I_MIX },
   // Salt and pepper, black and silver, black.
-  miniSchnauzer: { locusE: E_SOLID, locusK: K(0.3, 0), locusA: A(0, 0.65, 0.25), ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL },
+  miniSchnauzer: { locusE: E_SOLID, locusK: K(0.3, 0), locusA: A(0, 0.65, 0.25), ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I_PALE },
   jackRussell: { locusE: E(0, 0.3), locusK: K(0.4, 0), locusA: A(0.6, 0, 0.4), locusS: S_PIED, ticking: T(0.2), locusB: B_BLACK, locusD: D_FULL, intensity: I_DEEP },
   ratTerrier: TERRIER_PIED,
   norwich: { locusE: E(0, 0.3), locusK: K_NONE, locusA: A(0.6, 0.1, 0.3), ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I_DEEP },
@@ -103,8 +103,8 @@ export const BREED_COLOURS: Record<string, Table> = {
   basenji: { locusE: E_SOLID, locusK: K(0.3, 0.12), locusA: A(0.7, 0, 0.3), locusS: S(0.5), ticking: T_NONE, locusB: B_BLACK, locusD: D_FULL, intensity: I_DEEP },
   // Red, sesame, black and tan, cream. Urajiro is not the white gene.
   shiba: { locusE: E(0, 0.1), locusK: K_NONE, locusA: A(0.7, 0.1, 0.2), ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I(0.2) },
-  husky: { locusE: E(0, 0.1), locusK: K(0.2, 0), locusA: A(0.1, 0.6, 0.3), locusS: S_PIED, ticking: T_NONE, locusB: B(0.15), locusD: D_FULL, intensity: I_DEEP },
-  malamute: { locusE: E_SOLID, locusK: K(0.15, 0), locusA: A(0.1, 0.7, 0.2), locusS: S_PIED, ticking: T_NONE, locusB: B(0.1), locusD: D_FULL, intensity: I_DEEP },
+  husky: { locusE: E(0, 0.1), locusK: K(0.2, 0), locusA: A(0.1, 0.6, 0.3), locusS: S_PIED, ticking: T_NONE, locusB: B(0.15), locusD: D_FULL, intensity: I(0.5) },
+  malamute: { locusE: E_SOLID, locusK: K(0.15, 0), locusA: A(0.1, 0.7, 0.2), locusS: S_PIED, ticking: T_NONE, locusB: B(0.1), locusD: D_FULL, intensity: I(0.7) },
   samoyed: WHITE_DOG,
   // Fawn, brindle, black, blue, harlequin, merle, mantle.
   greatDane: { locusE: E(0.6, 0), locusK: K(0.25, 0.12), locusA: A_FAWN, locusS: S(0.3), ticking: T_NONE, locusB: B_BLACK, locusD: D(0.15), merle: M(0.2), harlequin: { H: 0.15, h: 0.85 }, intensity: I_MIX },
@@ -150,13 +150,13 @@ export const BREED_COLOURS: Record<string, Table> = {
   ridgeback: { locusE: E(0.5, 0), locusK: K_NONE, locusA: A_FAWN, ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I_DEEP },
   // Fawn, apricot or brindle, always masked, never white, never black.
   mastiff: { locusE: E(0.98, 0), locusK: K(0, 0.18), locusA: A_FAWN, ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I_MIX },
-  leonberger: { locusE: E(0.95, 0), locusK: K_NONE, locusA: A_FAWN, ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I_MIX },
-  keeshond: { locusE: E_SOLID, locusK: K_NONE, locusA: A_WOLF, ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL },
+  leonberger: { locusE: E(0.95, 0), locusK: K_NONE, locusA: A_FAWN, ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I(0.15) },
+  keeshond: { locusE: E_SOLID, locusK: K_NONE, locusA: A_WOLF, ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I_PALE },
   lhasa: { locusE: E(0, 0.5), locusK: K(0.35, 0), locusA: A(0.7, 0, 0.3), locusS: S(0.4), ticking: T_NONE, locusB: B_BLACK, locusD: D_FULL, intensity: I_MIX },
   coton: WHITE_DOG,
   griffon: { locusE: E(0.4, 0), locusK: K(0.35, 0), locusA: A(0.6, 0, 0.4), ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I_DEEP },
   japaneseChin: { locusE: E(0, 0.25), locusK: K_BLACK, locusS: S_PIED, ticking: T_NONE, locusB: B_BLACK, locusD: D_FULL, intensity: I_DEEP },
-  giantSchnauzer: { locusE: E_SOLID, locusK: K(0.75, 0), locusA: A(0, 0.9, 0), ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL },
+  giantSchnauzer: { locusE: E_SOLID, locusK: K(0.75, 0), locusA: A(0, 0.9, 0), ...NO_WHITE, locusB: B_BLACK, locusD: D_FULL, intensity: I_PALE },
   lagotto: { locusE: E(0, 0.5), locusK: K_BLACK, locusS: S(0.6), ticking: T(0.4), locusB: B(0.6), locusD: D_FULL, intensity: I(0.5) },
   chessie: { locusE: E(0, 0.5), locusK: K_BLACK, ...NO_WHITE, locusB: B_BROWN, locusD: D_FULL, intensity: I_MIX },
   toller: { locusE: E_RED, locusK: K_BLACK, locusS: S(0.5), ticking: T_NONE, locusB: B(0.4), locusD: D_FULL, intensity: I_DEEP },
@@ -169,5 +169,5 @@ function I(i: number) {
 /** Breeds whose long coats are silky rather than plush, whatever the default says. */
 export const SINGLE_COATED = [
   'cavalier', 'papillon', 'cocker', 'springer', 'brittany', 'lhasa', 'pekingese', 'japaneseChin', 'griffon',
-  'shihTzu', 'miniSchnauzer', 'giantSchnauzer', 'jackRussell', 'ratTerrier', 'minPin', 'airedale', 'borderTerrier',
+  'shihTzu', 'basenji', 'miniSchnauzer', 'giantSchnauzer', 'jackRussell', 'ratTerrier', 'minPin', 'airedale', 'borderTerrier',
 ];

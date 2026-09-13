@@ -76,7 +76,7 @@ const MERLE_DILUTE: Record<string, string> = {
 
 /** Red and cream shades, controlled mostly by the intensity gene. */
 const PHAEOMELANIN = [
-  { name: 'Cream', hex: '#efe2c6' },
+  { name: 'Cream', hex: '#f3ede1' },
   { name: 'Apricot', hex: '#e0b581' },
   { name: 'Red', hex: '#b9702f' },
 ];
@@ -198,7 +198,9 @@ export function resolveColor(g: Genotype): CoatColor {
         }
         break;
       case 'aw':
-        base = red.hex;
+        // Wolf sable hairs are banded, so the coat reads as a grizzled mix
+        // of the red and the dark pigment rather than a clean red.
+        base = blend(red.hex, dark.hex, 0.45);
         accent = dark.hex;
         name = 'Wolf sable';
         if (dilute && !brown) {
@@ -502,7 +504,7 @@ export const EAR_LABEL: Record<EarType, string> = {
 export function resolveTail(g: Genotype, tailSet = 48, muzzle = 50, coat?: CoatKind): TailType {
   if (copies(g, 'bobtail', 'Bt') >= 1) return 'bobtail';
   if (tailSet >= 82) return 'curled';
-  if (muzzle < 30 && tailSet < 68) return 'screw';
+  if (muzzle < 24 && tailSet < 68) return 'screw';
   if (tailSet >= 68) return 'sickle';
   if (tailSet <= 26) return 'whip';
   if (coat === 'long' || coat === 'silky' || coat === 'wavyFurnished' || coat === 'doubleThick') return 'plume';
@@ -558,7 +560,9 @@ export function resolveSilhouette(
   // twenty points either side of its breed's average.
   if (plain && coat.undercoat && earSet > 68) return 'spitz';
   if (coat.kind === 'smooth' || coat.kind === 'short') {
-    if (muzzle <= 30) return 'bull';
+    // The bull body: a flat face, or a heavy dog with a short broad muzzle
+    // (the bull-and-terrier breeds). The heavy body: heavy with a real muzzle.
+    if (muzzle <= 30 || (substance > 70 && muzzle < 40)) return 'bull';
     if (substance > 84) return 'heavy';
     if (substance < 46 && muzzle > 60 && !coat.undercoat) return 'sighthound';
     // A giant smooth dog with a long head — a Great Dane — is a sighthound

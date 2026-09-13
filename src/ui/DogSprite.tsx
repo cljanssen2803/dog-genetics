@@ -546,7 +546,16 @@ function describe(dog: Dog, drawLbs?: number) {
   const roundEars = silhouette === 'spitz' && ears === 'erect' && dog.observed.substance > 68 && tail === 'curled';
   // Long-muzzled smooth dogs with drop ears and no undercoat are hounds, and
   // hounds have the long pendulous ear: Basset, Bloodhound, Dachshund.
-  const houndEars = ears === 'drop' && (coat.kind === 'smooth' || coat.kind === 'short') && !coat.undercoat && dog.observed.muzzle > 55 && silhouette !== 'sighthound';
+  // Long-eared dogs: smooth hounds with a real muzzle (Basset, Bloodhound,
+  // Dachshund) and the single-coated silky breeds (spaniels, Shih Tzu,
+  // Cavalier). Plush-coated retrievers and the bull types keep short ears.
+  const houndEars =
+    ears === 'drop' &&
+    !coat.undercoat &&
+    !coat.hairless &&
+    silhouette !== 'sighthound' &&
+    silhouette !== 'bull' &&
+    ((coat.kind === 'smooth' || coat.kind === 'short') ? dog.observed.muzzle > 55 : coat.kind === 'silky' || coat.kind === 'long' || silhouette === 'flatLong');
 
   // The tail: the real file if it exists, else a stand-in built from one we have.
   const standin = HAVE.has(TAIL_SRC[tail]) ? undefined : TAIL_STANDIN[tail];
