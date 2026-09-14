@@ -111,11 +111,24 @@ export function planGeneration(project: Project): GenerationPlan {
     if (!damsDone.has(dam.id)) skipped.push({ dog: dam, why: 'every available male is too closely related' });
   }
 
+  // Never breed backwards: a litter whose puppies would pass on less than
+  // the kennel already has is space wasted, however nice the dam. The single
+  // best pairing is always allowed, so a weak kennel can still move.
+  // The bar is the better half of the kennel, not the whole of it — the
+  // whole includes the dogs you are trying to breed past.
+  const adultBvs = breedingPopulation(project).map((d) => scoreDog(d, project.standard, true).total).sort((a, b) => b - a);
+  const topHalf = adultBvs.slice(0, Math.max(1, Math.ceil(adultBvs.length / 2)));
+  const adultBv = topHalf.length ? topHalf.reduce((t, v) => t + v, 0) / topHalf.length : 0;
+  const forward = chosen.filter((p, i) => i === 0 || p.preview.meanBreedingValue >= adultBv - 1);
+  for (const p of chosen) {
+    if (!forward.includes(p)) skipped.push({ dog: p.dam, why: `her best litter would pass on less (${Math.round(p.preview.meanBreedingValue)}) than the kennel already has (${Math.round(adultBv)})` });
+  }
+
   // Only as many litters as there is room to raise.
   const spaceLeft = project.kennelCapacity - kennelCount(project);
   let expected = 0;
   const fitting: PlannedPairing[] = [];
-  for (const p of chosen) {
+  for (const p of forward) {
     if (fitting.length > 0 && expected + p.preview.expectedLitterSize > spaceLeft + 10) {
       skipped.push({ dog: p.dam, why: 'not enough kennel space for another litter this season' });
       continue;
@@ -165,7 +178,13 @@ export function triageLitter(project: Project, litter: Litter): PuppyAdvice[] {
     : 50;
   // Two from a good litter as a floor, more when the kennel has room to
   // raise them: one extra keeper for every four free spaces.
-  const keepBudget = Math.max(1, Math.min(2 + Math.floor(Math.max(0, space) / 4), puppies.length, space + puppies.length));
+  // Selection only works if you keep FEW. Two from a litter when it stands
+  // alone; one when another litter of the same season is competing for the
+  // same spaces — the best of each, and the kennel stays sharp.
+  const concurrent = project.litters.filter(
+    (l) => l.id !== litter.id && Math.abs(l.bornMonth - litter.bornMonth) <= 3 && puppiesOf(project, l.id).some((d) => d.status === 'kennel' && !d.retention),
+  ).length;
+  const keepBudget = Math.max(1, Math.min(concurrent > 0 ? 1 : 2, puppies.length, space + puppies.length));
 
   const advice: PuppyAdvice[] = [];
   let kept = 0;

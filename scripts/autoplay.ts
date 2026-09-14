@@ -33,6 +33,7 @@ function play(project: Project, years = 20) {
   const startMonth = project.month;
   const notes: string[] = [];
   const report = (note = '') => {
+    if (quiet) return;
     const s = takeSnapshot(project);
     const best = Math.max(0, ...activeDogs(project).map((d) => scoreDog(d, project.standard).total));
     console.log(
@@ -104,24 +105,42 @@ function play(project: Project, years = 20) {
   }
   report('end');
   const s = takeSnapshot(project);
-  console.log(`  finished: ${s.averageScore.toFixed(0)} average, ${s.percentMeetingStandard.toFixed(0)}% meet, generation ${project.generation}, ${taps} taps over ${((project.month - startMonth) / 12).toFixed(0)} years`);
+  if (!quiet) console.log(`  finished: ${s.averageScore.toFixed(0)} average, ${s.percentMeetingStandard.toFixed(0)}% meet, generation ${project.generation}, ${taps} taps over ${((project.month - startMonth) / 12).toFixed(0)} years`);
+  return { avg: s.averageScore, meet: s.percentMeetingStandard };
 }
 
-play(createProject({ name: 'Hearthdog', standard: structuredClone(HEARTHDOG), seed: 11 }));
-play(createProject({ name: 'Mousie', standard: structuredClone(MOUSIE), seed: 12 }));
-play(
-  createProject({
-    name: 'Danoodle',
-    standard: designerCrossStandard('Danoodle', BREED_BY_KEY.greatDane, BREED_BY_KEY.poodleStandard, ['curly']),
-    founderBreeds: ['greatDane', 'poodleStandard'],
-    seed: 13,
-  }),
-);
-play(
-  createProject({
-    name: 'Dudley Newfoundland',
-    standard: purebredStandard(BREED_BY_KEY.newfoundland, { label: 'Dudley', colourText: 'dudley' }),
-    founderBreeds: ['newfoundland'],
-    seed: 14,
-  }),
-);
+// `npx tsx scripts/autoplay.ts 5` plays five seeds of each and prints averages.
+const runs = Number(process.argv[2] ?? 1);
+const quiet = runs > 1;
+const totals: Record<string, { avg: number; meet: number; n: number }> = {};
+for (let r = 0; r < runs; r++) {
+  const seed = 11 + r * 7;
+  const projects = [
+    createProject({ name: 'Hearthdog', standard: structuredClone(HEARTHDOG), seed }),
+    createProject({ name: 'Mousie', standard: structuredClone(MOUSIE), seed: seed + 1 }),
+    createProject({
+      name: 'Danoodle',
+      standard: designerCrossStandard('Danoodle', BREED_BY_KEY.greatDane, BREED_BY_KEY.poodleStandard, ['curly']),
+      founderBreeds: ['greatDane', 'poodleStandard'],
+      seed: seed + 2,
+    }),
+    createProject({
+      name: 'Dudley Newfoundland',
+      standard: purebredStandard(BREED_BY_KEY.newfoundland, { label: 'Dudley', colourText: 'dudley' }),
+      founderBreeds: ['newfoundland'],
+      seed: seed + 3,
+    }),
+  ];
+  for (const project of projects) {
+    const result = play(project, 20, quiet);
+    const t = (totals[project.name] ??= { avg: 0, meet: 0, n: 0 });
+    t.avg += result.avg;
+    t.meet += result.meet;
+    t.n += 1;
+  }
+}
+if (quiet) {
+  console.log(`
+Averages over ${runs} seeds (20 years each):`);
+  for (const [name, t] of Object.entries(totals)) console.log(`  ${name.padEnd(22)} score ${(t.avg / t.n).toFixed(0)}   meeting ${(t.meet / t.n).toFixed(0)}%`);
+}
