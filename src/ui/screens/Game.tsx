@@ -357,7 +357,7 @@ function ProjectTab({
       else onAdvanceToEvent();
     } else if (a.kind === 'wait') onAdvanceToEvent();
     else if (a.kind === 'closeGeneration') onCloseGeneration();
-    else if (a.kind === 'outcross') onGoTab('breed', 'outside');
+    else if (a.kind === 'outcross') onGoTab('breed', a.carrying ? { outside: a.carrying } : 'outside');
     else if (a.kind === 'breed') {
       if (a.plan.pairings.length === 1) {
         const p = a.plan.pairings[0];

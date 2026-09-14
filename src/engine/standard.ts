@@ -144,6 +144,36 @@ export interface DogScore {
  * this dog is likely to pass on", which is the more useful figure when you are
  * choosing breeding stock rather than admiring a pet.
  */
+/** The genes a colour wish needs, by the words the wish uses. */
+export const COLOUR_GENES: { word: RegExp; locus: string; allele: string; label: string }[] = [
+  { word: /dudley/, locus: 'locusE', allele: 'e', label: 'recessive red' },
+  { word: /dudley/, locus: 'locusB', allele: 'b', label: 'chocolate' },
+  { word: /chocolate|liver|brown/, locus: 'locusB', allele: 'b', label: 'chocolate' },
+  { word: /blue|dilute|grey/, locus: 'locusD', allele: 'd', label: 'dilute' },
+  { word: /lilac|isabella/, locus: 'locusB', allele: 'b', label: 'chocolate' },
+  { word: /lilac|isabella/, locus: 'locusD', allele: 'd', label: 'dilute' },
+  { word: /\bred\b|yellow|gold|apricot/, locus: 'locusE', allele: 'e', label: 'recessive red' },
+  { word: /cream/, locus: 'locusE', allele: 'e', label: 'recessive red' },
+  { word: /cream/, locus: 'intensity', allele: 'i', label: 'cream' },
+  { word: /brindle/, locus: 'locusK', allele: 'kbr', label: 'brindle' },
+  { word: /merle/, locus: 'merle', allele: 'M', label: 'merle' },
+  { word: /harlequin/, locus: 'harlequin', allele: 'H', label: 'harlequin' },
+  { word: /harlequin/, locus: 'merle', allele: 'M', label: 'merle' },
+  { word: /\btan\b|points/, locus: 'locusA', allele: 'at', label: 'tan points' },
+  { word: /white|piebald|pied/, locus: 'locusS', allele: 'sp', label: 'piebald' },
+];
+
+/** The genes a colour wish (free text) needs, deduplicated. */
+export function colourGenesFor(text: string): { locus: string; allele: string; label: string }[] {
+  const out: { locus: string; allele: string; label: string }[] = [];
+  for (const g of COLOUR_GENES) {
+    if (!g.word.test(text.toLowerCase())) continue;
+    if (out.some((o) => o.locus === g.locus && o.allele === g.allele)) continue;
+    out.push({ locus: g.locus, allele: g.allele, label: g.label });
+  }
+  return out;
+}
+
 export function scoreDog(
   dog: Dog,
   standard: BreedStandard,
@@ -285,15 +315,27 @@ export function scoreDog(
       wanted.length === 0 ||
       wanted.split(/[\s,]+/).some((word) => word.length > 2 && color.name.toLowerCase().includes(word));
     const weight = PRIORITY_WEIGHT[standard.colorGoal.priority];
+    // Breeding value gives credit for CARRYING the genes the colour needs —
+    // a chocolate carrier is most of the way to a chocolate puppy. Without
+    // this the planner could never see a carrier's worth, and a colour that
+    // nobody shows yet could never be bred toward.
+    let colourScore = hit ? 1 : 0.25;
+    if (!hit && useBreedingValue) {
+      const needed = colourGenesFor(wanted);
+      if (needed.length > 0) {
+        const carried = needed.filter((g) => dog.genotype[g.locus]?.includes(g.allele)).length;
+        colourScore = 0.25 + 0.55 * (carried / needed.length);
+      }
+    }
     breakdown.push({
       key: 'color',
       label: 'Colour',
       actual: color.name,
-      score: hit ? 1 : 0.25,
+      score: colourScore,
       priority: standard.colorGoal.priority,
       weight,
     });
-    weightedSum += (hit ? 1 : 0.25) * weight;
+    weightedSum += colourScore * weight;
     weightTotal += weight;
   }
 

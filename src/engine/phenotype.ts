@@ -435,7 +435,7 @@ export function resolveCoat(g: Genotype, sizeLbs: number): CoatProfile {
   if (kind === 'smooth') grooming = 8;
   if (kind === 'silky') grooming = 48;
   if (kind === 'long') grooming = 62;
-  if (kind === 'doubleThick') grooming = 55;
+  if (kind === 'doubleThick') grooming = 48;
   if (kind === 'wire') grooming = 50;
   if (kind === 'wavyFurnished') grooming = 72;
   if (kind === 'curly') grooming = 88;
@@ -451,8 +451,9 @@ export function resolveCoat(g: Genotype, sizeLbs: number): CoatProfile {
   if (kind === 'curly') coldTolerance = 66;
   if (kind === 'corded') coldTolerance = 90;
   if (undercoat) coldTolerance = Math.min(99, coldTolerance + 10);
-  // Small dogs lose heat quickly whatever they are wearing.
-  coldTolerance = Math.round(coldTolerance * (0.62 + Math.min(0.38, sizeLbs / 130)));
+  // Small dogs lose heat quickly whatever they are wearing — but not so
+  // quickly that a plush-coated 14 lb Spitz cannot be a cold-weather dog.
+  coldTolerance = Math.round(coldTolerance * (0.76 + Math.min(0.24, sizeLbs / 100)));
 
   const heatTolerance = Math.max(5, Math.min(95, 108 - coldTolerance - (undercoat ? 12 : 0)));
 

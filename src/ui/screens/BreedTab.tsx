@@ -35,7 +35,7 @@ const VERDICT_TONE: Record<MatchVerdict, 'good' | 'neutral' | 'info' | 'warn' | 
   'Do not breed': 'bad',
 };
 
-export type BreedIntent = 'plan' | 'outside' | null;
+export type BreedIntent = 'plan' | 'outside' | { outside: { locus: string; allele: string } } | null;
 
 export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onIntentUsed?: () => void }) {
   const { project, refresh, say } = useGame();
@@ -45,9 +45,14 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
   const [planOpen, setPlanOpen] = useState(false);
 
   // The Project tab can send the player here with a job in mind.
+  const [outsideCarrying, setOutsideCarrying] = useState<{ locus: string; allele: string } | null>(null);
   useEffect(() => {
     if (intent === 'plan') setPlanOpen(true);
     if (intent === 'outside') setOutsideOpen(true);
+    if (intent && typeof intent === 'object') {
+      setOutsideCarrying(intent.outside);
+      setOutsideOpen(true);
+    }
     if (intent) onIntentUsed?.();
   }, [intent, onIntentUsed]);
 
@@ -205,7 +210,7 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
         <PairingSheet preview={preview} onClose={() => setPreview(null)} onBreed={() => doBreed(preview)} />
       )}
 
-      <OutsideSheet open={outsideOpen} onClose={() => setOutsideOpen(false)} />
+      <OutsideSheet open={outsideOpen} onClose={() => setOutsideOpen(false)} presetCarrying={outsideCarrying} />
       <PlanSheet open={planOpen} onClose={() => setPlanOpen(false)} onPreview={(p) => setPreview(p)} />
     </div>
   );
@@ -578,11 +583,22 @@ const CARRIER_OPTIONS: { locus: string; allele: string; label: string }[] = [
   { locus: 'bobtail', allele: 'Bt', label: 'bobtail' },
 ];
 
-function OutsideSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+function OutsideSheet({
+  open,
+  onClose,
+  presetCarrying,
+}: {
+  open: boolean;
+  onClose: () => void;
+  presetCarrying?: { locus: string; allele: string } | null;
+}) {
   const { project, refresh, say } = useGame();
   const [mode, setMode] = useState<'breed' | 'traits' | 'random'>('breed');
-  const [breedKey, setBreedKey] = useState('miniSchnauzer');
-  const [carrying, setCarrying] = useState<{ locus: string; allele: string } | null>(null);
+  const [breedKey, setBreedKey] = useState(project.founderBreeds?.[0] ?? 'miniSchnauzer');
+  const [carrying, setCarrying] = useState<{ locus: string; allele: string } | null>(presetCarrying ?? null);
+  useEffect(() => {
+    if (presetCarrying) setCarrying(presetCarrying);
+  }, [presetCarrying]);
   const [needs, setNeeds] = useState<Partial<Record<PolyTrait, 'high' | 'low'>>>({});
   const [results, setResults] = useState<Candidate[]>([]);
   const gaps = useMemo(() => goalGaps(project).slice(0, 3), [project, project.month]);

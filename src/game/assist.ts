@@ -15,7 +15,7 @@
  */
 
 import { type Dog, ageMonths, breedingEligibility } from '../engine/dog';
-import { scoreDog } from '../engine/standard';
+import { colourGenesFor, scoreDog } from '../engine/standard';
 import { geneticHealthFlags } from '../engine/phenotype';
 import {
   type Litter,
@@ -77,7 +77,17 @@ export function planGeneration(project: Project): GenerationPlan {
       options.push({ dam, sire, preview });
     }
   }
-  options.sort((a, b) => b.preview.meanScore - a.preview.meanScore);
+  // Rank by what the puppies would pass on as much as by how they would look:
+  // a designer cross is won by carriers, and the phenotype average hides them.
+  // A sire that has already fathered a lot, or already sits under most of the
+  // kennel, is marked down so the gene pool does not narrow to one stud.
+  const worth = (o: { sire: Dog; preview: PairingPreview }) =>
+    0.5 * o.preview.meanScore +
+    0.5 * o.preview.meanBreedingValue -
+    Math.min(8, o.sire.littersProduced * 1.5) -
+    Math.max(0, o.preview.sireInfluence - 0.2) * 40 -
+    o.preview.coi * 60;
+  options.sort((a, b) => worth(b) - worth(a));
 
   // Greedy: take the best option for each dam, but no sire more than twice
   // in a season — a kennel built on one stud runs out of unrelated mates.
@@ -94,7 +104,7 @@ export function planGeneration(project: Project): GenerationPlan {
       dam: o.dam,
       sire: o.sire,
       preview: o.preview,
-      reason: `Best mate available for ${o.dam.name}: average puppy ${Math.round(o.preview.meanScore)}, inbreeding ${(o.preview.coi * 100).toFixed(1)}%, ${shiftWords(o.preview)}.${risky}`,
+      reason: `Best mate for ${o.dam.name}: average puppy ${Math.round(o.preview.meanScore)}, passing on ${Math.round(o.preview.meanBreedingValue)}, inbreeding ${(o.preview.coi * 100).toFixed(1)}%, ${shiftWords(o.preview)}.${risky}`,
     });
   }
   for (const dam of dams) {
@@ -106,7 +116,7 @@ export function planGeneration(project: Project): GenerationPlan {
   let expected = 0;
   const fitting: PlannedPairing[] = [];
   for (const p of chosen) {
-    if (fitting.length > 0 && expected + p.preview.expectedLitterSize > spaceLeft + 8) {
+    if (fitting.length > 0 && expected + p.preview.expectedLitterSize > spaceLeft + 10) {
       skipped.push({ dog: p.dam, why: 'not enough kennel space for another litter this season' });
       continue;
     }
@@ -132,7 +142,7 @@ export interface PuppyAdvice {
 }
 
 export function triageLitter(project: Project, litter: Litter): PuppyAdvice[] {
-  const puppies = puppiesOf(project, litter.id).filter((p) => p.status === 'kennel');
+  const puppies = puppiesOf(project, litter.id).filter((p) => p.status === 'kennel' && (!p.retention || p.retention === 'wait'));
   if (puppies.length === 0) return [];
   const age = project.month - litter.bornMonth;
   const space = project.kennelCapacity - kennelCount(project);
@@ -173,7 +183,9 @@ export function triageLitter(project: Project, litter: Litter): PuppyAdvice[] {
       });
       continue;
     }
-    if (age < 8 && better >= -6 && kept < keepBudget + 1) {
+    // "Wait" only makes sense for a young litter with room to keep it: a close
+    // call under four months old, when the kennel is not already bursting.
+    if (age < 4 && space >= 0 && better >= -6 && kept < keepBudget + 1) {
       advice.push({ dog: r.dog, choice: 'wait', reason: `Close call (${Math.round(r.bv)}). Give it a couple of months for the estimate to settle.` });
       continue;
     }
@@ -195,12 +207,27 @@ export function triageLitter(project: Project, litter: Litter): PuppyAdvice[] {
 // What next
 // ---------------------------------------------------------------------------
 
+export function missingColourGenes(project: Project): { locus: string; allele: string; label: string }[] {
+  const goal = project.standard.colorGoal;
+  if (!goal || goal.priority < 3) return [];
+  const text = goal.text.toLowerCase();
+  const needed = colourGenesFor(text);
+  const dogs = activeDogs(project);
+  const missing: { locus: string; allele: string; label: string }[] = [];
+  for (const g of needed) {
+    if (missing.some((m) => m.locus === g.locus && m.allele === g.allele)) continue;
+    const anyone = dogs.some((d) => d.genotype[g.locus]?.includes(g.allele));
+    if (!anyone) missing.push({ locus: g.locus, allele: g.allele, label: g.label });
+  }
+  return missing;
+}
+
 export type NextAction =
   | { kind: 'evaluate' }
   | { kind: 'makeRoom'; over: number }
   | { kind: 'breed'; plan: GenerationPlan }
   | { kind: 'advance'; months?: number }
-  | { kind: 'outcross'; why: string }
+  | { kind: 'outcross'; why: string; carrying?: { locus: string; allele: string } }
   | { kind: 'closeGeneration' }
   | { kind: 'wait' };
 
@@ -214,7 +241,13 @@ export interface NextStep {
 export function nextStep(project: Project): NextStep {
   const dogs = activeDogs(project);
   const over = kennelCount(project) - project.kennelCapacity;
-  const undecided = dogs.filter((d) => d.litterId && !d.retention && ageMonths(d, project.month) >= 2);
+  // Puppies still needing a decision: never decided and at least eight
+  // weeks old, or parked on "wait" and now four months old.
+  const undecided = dogs.filter((d) => {
+    if (!d.litterId) return false;
+    const age = ageMonths(d, project.month);
+    return (!d.retention && age >= 2) || (d.retention === 'wait' && age >= 4);
+  });
   const babies = dogs.filter((d) => d.litterId && !d.retention && ageMonths(d, project.month) < 2);
   const pregnancies = project.pregnancies.length;
 
@@ -229,9 +262,15 @@ export function nextStep(project: Project): NextStep {
   // A brand-new litter takes you over capacity every time; that is normal.
   // Let them reach eight weeks before anyone is asked to leave.
   if (over > 0 && over > babies.length) {
+    const inWhelp = new Set(project.pregnancies.map((p) => p.damId));
+    const candidates = dogs
+      .filter((d) => ageMonths(d, project.month) >= 4 && !inWhelp.has(d.id))
+      .sort((a, b) => scoreDog(a, project.standard, true).total - scoreDog(b, project.standard, true).total)
+      .slice(0, over)
+      .map((d) => d.name);
     return {
       title: `Make room — ${over} over capacity`,
-      detail: 'Nobody can be bred while the kennel is over capacity. Place your least useful dogs in pet homes.',
+      detail: `Nobody can be bred while the kennel is over capacity. Lowest breeding value right now: ${candidates.join(', ')}. Place ${over === 1 ? 'one' : over} in a pet home from the dog's Decide tab.`,
       action: { kind: 'makeRoom', over },
       buttonLabel: 'Go to the kennel',
     };
@@ -248,9 +287,52 @@ export function nextStep(project: Project): NextStep {
     };
   }
 
+  // A generation is a chapter the player closes. Prompt for it once the
+  // chapter has some substance: two litters born and sorted, or one litter
+  // and a year gone by.
+  const last = project.history.length ? project.history[project.history.length - 1].month : -1;
+  const sinceLast = project.litters.filter((l) => l.bornMonth > last);
+  const chapterStart = sinceLast.length ? Math.min(...sinceLast.map((l) => l.bornMonth)) : project.month;
+  const ripe = sinceLast.length >= 2 || (sinceLast.length === 1 && project.month - chapterStart >= 12);
+  if (ripe) {
+    return {
+      title: `Close out generation ${project.generation}`,
+      detail: `${sinceLast.length} litter${sinceLast.length === 1 ? '' : 's'} born and sorted since your last report. Record the generation to see what changed and what to aim at next.`,
+      action: { kind: 'closeGeneration' },
+      buttonLabel: 'Close out the generation',
+    };
+  }
+
+  // A colour goal nobody in the kennel can produce: go and find a carrier.
+  const missing = missingColourGenes(project);
+  if (missing.length > 0) {
+    return {
+      title: `Find a carrier of ${missing[0].label}`,
+      detail: `Your standard wants ${project.standard.colorGoal?.text}, and no dog in the kennel carries ${missing.map((m) => m.label).join(' or ')}. Search for an outside dog of your breed that must carry it.`,
+      action: { kind: 'outcross', why: `No carrier of ${missing[0].label}.`, carrying: { locus: missing[0].locus, allele: missing[0].allele } },
+      buttonLabel: 'Find a carrier',
+    };
+  }
+
   const plan = planGeneration(project);
   const snapshot = takeSnapshot(project);
   const breeders = breedingPopulation(project);
+
+  // Fresh blood before the pool closes up, not after: two family lines left,
+  // or inbreeding creeping past 8%, and no outsider in the last two years.
+  const recentOutsider = dogs.some((d) =>
+    (d.events ?? []).some((e) => e.kind === 'arrived' && e.month > 0 && project.month - e.month < 24),
+  );
+  const narrowing = snapshot.familyLines <= 2 || snapshot.averageCoi > 0.08;
+  if (narrowing && !recentOutsider && breeders.length >= 3) {
+    return {
+      title: 'Bring in an outside dog',
+      detail: snapshot.familyLines <= 2 ? 'Only a couple of family lines are left. An unrelated dog now keeps your options open.' : `Inbreeding is at ${(snapshot.averageCoi * 100).toFixed(0)}% and climbing. An unrelated dog resets it.`,
+      action: { kind: 'outcross', why: 'The gene pool is narrowing.' },
+      buttonLabel: 'Find an outside dog',
+    };
+  }
+
   if (plan.pairings.length > 0) {
     const p = plan.pairings[0];
     return {
@@ -267,14 +349,6 @@ export function nextStep(project: Project): NextStep {
       detail: `${why} Fresh blood resets relatedness and gives you mates again.`,
       action: { kind: 'outcross', why },
       buttonLabel: 'Find an outside dog',
-    };
-  }
-  if (project.litters.some((l) => l.generation === project.generation)) {
-    return {
-      title: `Close out generation ${project.generation}`,
-      detail: 'Every puppy is decided and nobody is in whelp. Record the generation and see what changed.',
-      action: { kind: 'closeGeneration' },
-      buttonLabel: 'Close out the generation',
     };
   }
   return {

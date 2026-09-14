@@ -56,6 +56,8 @@ export interface PairingPreview {
   /** Average project score of the simulated puppies. */
   meanScore: number;
   bestScore: number;
+  /** Average of what the simulated puppies would pass on (breeding value). */
+  meanBreedingValue: number;
   /** Percentage of simulated puppies that met the standard. */
   standardLow: number;
   standardHigh: number;
@@ -134,6 +136,9 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
 
   const scores: DogScore[] = simulated.map((d) => scoreDog(d, project.standard));
   const meanScore = scores.length ? scores.reduce((s, x) => s + x.total, 0) / scores.length : 0;
+  const meanBreedingValue = simulated.length
+    ? simulated.reduce((s, d) => s + scoreDog(d, project.standard, true).total, 0) / simulated.length
+    : 0;
   const bestScore = scores.length ? Math.max(...scores.map((s) => s.total)) : 0;
   const meetingRate = scores.length ? scores.filter((s) => s.meetsStandard).length / scores.length : 0;
 
@@ -346,6 +351,7 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
     expectedLitterSize: litterSizeTotal / Math.max(1, litters),
     meanScore,
     bestScore,
+    meanBreedingValue,
     standardLow,
     standardHigh,
     improvements,
