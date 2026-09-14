@@ -215,3 +215,12 @@ nav,
 input[type='range'] {
   accent-color: var(--brand);
 }
+
+/* The litter reveal: each line of a puppy's description fades up in turn. */
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.reveal-in {
+  animation: revealIn 480ms ease both;
+}

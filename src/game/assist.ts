@@ -28,6 +28,7 @@ import {
   takeSnapshot,
 } from './project';
 import { type PairingPreview, previewPairing } from './matchmaking';
+import { type ClubProposal, pendingProposal } from './club';
 
 // ---------------------------------------------------------------------------
 // Plan the generation
@@ -39,6 +40,12 @@ export interface PlannedPairing {
   preview: PairingPreview;
   /** One line: why this pair, in plain words. */
   reason: string;
+  /**
+   * A second opinion: the mate that keeps the gene pool widest while still
+   * moving the kennel forward. Present only when it is a genuinely different
+   * choice from the best-for-score sire. The player picks.
+   */
+  alternative?: { sire: Dog; preview: PairingPreview; reason: string };
 }
 
 export interface GenerationPlan {
@@ -48,6 +55,32 @@ export interface GenerationPlan {
   /** Puppies these litters are likely to add, against the space you have. */
   expectedPuppies: number;
   spaceLeft: number;
+}
+
+/**
+ * The best-for-diversity mate for a dam: lowest inbreeding and least-used
+ * sire among the options that still pass on nearly as much as the top
+ * choice. Nothing is returned when the top choice is already the widest.
+ */
+function diversityOption(
+  top: { dam: Dog; sire: Dog; preview: PairingPreview },
+  options: { dam: Dog; sire: Dog; preview: PairingPreview }[],
+): PlannedPairing['alternative'] {
+  const rivals = options.filter(
+    (o) => o.dam.id === top.dam.id && o.sire.id !== top.sire.id && o.preview.meanBreedingValue >= top.preview.meanBreedingValue - 10,
+  );
+  if (rivals.length === 0) return undefined;
+  const width = (o: { sire: Dog; preview: PairingPreview }) =>
+    -o.preview.coi * 100 - o.preview.sireInfluence * 30 - Math.min(6, o.sire.littersProduced) + o.preview.diversityGain * 10;
+  const best = rivals.reduce((a, b) => (width(b) > width(a) ? b : a));
+  // Only worth offering if it is clearly wider than the top choice.
+  if (width(best) < width(top) + 1.5) return undefined;
+  const lines = best.preview.sharedAncestorNames.length === 0 ? 'no shared ancestors' : `fewer shared ancestors`;
+  return {
+    sire: best.sire,
+    preview: best.preview,
+    reason: `Best for diversity: inbreeding ${(best.preview.coi * 100).toFixed(1)}% (vs ${(top.preview.coi * 100).toFixed(1)}%), ${lines}, average puppy ${Math.round(best.preview.meanScore)}. Keeps more family lines open for later.`,
+  };
 }
 
 function shiftWords(p: PairingPreview): string {
@@ -104,7 +137,8 @@ export function planGeneration(project: Project): GenerationPlan {
       dam: o.dam,
       sire: o.sire,
       preview: o.preview,
-      reason: `Best mate for ${o.dam.name}: average puppy ${Math.round(o.preview.meanScore)}, passing on ${Math.round(o.preview.meanBreedingValue)}, inbreeding ${(o.preview.coi * 100).toFixed(1)}%, ${shiftWords(o.preview)}.${risky}`,
+      reason: `Best for score: average puppy ${Math.round(o.preview.meanScore)}, passing on ${Math.round(o.preview.meanBreedingValue)}, inbreeding ${(o.preview.coi * 100).toFixed(1)}%, ${shiftWords(o.preview)}.${risky}`,
+      alternative: diversityOption(o, options),
     });
   }
   for (const dam of dams) {
@@ -250,6 +284,7 @@ export type NextAction =
   | { kind: 'advance'; months?: number }
   | { kind: 'outcross'; why: string; carrying?: { locus: string; allele: string } }
   | { kind: 'closeGeneration' }
+  | { kind: 'club'; proposal: ClubProposal }
   | { kind: 'wait' };
 
 export interface NextStep {
@@ -260,6 +295,18 @@ export interface NextStep {
 }
 
 export function nextStep(project: Project): NextStep {
+  // The club is waiting on an answer. Nothing else is blocked by it, but a
+  // standard in limbo makes every other number provisional.
+  const notice = pendingProposal(project);
+  if (notice) {
+    return {
+      title: `The breed club says: ${notice.title.toLowerCase()}`,
+      detail: `${notice.text} Follow the fashion and the standard changes; hold your line and it does not.`,
+      action: { kind: 'club', proposal: notice },
+      buttonLabel: 'Read the notice',
+    };
+  }
+
   const dogs = activeDogs(project);
   const over = kennelCount(project) - project.kennelCapacity;
   // Puppies still needing a decision: never decided and at least eight
@@ -356,11 +403,14 @@ export function nextStep(project: Project): NextStep {
 
   if (plan.pairings.length > 0) {
     const p = plan.pairings[0];
+    // One pairing with no real alternative can be bred from the button; a
+    // choice between sires deserves the plan screen.
+    const direct = plan.pairings.length === 1 && !p.alternative;
     return {
       title: plan.pairings.length === 1 ? `Breed ${p.dam.name} to ${p.sire.name}` : `Breed this season — ${plan.pairings.length} pairings ready`,
-      detail: p.reason,
+      detail: p.alternative && plan.pairings.length === 1 ? `${p.reason} Or ${p.alternative.sire.name}: ${p.alternative.reason.toLowerCase()}` : p.reason,
       action: { kind: 'breed', plan },
-      buttonLabel: plan.pairings.length === 1 ? 'Breed them' : 'See the plan',
+      buttonLabel: direct ? 'Breed them' : plan.pairings.length === 1 ? 'Choose the sire' : 'See the plan',
     };
   }
   if (breeders.length < 3 || snapshot.familyLines <= 1 || snapshot.averageCoi > 0.12) {

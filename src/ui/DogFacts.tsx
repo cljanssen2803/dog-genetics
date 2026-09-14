@@ -35,9 +35,9 @@ import {
   RARITY_OF,
 } from '../engine/phenotype';
 import { LOCI, genopairSymbol } from '../engine/loci';
-import { scoreDog } from '../engine/standard';
+import { GOAL_HIT, scoreDog } from '../engine/standard';
 import type { Project } from '../game/project';
-import { Chip } from './components';
+import { Chip, Pips } from './components';
 
 export interface DogFacts {
   name: string;
@@ -66,6 +66,10 @@ export interface DogFacts {
   score: number;
   producesScore: number;
   meetsStandard: boolean;
+  /** Goals hit, out of how many the standard has, and which (in the standard's order). */
+  goalsHit: number;
+  goalsTotal: number;
+  goalPips: boolean[];
   calm: number;
   trainable: number;
   preyDrive: number;
@@ -141,6 +145,9 @@ export function describeDog(dog: Dog, project: Project): DogFacts {
     score: score.total,
     producesScore: produces.total,
     meetsStandard: score.meetsStandard,
+    goalsHit: score.goalsHit,
+    goalsTotal: score.goalsTotal,
+    goalPips: score.breakdown.map((b) => b.score >= GOAL_HIT),
     calm: calmnessFrom(dog.observed.energy, dog.observed.stability, dog.observed.vocality),
     trainable: Math.round(dog.observed.biddability),
     preyDrive: Math.round(dog.observed.preyDrive),
@@ -207,6 +214,7 @@ export function FactChips({
       <Chip tone={f.score >= 70 ? 'good' : f.score >= 45 ? 'neutral' : 'bad'}>
         {standardName} {f.score}
       </Chip>
+      <Pips hit={f.goalsHit} total={f.goalsTotal} hits={f.goalPips} className="px-1" />
       {f.healthAffected.length > 0 && <Chip tone="bad">{f.healthAffected[0]}</Chip>}
       {f.healthAffected.length === 0 && f.healthCarrier.length > 0 && (
         <Chip tone="warn">
@@ -280,7 +288,7 @@ export function dogDescription(dog: Dog, project: Project, includeGenotype: bool
   lines.push(`Eyes: ${f.eyes}. Nose: ${f.nose}`);
   lines.push(`Build: ${f.build}. Face: ${f.muzzle}`);
   lines.push(
-    `${project.standard.name} score: ${f.score}/100 (likely to produce ${f.producesScore}/100)${
+    `${project.standard.name} score: ${f.score}/100 (likely to produce ${f.producesScore}/100), hits ${f.goalsHit} of ${f.goalsTotal} goals${
       f.meetsStandard ? ' — meets the standard' : ''
     }`,
   );

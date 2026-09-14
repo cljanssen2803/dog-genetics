@@ -325,14 +325,23 @@ export interface DogSpriteProps {
   size?: number;
   className?: string;
   framed?: boolean;
+  /** Eyes shut. Used by the litter reveal before a puppy has been "looked at". */
+  asleep?: boolean;
+  /** Draw the dog as if it were this many months old, whatever the calendar says. */
+  asAge?: number;
 }
 
-export function DogSprite({ dog, size = 120, className = '', framed = true }: DogSpriteProps) {
+export function DogSprite({ dog, size = 120, className = '', framed = true, asleep = false, asAge }: DogSpriteProps) {
   const height = (size * 1086) / 1448;
   // Puppies are drawn at their CURRENT weight, so a litter of newborns is
   // visibly a litter of newborns and a dog grows on screen as the months pass.
   const game = useGameMaybe();
-  const nowLbs = game ? currentWeight(dog, game.project.month) : sizeToPounds(dog.observed.size);
+  const nowLbs =
+    asAge !== undefined
+      ? currentWeight({ ...dog, birthMonth: 0 }, asAge)
+      : game
+        ? currentWeight(dog, game.project.month)
+        : sizeToPounds(dog.observed.size);
   const art = useMemo(() => describe(dog, nowLbs), [dog, nowLbs]);
 
   // Tap the dog and it wags. Purely for the pleasure of it.
@@ -396,7 +405,7 @@ export function DogSprite({ dog, size = 120, className = '', framed = true }: Do
         {/* Eye and nose, in the colours the genes give them. Drawn last and
             unmasked, over the artwork's own dark dots, so a blue eye or a
             liver nose actually shows. */}
-        <Face face={art.face} eye={art.eyeColour} nose={art.noseColour} />
+        <Face face={art.face} eye={art.eyeColour} nose={art.noseColour} asleep={asleep} />
       </div>
     </div>
   );
@@ -407,10 +416,12 @@ function Face({
   face,
   eye,
   nose,
+  asleep = false,
 }: {
   face: { eye: [number, number]; nose: [number, number] };
   eye: string;
   nose: string;
+  asleep?: boolean;
 }) {
   const dot = (cx: number, cy: number, w: number, h: number, fill: string, extra?: React.CSSProperties) => (
     <div
@@ -426,6 +437,17 @@ function Face({
       }}
     />
   );
+  if (asleep) {
+    // A closed eye: a short dark lash line where the eye would be, drawn
+    // over the artwork's own eye dot so the dog is plainly sleeping.
+    return (
+      <>
+        {dot(face.eye[0], face.eye[1] - 0.1, 2.4, 2.4 * 1.333, 'var(--sleep-lid, #d9c9a6)')}
+        {dot(face.eye[0], face.eye[1] + 0.35, 2.2, 0.55 * 1.333, '#1a1512', { borderRadius: '0 0 50% 50%' })}
+        {dot(face.nose[0], face.nose[1], 2.6, 2.6 * 1.1, nose, { boxShadow: '0 0 0 0.5px rgba(0,0,0,0.25)' })}
+      </>
+    );
+  }
   return (
     <>
       {/* Iris, pupil, catchlight. Height is width × canvas aspect so it is round. */}

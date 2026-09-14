@@ -273,6 +273,10 @@ export function AnalyticsTab() {
             value={`${Math.round(snapshot.percentMeetingStandard)}%`}
           />
           <StatRow
+            label="Goals hit (average dog)"
+            value={snapshot.goalsTotal ? `${(snapshot.averageGoalsHit ?? 0).toFixed(1)} of ${snapshot.goalsTotal}` : '—'}
+          />
+          <StatRow
             label="Average inbreeding"
             value={`${(snapshot.averageCoi * 100).toFixed(1)}%`}
             tone={snapshot.averageCoi > 0.1 ? 'bad' : snapshot.averageCoi > 0.06 ? 'warn' : 'good'}

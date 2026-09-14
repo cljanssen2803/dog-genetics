@@ -187,6 +187,57 @@ export function Chip({
 }
 
 /**
+ * Goal pips: one dot per goal in the standard, filled when the dog hits it.
+ * "6 of 9" is a slope the player can watch move; "meets the standard" is a
+ * cliff they fall off for years. Pass `hits` to keep the dots in goal order.
+ */
+export function Pips({
+  hit,
+  total,
+  hits,
+  size = 7,
+  maxWidth,
+  className = '',
+}: {
+  hit: number;
+  total: number;
+  hits?: boolean[];
+  size?: number;
+  /** When the dots would not fit in this many pixels, show just the count. */
+  maxWidth?: number;
+  className?: string;
+}) {
+  if (total === 0) return null;
+  const dots = hits ?? Array.from({ length: total }, (_, i) => i < hit);
+  if (maxWidth !== undefined && total * (size + 3) + 26 > maxWidth) {
+    return (
+      <span className={`text-[10.5px] font-bold text-[var(--text-faint)] tabular-nums ${className}`} title={`${hit} of ${total} goals hit`}>
+        {hit}/{total} goals
+      </span>
+    );
+  }
+  return (
+    <span
+      className={`inline-flex items-center gap-[3px] ${className}`}
+      role="img"
+      aria-label={`${hit} of ${total} goals hit`}
+      title={`${hit} of ${total} goals hit`}
+    >
+      {dots.map((on, i) => (
+        <span
+          key={i}
+          style={{ width: size, height: size }}
+          className={`rounded-full ${on ? 'bg-[#1f8a4f]' : 'bg-[var(--line)]'}`}
+        />
+      ))}
+      <span className="text-[10.5px] font-bold text-[var(--text-faint)] ml-0.5 tabular-nums">
+        {hit}/{total}
+      </span>
+    </span>
+  );
+}
+
+/**
  * A horizontal bar for a 0-100 trait. When a range is supplied the bar shows
  * the uncertain span rather than pretending to know an exact figure.
  */

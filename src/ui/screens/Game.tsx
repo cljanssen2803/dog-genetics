@@ -41,6 +41,9 @@ import { DogPortrait } from '../DogPortrait';
 import { checkMilestones } from '../../game/story';
 import type { Milestone } from '../../game/project';
 import { reputationTier } from '../../game/project';
+import { LitterRevealSheet } from './LitterReveal';
+import { ClubSheet } from './ClubSheet';
+import { type ClubProposal, afterGenerationClosed, pendingProposal } from '../../game/club';
 
 type Tab = 'project' | 'kennel' | 'breed' | 'puppies' | 'pedigree' | 'analytics';
 
@@ -57,6 +60,8 @@ export function Game({ onExit }: { onExit: () => void }) {
   const { project, refresh, say, nerdMode, setNerdMode } = useGame();
   const [tab, setTab] = useState<Tab>('project');
   const [timeReport, setTimeReport] = useState<MonthReport[] | null>(null);
+  /** True when the litters in the time report were already shown in the reveal. */
+  const [birthsRevealed, setBirthsRevealed] = useState(false);
   const [genReport, setGenReport] = useState<GenerationReport | null>(null);
   const [pedigreeFocus, setPedigreeFocus] = useState<Dog | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -68,9 +73,24 @@ export function Game({ onExit }: { onExit: () => void }) {
 
   const [milestones, setMilestones] = useState<Milestone[] | null>(null);
   const [breedIntent, setBreedIntent] = useState<BreedIntent>(null);
+  /** Litters born this turn, shown one at a time before anything else. */
+  const [reveal, setReveal] = useState<string[] | null>(null);
+  const [clubNotice, setClubNotice] = useState<ClubProposal | null>(null);
+  /** A club notice that arrived with the generation report, shown after it. */
+  const [clubQueued, setClubQueued] = useState<ClubProposal | null>(null);
 
   const afterTime = (reports: MonthReport[]) => {
-    setTimeReport(reports);
+    const born = reports.flatMap((r) => r.births.map((b) => b.litterId));
+    const otherNews = reports.some((r) => r.deaths.length > 0 || r.mutations.length > 0) || (reports[reports.length - 1]?.warnings.length ?? 0) > 0;
+    // New puppies get their reveal first; the month's other news waits behind it.
+    if (born.length > 0) {
+      setReveal(born);
+      setTimeReport(otherNews ? reports : null);
+      setBirthsRevealed(true);
+    } else {
+      setTimeReport(reports);
+      setBirthsRevealed(false);
+    }
     const fresh = checkMilestones(project);
     if (fresh.length > 0) setMilestones(fresh);
     refresh();
@@ -98,6 +118,10 @@ export function Game({ onExit }: { onExit: () => void }) {
   const closeGeneration = () => {
     const report = buildGenerationReport(project);
     recordGeneration(project);
+    // Every few generations the breed club has something to say.
+    const { proposal, vindication } = afterGenerationClosed(project);
+    if (vindication) say(vindication);
+    if (proposal) setClubQueued(proposal);
     setGenReport(report);
     refresh();
   };
@@ -151,6 +175,7 @@ export function Game({ onExit }: { onExit: () => void }) {
               onShows={() => setShowsOpen(true)}
               onExpert={() => setExpertOpen(true)}
               onBreedBook={() => setBreedBookOpen(true)}
+              onClub={(p) => setClubNotice(p)}
             />
           )}
           {tab === 'kennel' && <KennelTab onShowPedigree={showPedigree} />}
@@ -244,10 +269,29 @@ export function Game({ onExit }: { onExit: () => void }) {
       {showsOpen && <ShowSheet onClose={() => setShowsOpen(false)} />}
       {expertOpen && <ExpertSheet onClose={() => setExpertOpen(false)} />}
 
-      {timeReport && <TimeSheet reports={timeReport} onClose={() => setTimeReport(null)} />}
-      {!timeReport && milestones && <MilestoneSheet milestones={milestones} onClose={() => setMilestones(null)} />}
+      {reveal && (
+        <LitterRevealSheet
+          litterIds={reveal}
+          onDone={() => setReveal(null)}
+          onGoPuppies={() => setTab('puppies')}
+        />
+      )}
+      {!reveal && timeReport && <TimeSheet reports={timeReport} birthsRevealed={birthsRevealed} onClose={() => setTimeReport(null)} />}
+      {!reveal && !timeReport && milestones && <MilestoneSheet milestones={milestones} onClose={() => setMilestones(null)} />}
       {breedBookOpen && <BreedBookSheet onClose={() => setBreedBookOpen(false)} />}
-      {genReport && <GenerationReportSheet report={genReport} onClose={() => setGenReport(null)} />}
+      {genReport && (
+        <GenerationReportSheet
+          report={genReport}
+          onClose={() => {
+            setGenReport(null);
+            if (clubQueued) {
+              setClubNotice(clubQueued);
+              setClubQueued(null);
+            }
+          }}
+        />
+      )}
+      {clubNotice && <ClubSheet proposal={clubNotice} onClose={() => setClubNotice(null)} />}
 
       <Sheet open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Settings">
         <Card className="mb-3">
@@ -333,6 +377,7 @@ function ProjectTab({
   onShows,
   onExpert,
   onBreedBook,
+  onClub,
 }: {
   onGoTab: (tab: Tab, intent?: BreedIntent) => void;
   onCloseGeneration: () => void;
@@ -342,6 +387,7 @@ function ProjectTab({
   onShows: () => void;
   onExpert: () => void;
   onBreedBook: () => void;
+  onClub: (proposal: ClubProposal) => void;
 }) {
   const { project, refresh, say } = useGame();
   const difficulty = useMemo(() => assessDifficulty(project.standard), [project.standard]);
@@ -356,9 +402,10 @@ function ProjectTab({
       else onAdvanceToEvent();
     } else if (a.kind === 'wait') onAdvanceToEvent();
     else if (a.kind === 'closeGeneration') onCloseGeneration();
+    else if (a.kind === 'club') onClub(a.proposal);
     else if (a.kind === 'outcross') onGoTab('breed', a.carrying ? { outside: a.carrying } : 'outside');
     else if (a.kind === 'breed') {
-      if (a.plan.pairings.length === 1) {
+      if (a.plan.pairings.length === 1 && !a.plan.pairings[0].alternative) {
         const p = a.plan.pairings[0];
         const r = breedPair(project, p.sire.id, p.dam.id);
         say(r.message);
@@ -414,6 +461,28 @@ function ProjectTab({
           Open the breed book
         </Button>
       </Section>
+
+      {(project.club?.proposals.length ?? 0) > 0 && (
+        <Section title="Breed club" subtitle="Fashions come and go. What you did about them.">
+          <Card>
+            {project.club!.proposals
+              .slice()
+              .reverse()
+              .slice(0, 4)
+              .map((p) => (
+                <button key={p.id} onClick={() => onClub(p)} className="w-full text-left flex items-center gap-2 py-1.5 border-b border-[var(--line)] last:border-0">
+                  <span className="flex-1 text-[13px] leading-snug">{p.title}</span>
+                  <Chip tone={p.status === 'pending' ? 'warn' : p.status === 'followed' ? 'info' : p.vindicated ? 'good' : 'neutral'}>
+                    {p.status === 'pending' ? 'waiting' : p.status === 'followed' ? 'followed' : p.vindicated ? 'proved right' : 'held out'}
+                  </Chip>
+                </button>
+              ))}
+            {pendingProposal(project) && (
+              <p className="text-[11.5px] text-[var(--text-faint)] mt-2">A notice is waiting for your answer.</p>
+            )}
+          </Card>
+        </Section>
+      )}
 
       <Section title="Time">
         <Card>
@@ -661,9 +730,10 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
 // Reports
 // ---------------------------------------------------------------------------
 
-function TimeSheet({ reports, onClose }: { reports: MonthReport[]; onClose: () => void }) {
+function TimeSheet({ reports, birthsRevealed = false, onClose }: { reports: MonthReport[]; birthsRevealed?: boolean; onClose: () => void }) {
   const { project } = useGame();
-  const births = reports.flatMap((r) => r.births);
+  // Litters already met in the reveal are not news any more.
+  const births = birthsRevealed ? [] : reports.flatMap((r) => r.births);
   const deaths = reports.flatMap((r) => r.deaths);
   const warnings = reports[reports.length - 1]?.warnings ?? [];
   const mutations = reports.flatMap((r) => r.mutations);
@@ -805,6 +875,9 @@ function GenerationReportSheet({
       <Section title="Snapshot">
         <Card>
           <StatRow label="Breeding adults" value={report.snapshot.populationSize} />
+          {report.snapshot.goalsTotal ? (
+            <StatRow label="Goals hit (average dog)" value={`${(report.snapshot.averageGoalsHit ?? 0).toFixed(1)} of ${report.snapshot.goalsTotal}`} />
+          ) : null}
           <StatRow label="Meeting standard" value={`${Math.round(report.snapshot.percentMeetingStandard)}%`} />
           <StatRow label="Average inbreeding" value={`${(report.snapshot.averageCoi * 100).toFixed(1)}%`} />
           <StatRow label="Family lines" value={report.snapshot.familyLines} />

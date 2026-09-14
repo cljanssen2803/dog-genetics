@@ -21,6 +21,7 @@ import {
   takeSnapshot,
 } from '../src/game/project';
 import { nextStep, planGeneration, triageLitter } from '../src/game/assist';
+import { afterGenerationClosed, answerClub } from '../src/game/club';
 import { HEARTHDOG, MOUSIE, designerCrossStandard, purebredStandard, scoreDog } from '../src/engine/standard';
 import { BREED_BY_KEY } from '../src/engine/breeds';
 import { ageMonths } from '../src/engine/dog';
@@ -91,6 +92,14 @@ function play(project: Project, years = 20) {
       }
     } else if (a.kind === 'closeGeneration') {
       recordGeneration(project);
+      const { proposal } = afterGenerationClosed(project);
+      if (proposal) notes.push(`club: ${proposal.title}`);
+    } else if (a.kind === 'club') {
+      // The bot follows a fault-made-virtue (it is free) and resists real
+      // fashions, so its scores stay comparable across a run.
+      const follow = a.proposal.flavour === 'virtue';
+      answerClub(project, a.proposal, follow);
+      notes.push(follow ? 'followed club' : 'held the line');
     }
 
     if (project.generation !== lastGen) {

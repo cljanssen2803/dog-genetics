@@ -44,6 +44,7 @@ import { LOCUS_BY_KEY } from '../engine/loci';
 import { quirkText, visibleQuirks } from '../engine/quirks';
 import { findRarities, resolveCoat, resolveColor } from '../engine/phenotype';
 import type { Sex } from '../engine/names';
+import type { ClubState } from './club';
 
 /**
  * Kennel capacity is the main source of pressure in the game, but twelve
@@ -94,6 +95,9 @@ export interface GenerationSnapshot {
   month: number;
   averageScore: number;
   percentMeetingStandard: number;
+  /** Average goals hit per breeding adult, and how many goals the standard has. */
+  averageGoalsHit?: number;
+  goalsTotal?: number;
   averageCoi: number;
   effectiveFounders: number;
   familyLines: number;
@@ -132,6 +136,8 @@ export interface Project {
   founderBreeds?: string[];
   /** Moments worth remembering, in order. */
   milestones?: Milestone[];
+  /** The breed club and its fashions. See club.ts. */
+  club?: ClubState;
 
   kennelCapacity: number;
   /** Kept only so older saves still load. Health information is always known. */
@@ -963,6 +969,56 @@ export function adoptOutsideDog(project: Project, dog: Dog): string {
   return `${adopted.name} has joined your kennel.`;
 }
 
+/**
+ * A dog from one of the player's OTHER projects, brought across as an
+ * outcross. It arrives as a copy — the original stays where it is, still part
+ * of that kennel's story — with its genes intact and its pedigree left
+ * behind, so here it counts as an unrelated founder.
+ *
+ * `dog.birthMonth` must already be on THIS project's calendar (the screen
+ * that offers the dog converts it), so the dog is the age it was over there.
+ */
+export function transferDog(project: Project, dog: Dog, fromKennel: string): string {
+  if (kennelCount(project) >= project.kennelCapacity) {
+    return `Your kennel is full (${project.kennelCapacity} dogs). Place a dog first.`;
+  }
+  const rng = rngFor(project);
+  // Keep the name unless it is already in use here.
+  const name = project.names.used.includes(dog.name.trim().toLowerCase()) ? pickName(project.names, dog.sex, rng) : dog.name;
+  registerName(project.names, name);
+  const copy: Dog = {
+    ...structuredClone(dog),
+    id: makeDogId(),
+    name,
+    sireId: undefined,
+    damId: undefined,
+    litterId: undefined,
+    generation: 0,
+    status: 'kennel',
+    placement: undefined,
+    retention: undefined,
+    littersProduced: 0,
+    offspringIds: [],
+    rarities: [],
+    titles: [],
+    showPoints: 0,
+    favourite: false,
+    breedingRetired: false,
+    deathMonth: undefined,
+    deathCause: undefined,
+    seedValue: rng.int(1, 2_000_000_000),
+    events: [],
+    breedLabel: dog.breedLabel,
+  };
+  commitRng(project, rng);
+  project.dogs[copy.id] = copy;
+  remember(copy, project.month, 'arrived', `Came over from the ${fromKennel} kennel — a ${copy.breedLabel.toLowerCase()} of ${formatAge(ageMonths(copy, project.month))} — as an outcross.`);
+  recordRarities(project, copy);
+  addLog(project, 'decision', `${copy.name} (${copy.breedLabel}) came over from ${fromKennel} as an outcross.`);
+  project.updatedAt = Date.now();
+  return `${copy.name} has come over from ${fromKennel}.`;
+}
+
 // ---------------------------------------------------------------------------
 // Snapshots for the analytics screen
 // ---------------------------------------------------------------------------
@@ -979,6 +1035,8 @@ export function takeSnapshot(project: Project): GenerationSnapshot {
     ? scores.reduce((s, x) => s + x.total, 0) / scores.length
     : 0;
   const meeting = scores.filter((s) => s.meetsStandard).length;
+  const averageGoalsHit = scores.length ? scores.reduce((s, x) => s + x.goalsHit, 0) / scores.length : 0;
+  const goalsTotal = scores.length ? Math.max(...scores.map((s) => s.goalsTotal)) : 0;
 
   const traitAverages: Partial<Record<PolyTrait, number>> = {};
   for (const trait of ALL_TRAITS) {
@@ -1016,6 +1074,8 @@ export function takeSnapshot(project: Project): GenerationSnapshot {
     month: project.month,
     averageScore,
     percentMeetingStandard: population.length ? (meeting / population.length) * 100 : 0,
+    averageGoalsHit,
+    goalsTotal,
     averageCoi: averageCoi(population),
     effectiveFounders: effectiveFounders(population, lookup),
     familyLines: countFamilyLines(population, kinship),

@@ -131,6 +131,14 @@ export interface DogScore {
   total: number;
   /** True when the dog satisfies every goal the player marked High or above. */
   meetsStandard: boolean;
+  /**
+   * How many of the standard's goals this dog hits, out of how many there
+   * are. "Meets the standard" is a cliff — a dog either clears every High
+   * goal or it does not — and a project can sit at 0% for years while it
+   * quietly improves. Six of nine is a slope you can watch.
+   */
+  goalsHit: number;
+  goalsTotal: number;
   breakdown: ScoreBreakdown[];
   /** Goals this dog fails, worst first. Used for "likely weaknesses". */
   weaknesses: ScoreBreakdown[];
@@ -174,6 +182,9 @@ export function colourGenesFor(text: string): { locus: string; allele: string; l
   return out;
 }
 
+/** The per-goal score at which a goal is counted as hit for the pips. */
+export const GOAL_HIT = 0.7;
+
 export function scoreDog(
   dog: Dog,
   standard: BreedStandard,
@@ -186,7 +197,7 @@ export function scoreDog(
   // is the whole point of it.
   if (dog.genotype.rainbow && dog.genotype.rainbow[0] === 'Rb' && dog.genotype.rainbow[1] === 'Rb') {
     const perfect: ScoreBreakdown = { key: 'rainbow', label: 'Sparkling rainbow', actual: 'Perfect, by definition', score: 1, priority: 4, weight: 7 };
-    return { total: 100, meetsStandard: true, breakdown: [perfect], weaknesses: [], strengths: [perfect], healthPenalty: 0, healthNotes: [] };
+    return { total: 100, meetsStandard: true, goalsHit: 1, goalsTotal: 1, breakdown: [perfect], weaknesses: [], strengths: [perfect], healthPenalty: 0, healthNotes: [] };
   }
   let weightedSum = 0;
   let weightTotal = 0;
@@ -391,9 +402,15 @@ export function scoreDog(
 
   const sorted = breakdown.slice().sort((a, b) => a.score * a.weight - b.score * b.weight);
 
+  // A goal counts as hit when the dog is inside, or right at the edge of,
+  // the preferred range — a categorical goal is simply hit or missed.
+  const goalsHit = breakdown.filter((b) => b.score >= GOAL_HIT).length;
+
   return {
     total: Math.round(total),
     meetsStandard: meets && healthPenalty < 8,
+    goalsHit,
+    goalsTotal: breakdown.length,
     breakdown,
     weaknesses: sorted.filter((b) => b.score < 0.7).slice(0, 4),
     strengths: sorted

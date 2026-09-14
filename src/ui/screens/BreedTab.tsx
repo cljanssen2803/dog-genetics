@@ -6,10 +6,12 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, Chip, Empty, Explain, Section, Segmented, Sheet, StatRow } from '../components';
+import { Button, Card, Chip, Empty, Explain, Pips, Section, Segmented, Sheet, StatRow } from '../components';
 import { DogPortrait } from '../DogPortrait';
 import { useGame } from '../GameContext';
-import { type Dog, breedingEligibility } from '../../engine/dog';
+import { type Dog, ageMonths, breedingEligibility } from '../../engine/dog';
+import { scoreDog } from '../../engine/standard';
+import { loadIndex, loadProject } from '../../game/storage';
 import { type PolyTrait, TRAITS } from '../../engine/traits';
 import {
   type OutsideSearch,
@@ -18,6 +20,7 @@ import {
   breedPair,
   kennelCount,
   searchOutsideDogs,
+  transferDog,
 } from '../../game/project';
 import { type MatchVerdict, type PairingPreview, previewPairing, rankMates } from '../../game/matchmaking';
 import { goalGaps, populationWarnings } from '../../game/analytics';
@@ -206,12 +209,12 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
         </>
       )}
 
+      <OutsideSheet open={outsideOpen} onClose={() => setOutsideOpen(false)} presetCarrying={outsideCarrying} />
+      <PlanSheet open={planOpen} onClose={() => setPlanOpen(false)} onPreview={(p) => setPreview(p)} />
+      {/* Last, so a preview opened from the plan sits on top of it. */}
       {preview && (
         <PairingSheet preview={preview} onClose={() => setPreview(null)} onBreed={() => doBreed(preview)} />
       )}
-
-      <OutsideSheet open={outsideOpen} onClose={() => setOutsideOpen(false)} presetCarrying={outsideCarrying} />
-      <PlanSheet open={planOpen} onClose={() => setPlanOpen(false)} onPreview={(p) => setPreview(p)} />
     </div>
   );
 }
@@ -333,6 +336,15 @@ function PairingSheet({
         <p className="text-[13px] leading-relaxed">{preview.verdictReason}</p>
       </div>
 
+      {preview.sample.length > 0 && (
+        <Section title="A likely litter" subtitle="Six puppies from the simulation, drawn grown up. Every litter is a fresh roll of the dice; this is the shape of it.">
+          <SampleLitter sample={preview.sample} size={104} cols={3} />
+          <p className="text-[12px] text-[var(--text-faint)] mt-2 px-1">
+            On average a puppy from this pairing hits {preview.meanGoalsHit.toFixed(1)} of {preview.goalsTotal} goals.
+          </p>
+        </Section>
+      )}
+
       {showWhy && (
         <div className="card p-3 mb-4 border-[var(--brand)]">
           <div className="text-[13px] font-semibold mb-2">Why this match?</div>
@@ -377,6 +389,7 @@ function PairingSheet({
             value={`${preview.standardLow}–${preview.standardHigh}%`}
           />
           <StatRow label="Average puppy score" value={Math.round(preview.meanScore)} />
+          <StatRow label="Goals hit (average puppy)" value={`${preview.meanGoalsHit.toFixed(1)} of ${preview.goalsTotal}`} />
           <StatRow label="Best puppy seen in simulation" value={Math.round(preview.bestScore)} />
         </div>
       </Section>
@@ -469,6 +482,8 @@ function PairingSheet({
 function PlanSheet({ open, onClose, onPreview }: { open: boolean; onClose: () => void; onPreview: (p: PairingPreview) => void }) {
   const { project, refresh, say } = useGame();
   const [skippedIds, setSkippedIds] = useState<string[]>([]);
+  /** Which option the player picked for each dam: the best-for-score sire, or the alternative. */
+  const [picked, setPicked] = useState<Record<string, 'score' | 'diversity'>>({});
   const plan: GenerationPlan | null = useMemo(
     () => (open ? planGeneration(project) : null),
     // Recomputed whenever the kennel changes underneath it.
@@ -477,6 +492,9 @@ function PlanSheet({ open, onClose, onPreview }: { open: boolean; onClose: () =>
 
   if (!open || !plan) return null;
   const pairings = plan.pairings.filter((p) => !skippedIds.includes(p.dam.id));
+  /** The sire and preview the player has chosen for a dam. */
+  const chosen = (p: (typeof pairings)[number]) =>
+    picked[p.dam.id] === 'diversity' && p.alternative ? { sire: p.alternative.sire, preview: p.alternative.preview } : { sire: p.sire, preview: p.preview };
 
   const accept = (damId: string, sireId: string, name: string) => {
     const result = breedPair(project, sireId, damId);
@@ -487,7 +505,7 @@ function PlanSheet({ open, onClose, onPreview }: { open: boolean; onClose: () =>
   const acceptAll = () => {
     let n = 0;
     for (const p of pairings) {
-      const r = breedPair(project, p.sire.id, p.dam.id);
+      const r = breedPair(project, chosen(p).sire.id, p.dam.id);
       if (r.success) n += 1;
     }
     say(`${n} pairing${n === 1 ? '' : 's'} made. Puppies in two months.`);
@@ -518,35 +536,65 @@ function PlanSheet({ open, onClose, onPreview }: { open: boolean; onClose: () =>
           Nothing to pair right now. {plan.skipped.length > 0 ? plan.skipped[0].why.charAt(0).toUpperCase() + plan.skipped[0].why.slice(1) + '.' : 'Advance time until someone is ready.'}
         </Empty>
       )}
-      {pairings.map((p) => (
-        <Card key={p.dam.id} className="mb-3">
-          <div className="flex items-center gap-2 mb-2">
-            <DogPortrait dog={p.dam} size={72} />
-            <span className="display text-[16px] text-[var(--text-faint)]">×</span>
-            <DogPortrait dog={p.sire} size={72} />
-            <div className="flex-1 min-w-0">
-              <div className="display text-[15px] leading-tight">
-                {p.dam.name} × {p.sire.name}
+      {pairings.map((p) => {
+        const pick = picked[p.dam.id] ?? 'score';
+        const current = chosen(p);
+        const options: { key: 'score' | 'diversity'; sire: Dog; preview: PairingPreview; reason: string; label: string }[] = [
+          { key: 'score', sire: p.sire, preview: p.preview, reason: p.reason, label: 'Best for score' },
+        ];
+        if (p.alternative) options.push({ key: 'diversity', sire: p.alternative.sire, preview: p.alternative.preview, reason: p.alternative.reason, label: 'Best for diversity' });
+        return (
+          <Card key={p.dam.id} className="mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <DogPortrait dog={p.dam} size={64} />
+              <div className="flex-1 min-w-0">
+                <div className="display text-[15px] leading-tight">{p.dam.name}</div>
+                <div className="text-[11.5px] text-[var(--text-faint)]">
+                  {options.length > 1 ? 'Two good sires. Your call.' : 'One clear choice.'}
+                </div>
               </div>
-              <Chip tone={VERDICT_TONE[p.preview.verdict]} className="mt-1">
-                {p.preview.verdict}
-              </Chip>
             </div>
-          </div>
-          <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">{p.reason}</p>
-          <div className="flex gap-2">
-            <Button small tone="secondary" onClick={() => onPreview(p.preview)}>
-              Details
-            </Button>
-            <Button small tone="secondary" onClick={() => setSkippedIds((s) => [...s, p.dam.id])}>
-              Skip
-            </Button>
-            <Button small full onClick={() => accept(p.dam.id, p.sire.id, `${p.dam.name} × ${p.sire.name}`)}>
-              Breed this pair
-            </Button>
-          </div>
-        </Card>
-      ))}
+            {options.map((o) => {
+              const on = pick === o.key;
+              return (
+                <button
+                  key={o.key}
+                  onClick={() => setPicked((s) => ({ ...s, [p.dam.id]: o.key }))}
+                  className={`w-full text-left rounded-2xl border-2 p-2 mb-2 ${on ? 'border-[var(--brand)] bg-[var(--bg-2)]' : 'border-[var(--line)]'}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <DogPortrait dog={o.sire} size={56} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="display text-[14px] leading-tight">{o.sire.name}</span>
+                        <Chip tone={o.key === 'score' ? 'good' : 'info'}>{o.label}</Chip>
+                        {options.length > 1 && <Chip tone={VERDICT_TONE[o.preview.verdict]}>{o.preview.verdict}</Chip>}
+                      </div>
+                      <p className="text-[12px] text-[var(--text-soft)] leading-snug mt-0.5">{o.reason.replace(/^Best for (score|diversity): /, '')}</p>
+                    </div>
+                  </div>
+                  {on && o.preview.sample.length > 0 && (
+                    <div className="mt-2">
+                      <SampleLitter sample={o.preview.sample.slice(0, 4)} size={64} cols={4} compact />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+            <div className="flex gap-2">
+              <Button small tone="secondary" onClick={() => onPreview(current.preview)}>
+                Details
+              </Button>
+              <Button small tone="secondary" onClick={() => setSkippedIds((s) => [...s, p.dam.id])}>
+                Skip
+              </Button>
+              <Button small full onClick={() => accept(p.dam.id, current.sire.id, `${p.dam.name} × ${current.sire.name}`)}>
+                Breed with {current.sire.name}
+              </Button>
+            </div>
+          </Card>
+        );
+      })}
       {plan.skipped.length > 0 && (
         <div className="text-[12px] text-[var(--text-faint)] leading-relaxed mt-1">
           Left out: {plan.skipped.map((s) => `${s.dog.name} (${s.why})`).join('; ')}.
@@ -593,8 +641,30 @@ function OutsideSheet({
   presetCarrying?: { locus: string; allele: string } | null;
 }) {
   const { project, refresh, say } = useGame();
-  const [mode, setMode] = useState<'breed' | 'traits' | 'random'>('breed');
+  const [mode, setMode] = useState<'breed' | 'traits' | 'random' | 'mine'>('breed');
   const [breedKey, setBreedKey] = useState(project.founderBreeds?.[0] ?? 'miniSchnauzer');
+  const [mine, setMine] = useState<{ kennel: string; dog: Dog }[] | 'loading' | null>(null);
+  // The player's other saved projects, read from the phone when asked for.
+  const loadMine = () => {
+    if (mine !== null) return;
+    setMine('loading');
+    void (async () => {
+      const found: { kennel: string; dog: Dog }[] = [];
+      for (const summary of await loadIndex()) {
+        if (summary.id === project.id) continue;
+        const other = await loadProject(summary.id);
+        if (!other) continue;
+        for (const d of Object.values(other.dogs)) {
+          if (d.status !== 'kennel' || d.breedingRetired) continue;
+          const age = ageMonths(d, other.month);
+          if (age < 12 || age > 84) continue;
+          // Put the dog on THIS project's calendar so it stays the same age.
+          found.push({ kennel: other.name, dog: { ...d, birthMonth: project.month - age } });
+        }
+      }
+      setMine(found);
+    })();
+  };
   const [carrying, setCarrying] = useState<{ locus: string; allele: string } | null>(presetCarrying ?? null);
   useEffect(() => {
     if (presetCarrying) setCarrying(presetCarrying);
@@ -645,11 +715,15 @@ function OutsideSheet({
 
       <Segmented
         value={mode}
-        onChange={setMode}
+        onChange={(m) => {
+          setMode(m);
+          if (m === 'mine') loadMine();
+        }}
         options={[
           { value: 'breed', label: 'By breed' },
           { value: 'traits', label: 'By traits' },
           { value: 'random', label: 'Random' },
+          { value: 'mine', label: 'My kennels' },
         ]}
       />
 
@@ -729,11 +803,51 @@ function OutsideSheet({
             </p>
           </Card>
         )}
+
+        {mode === 'mine' && (
+          <Card>
+            <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">
+              A dog from one of your <strong>other projects</strong>. The Poodle you perfected over
+              there can be the outcross you need here. The dog comes over as a copy — it stays in
+              its own kennel too — with its genes intact and its pedigree left behind, so here it
+              counts as unrelated.
+            </p>
+          </Card>
+        )}
       </div>
 
-      <Button full onClick={runSearch} className="mb-4">
-        Search
-      </Button>
+      {mode !== 'mine' && (
+        <Button full onClick={runSearch} className="mb-4">
+          Search
+        </Button>
+      )}
+
+      {mode === 'mine' && (
+        <div className="mb-4">
+          {mine === 'loading' || mine === null ? (
+            <Empty>Looking through your other kennels…</Empty>
+          ) : mine.length === 0 ? (
+            <Empty>No grown dogs in your other projects yet. Start another breed, raise a few adults, and they will appear here.</Empty>
+          ) : (
+            mine
+              .slice()
+              .sort((a, b) => scoreDog(b.dog, project.standard, true).total - scoreDog(a.dog, project.standard, true).total)
+              .map((m) => (
+                <MineCard
+                  key={`${m.kennel}:${m.dog.id}`}
+                  kennel={m.kennel}
+                  dog={m.dog}
+                  disabled={full}
+                  onBring={() => {
+                    say(transferDog(project, m.dog, m.kennel));
+                    setMine((list) => (Array.isArray(list) ? list.filter((x) => x.dog.id !== m.dog.id) : list));
+                    refresh();
+                  }}
+                />
+              ))
+          )}
+        </div>
+      )}
 
       {full && (
         <div className="card p-3 mb-3 border-rust/40 text-[12.5px] text-[var(--text-soft)]">
@@ -771,6 +885,54 @@ function OutsideSheet({
 interface Candidate {
   dog: Dog;
   best: PairingPreview | null;
+}
+
+/** A row of simulated puppies, drawn grown, each with its goal pips. */
+function SampleLitter({ sample, size, cols, compact = false }: { sample: Dog[]; size: number; cols: number; compact?: boolean }) {
+  const { project } = useGame();
+  return (
+    <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+      {sample.map((pup) => {
+        const s = scoreDog(pup, project.standard);
+        return (
+          <div key={pup.id} className="flex flex-col items-center min-w-0">
+            <DogPortrait dog={pup} size={size} />
+            {compact ? (
+              <Pips hit={s.goalsHit} total={s.goalsTotal} hits={s.breakdown.map((b) => b.score >= 0.7)} size={5} maxWidth={size} className="mt-1" />
+            ) : (
+              <>
+                <div className="text-[10.5px] text-[var(--text-faint)] mt-1 truncate max-w-full">{pup.sex === 'F' ? '♀' : '♂'} {s.total}</div>
+                <Pips hit={s.goalsHit} total={s.goalsTotal} hits={s.breakdown.map((b) => b.score >= 0.7)} size={5} maxWidth={size} />
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** A dog from one of the player's other projects, offered as an outcross. */
+function MineCard({ kennel, dog, disabled, onBring }: { kennel: string; dog: Dog; disabled: boolean; onBring: () => void }) {
+  const { project } = useGame();
+  const f = describeDog(dog, project);
+  return (
+    <Card className="mb-2">
+      <div className="flex gap-3">
+        <DogPortrait dog={dog} size={84} />
+        <div className="flex-1 min-w-0">
+          <NameLine f={f} />
+          <div className="text-[11.5px] text-clay font-semibold">From {kennel}</div>
+          <FactLine f={f} />
+          <LookLine f={f} />
+          <FactChips f={f} standardName={project.standard.name} />
+        </div>
+      </div>
+      <Button small full className="mt-2" onClick={onBring} disabled={disabled}>
+        Bring {dog.name} over
+      </Button>
+    </Card>
+  );
 }
 
 /**

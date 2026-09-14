@@ -61,6 +61,15 @@ export interface PairingPreview {
   /** Percentage of simulated puppies that met the standard. */
   standardLow: number;
   standardHigh: number;
+  /** Average goals hit by the simulated puppies, out of how many the standard has. */
+  meanGoalsHit: number;
+  goalsTotal: number;
+  /**
+   * A handful of the simulated puppies, drawn as grown dogs, so the player
+   * can SEE a likely litter instead of reading its averages. The same six
+   * every time this pairing is previewed.
+   */
+  sample: Dog[];
 
   improvements: TraitShift[];
   weaknesses: TraitShift[];
@@ -140,6 +149,15 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
     ? simulated.reduce((s, d) => s + scoreDog(d, project.standard, true).total, 0) / simulated.length
     : 0;
   const bestScore = scores.length ? Math.max(...scores.map((s) => s.total)) : 0;
+  const meanGoalsHit = scores.length ? scores.reduce((s, x) => s + x.goalsHit, 0) / scores.length : 0;
+  const goalsTotal = scores.length ? Math.max(...scores.map((s) => s.goalsTotal)) : 0;
+  // Six puppies spread evenly through the simulation, aged up so they are
+  // drawn as the adults they would become.
+  const sample: Dog[] = [];
+  const stride = Math.max(1, Math.floor(simulated.length / 6));
+  for (let i = 0; i < simulated.length && sample.length < 6; i += stride) {
+    sample.push({ ...simulated[i], birthMonth: project.month - 30, name: `Puppy ${sample.length + 1}` });
+  }
   const meetingRate = scores.length ? scores.filter((s) => s.meetsStandard).length / scores.length : 0;
 
   // Report the pass rate as a range, because a single percentage would be
@@ -354,6 +372,9 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
     meanBreedingValue,
     standardLow,
     standardHigh,
+    meanGoalsHit,
+    goalsTotal,
+    sample,
     improvements,
     weaknesses,
     diseases,
