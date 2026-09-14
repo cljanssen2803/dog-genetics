@@ -52,7 +52,7 @@ import type { Sex } from '../engine/names';
  * puppy without immediately giving up an adult, while still making "which two
  * do I keep?" a real question.
  */
-export const DEFAULT_KENNEL_CAPACITY = 14;
+export const DEFAULT_KENNEL_CAPACITY = 18;
 
 export interface Litter {
   id: string;
@@ -426,6 +426,8 @@ export interface MonthReport {
 }
 
 /** A short note from a dog's new home, coloured by where it went and who it is. */
+const POSTCARDS_ON = false;
+
 function postcardFrom(rng: Rng, dog: Dog, month: number): string {
   const he = dog.sex === 'M' ? 'he' : 'she';
   const He = dog.sex === 'M' ? 'He' : 'She';
@@ -635,12 +637,16 @@ export function advanceMonth(project: Project): MonthReport {
   // --- Postcards -----------------------------------------------------------
   // Dogs in pet homes occasionally write. Nothing to do, nothing to answer —
   // just news that the dog you placed is having a good life.
-  for (const dog of Object.values(project.dogs)) {
-    if (dog.status !== 'placed' || !dog.placement) continue;
-    if (!rng.chance(0.025)) continue;
-    const note = postcardFrom(rng, dog, project.month);
-    remember(dog, project.month, 'postcard', note);
-    report.postcards.push({ name: dog.name, text: note });
+  // (Switched off: players found the news from placed dogs more noise than
+  // charm. The machinery stays so it can be turned back on.)
+  if (POSTCARDS_ON) {
+    for (const dog of Object.values(project.dogs)) {
+      if (dog.status !== 'placed' || !dog.placement) continue;
+      if (!rng.chance(0.025)) continue;
+      const note = postcardFrom(rng, dog, project.month);
+      remember(dog, project.month, 'postcard', note);
+      report.postcards.push({ name: dog.name, text: note });
+    }
   }
 
   // --- Warnings ------------------------------------------------------------
@@ -962,7 +968,9 @@ export function adoptOutsideDog(project: Project, dog: Dog): string {
 // ---------------------------------------------------------------------------
 
 export function takeSnapshot(project: Project): GenerationSnapshot {
-  const population = activeDogs(project).filter((d) => ageMonths(d, project.month) >= 12);
+  // Adults that could still be bred from. Retired seniors are family, but
+  // they are not the breed's future, so they do not drag the average.
+  const population = activeDogs(project).filter((d) => ageMonths(d, project.month) >= 12 && !d.breedingRetired);
   const kinship = kinshipFor(project);
   const lookup = lookupDog(project);
 

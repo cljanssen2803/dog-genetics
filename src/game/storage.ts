@@ -144,6 +144,8 @@ function migrate(project: Project): Project {
   project.lastLitter ??= {};
   project.testCredits ??= 6;
   project.kennelCapacity ??= 12;
+  // The default grew from 14 to 18 once it was clear 14 throttled a season to one litter.
+  if (project.kennelCapacity === 14) project.kennelCapacity = 18;
   project.nerdMode ??= false;
   project.tutorialSeen ??= false;
   // Saves written before dogs carried their own quirk number.

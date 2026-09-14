@@ -163,7 +163,9 @@ export function triageLitter(project: Project, litter: Litter): PuppyAdvice[] {
   const adultAverage = breedingPopulation(project).length
     ? breedingPopulation(project).reduce((s, d) => s + scoreDog(d, project.standard, true).total, 0) / breedingPopulation(project).length
     : 50;
-  const keepBudget = Math.max(1, Math.min(2, puppies.length, space + puppies.length));
+  // Two from a good litter as a floor, more when the kennel has room to
+  // raise them: one extra keeper for every four free spaces.
+  const keepBudget = Math.max(1, Math.min(2 + Math.floor(Math.max(0, space) / 4), puppies.length, space + puppies.length));
 
   const advice: PuppyAdvice[] = [];
   let kept = 0;

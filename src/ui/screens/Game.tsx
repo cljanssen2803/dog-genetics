@@ -89,6 +89,8 @@ export function Game({ onExit }: { onExit: () => void }) {
       const report = advanceMonth(project);
       reports.push(report);
       if (report.births.length > 0 || report.deaths.length > 0) break;
+      // A litter reaching eight weeks is an event too: they can be judged now.
+      if (activeDogs(project).some((d) => d.litterId && !d.retention && ageMonths(d, project.month) === 2)) break;
     }
     afterTime(reports);
   };
@@ -159,18 +161,6 @@ export function Game({ onExit }: { onExit: () => void }) {
         </div>
       </main>
 
-      {/* ------------------------------------------------------- time bar */}
-      <div className="flex-none fixed bottom-[62px] left-0 right-0 pointer-events-none safe-bottom">
-        <div className="max-w-lg mx-auto px-4 pb-1 flex justify-end gap-2">
-          <button
-            onClick={advanceToEvent}
-            className="pointer-events-auto btn-3d rounded-full bg-rust text-white px-4 py-2.5 text-[13px] font-bold shadow-lg [--btn-shadow:#d5651c]"
-          >
-            Advance time ▸
-          </button>
-        </div>
-      </div>
-
       {/* ------------------------------------------------------------ tabs */}
       <nav className="flex-none border-t-2 border-[var(--line)] bg-[var(--card)] safe-bottom">
         <div className="max-w-lg mx-auto flex px-1 py-1">
@@ -186,6 +176,15 @@ export function Game({ onExit }: { onExit: () => void }) {
               <span className="text-[10px] font-bold">{t.label}</span>
             </button>
           ))}
+          {/* Time lives here now, next to the tabs, instead of floating over the page. */}
+          <button
+            onClick={advanceToEvent}
+            className="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-2xl bg-rust text-white btn-3d [--btn-shadow:#d5651c]"
+            aria-label="Advance time"
+          >
+            <span className="text-[18px] leading-none">⏩</span>
+            <span className="text-[10px] font-bold">Time</span>
+          </button>
         </div>
       </nav>
 
@@ -280,7 +279,7 @@ export function Game({ onExit }: { onExit: () => void }) {
             <input
               type="range"
               min={6}
-              max={24}
+              max={28}
               value={project.kennelCapacity}
               onChange={(e) => {
                 project.kennelCapacity = Number(e.target.value);
@@ -668,7 +667,6 @@ function TimeSheet({ reports, onClose }: { reports: MonthReport[]; onClose: () =
   const deaths = reports.flatMap((r) => r.deaths);
   const warnings = reports[reports.length - 1]?.warnings ?? [];
   const mutations = reports.flatMap((r) => r.mutations);
-  const postcards = reports.flatMap((r) => r.postcards ?? []);
   const months = reports.length;
 
   return (
@@ -735,17 +733,6 @@ function TimeSheet({ reports, onClose }: { reports: MonthReport[]; onClose: () =
             <Card key={i} className="mb-2">
               <div className="text-[14px] font-semibold">{d.name}</div>
               <div className="text-[12.5px] text-[var(--text-soft)]">{d.cause}</div>
-            </Card>
-          ))}
-        </Section>
-      )}
-
-      {postcards.length > 0 && (
-        <Section title="Post" subtitle="News from dogs in their new homes. Nothing to do — just nice to hear.">
-          {postcards.map((p, i) => (
-            <Card key={i} className="mb-2 border-clay/40">
-              <div className="text-[11px] font-semibold text-clay mb-0.5">A postcard from {p.name}</div>
-              <p className="text-[13px] leading-relaxed italic">{p.text}</p>
             </Card>
           ))}
         </Section>

@@ -267,7 +267,7 @@ export function AnalyticsTab() {
       <Section title="Right now">
         <Card>
           <StatRow label="Breeding adults" value={snapshot.populationSize} />
-          <StatRow label="Average project score" value={Math.round(snapshot.averageScore)} />
+          <StatRow label="Average score (breeding adults)" value={Math.round(snapshot.averageScore)} />
           <StatRow
             label="Meeting your standard"
             value={`${Math.round(snapshot.percentMeetingStandard)}%`}
