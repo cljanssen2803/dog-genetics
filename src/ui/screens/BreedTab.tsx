@@ -5,7 +5,7 @@
  * and commit. This is where the game actually happens.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Chip, Empty, Explain, Section, Segmented, Sheet, StatRow } from '../components';
 import { DogPortrait } from '../DogPortrait';
 import { useGame } from '../GameContext';
@@ -21,6 +21,7 @@ import {
 } from '../../game/project';
 import { type MatchVerdict, type PairingPreview, previewPairing, rankMates } from '../../game/matchmaking';
 import { goalGaps, populationWarnings } from '../../game/analytics';
+import { type GenerationPlan, planGeneration } from '../../game/assist';
 import { BreedPicker } from './NewProject';
 import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, describeDog } from '../DogFacts';
 import { BEHAVIOR_TRAITS } from '../../engine/traits';
@@ -34,16 +35,28 @@ const VERDICT_TONE: Record<MatchVerdict, 'good' | 'neutral' | 'info' | 'warn' | 
   'Do not breed': 'bad',
 };
 
-export function BreedTab() {
+export type BreedIntent = 'plan' | 'outside' | null;
+
+export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onIntentUsed?: () => void }) {
   const { project, refresh, say } = useGame();
   const [parentId, setParentId] = useState<string | null>(null);
   const [preview, setPreview] = useState<PairingPreview | null>(null);
   const [outsideOpen, setOutsideOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
+
+  // The Project tab can send the player here with a job in mind.
+  useEffect(() => {
+    if (intent === 'plan') setPlanOpen(true);
+    if (intent === 'outside') setOutsideOpen(true);
+    if (intent) onIntentUsed?.();
+  }, [intent, onIntentUsed]);
 
   const warnings = useMemo(() => populationWarnings(project), [project, project.month]);
 
   const eligible = activeDogs(project).filter(
-    (d) => breedingEligibility(d, project.month, project.lastLitter[d.id]).eligible,
+    (d) =>
+      breedingEligibility(d, project.month, project.lastLitter[d.id]).eligible &&
+      !project.pregnancies.some((p) => p.damId === d.id),
   );
   const parent = parentId ? project.dogs[parentId] : null;
 
@@ -96,6 +109,19 @@ export function BreedTab() {
 
       {!parent ? (
         <>
+          {eligible.length > 0 && (
+            <Card className="mb-4 border-[var(--brand)]">
+              <div className="display text-[15px] mb-1">Let the game plan this season</div>
+              <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">
+                It works out the best mate for every female you have, keeps the sires spread out, and
+                shows you why. You accept the ones you like.
+              </p>
+              <Button full onClick={() => setPlanOpen(true)}>
+                Plan my pairings
+              </Button>
+            </Card>
+          )}
+
           <Section
             title="Choose a parent"
             subtitle="Pick the dog you want to build this litter around."
@@ -180,6 +206,7 @@ export function BreedTab() {
       )}
 
       <OutsideSheet open={outsideOpen} onClose={() => setOutsideOpen(false)} />
+      <PlanSheet open={planOpen} onClose={() => setPlanOpen(false)} onPreview={(p) => setPreview(p)} />
     </div>
   );
 }
@@ -425,6 +452,100 @@ function PairingSheet({
             ))}
           </div>
         </Section>
+      )}
+    </Sheet>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The season plan
+// ---------------------------------------------------------------------------
+
+function PlanSheet({ open, onClose, onPreview }: { open: boolean; onClose: () => void; onPreview: (p: PairingPreview) => void }) {
+  const { project, refresh, say } = useGame();
+  const [skippedIds, setSkippedIds] = useState<string[]>([]);
+  const plan: GenerationPlan | null = useMemo(
+    () => (open ? planGeneration(project) : null),
+    // Recomputed whenever the kennel changes underneath it.
+    [open, project, project.month, project.rngCursor, project.pregnancies.length],
+  );
+
+  if (!open || !plan) return null;
+  const pairings = plan.pairings.filter((p) => !skippedIds.includes(p.dam.id));
+
+  const accept = (damId: string, sireId: string, name: string) => {
+    const result = breedPair(project, sireId, damId);
+    say(result.success ? `${name}: bred.` : result.message);
+    refresh();
+  };
+
+  const acceptAll = () => {
+    let n = 0;
+    for (const p of pairings) {
+      const r = breedPair(project, p.sire.id, p.dam.id);
+      if (r.success) n += 1;
+    }
+    say(`${n} pairing${n === 1 ? '' : 's'} made. Puppies in two months.`);
+    refresh();
+    onClose();
+  };
+
+  return (
+    <Sheet
+      open
+      onClose={onClose}
+      title="This season's plan"
+      subtitle={`${pairings.length} pairing${pairings.length === 1 ? '' : 's'} · about ${plan.expectedPuppies} puppies · ${plan.spaceLeft} spaces free`}
+      footer={
+        pairings.length > 0 ? (
+          <Button full onClick={acceptAll}>
+            Breed all {pairings.length}
+          </Button>
+        ) : (
+          <Button full tone="secondary" onClick={onClose}>
+            Close
+          </Button>
+        )
+      }
+    >
+      {pairings.length === 0 && (
+        <Empty>
+          Nothing to pair right now. {plan.skipped.length > 0 ? plan.skipped[0].why.charAt(0).toUpperCase() + plan.skipped[0].why.slice(1) + '.' : 'Advance time until someone is ready.'}
+        </Empty>
+      )}
+      {pairings.map((p) => (
+        <Card key={p.dam.id} className="mb-3">
+          <div className="flex items-center gap-2 mb-2">
+            <DogPortrait dog={p.dam} size={72} />
+            <span className="display text-[16px] text-[var(--text-faint)]">×</span>
+            <DogPortrait dog={p.sire} size={72} />
+            <div className="flex-1 min-w-0">
+              <div className="display text-[15px] leading-tight">
+                {p.dam.name} × {p.sire.name}
+              </div>
+              <Chip tone={VERDICT_TONE[p.preview.verdict]} className="mt-1">
+                {p.preview.verdict}
+              </Chip>
+            </div>
+          </div>
+          <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">{p.reason}</p>
+          <div className="flex gap-2">
+            <Button small tone="secondary" onClick={() => onPreview(p.preview)}>
+              Details
+            </Button>
+            <Button small tone="secondary" onClick={() => setSkippedIds((s) => [...s, p.dam.id])}>
+              Skip
+            </Button>
+            <Button small full onClick={() => accept(p.dam.id, p.sire.id, `${p.dam.name} × ${p.sire.name}`)}>
+              Breed this pair
+            </Button>
+          </div>
+        </Card>
+      ))}
+      {plan.skipped.length > 0 && (
+        <div className="text-[12px] text-[var(--text-faint)] leading-relaxed mt-1">
+          Left out: {plan.skipped.map((s) => `${s.dog.name} (${s.why})`).join('; ')}.
+        </div>
       )}
     </Sheet>
   );

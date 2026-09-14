@@ -10,7 +10,8 @@ import { useMemo, useState } from 'react';
 import { Button, Card, Chip, Empty, Explain, Section, Segmented, Sheet, StatRow } from '../components';
 import { useGame } from '../GameContext';
 import { DogCard, DogDetailSheet } from '../dogs';
-import { BreedTab } from './BreedTab';
+import { type BreedIntent, BreedTab } from './BreedTab';
+import { nextStep } from '../../game/assist';
 import { PuppiesTab } from './PuppiesTab';
 import { AnalyticsTab, PedigreeTab } from './PopulationTab';
 import { DifficultyPanel, StandardFields, editorStateFrom, standardFrom, type EditorState } from '../StandardEditor';
@@ -27,6 +28,7 @@ import {
   activeDogs,
   addLog,
   advanceMonth,
+  breedPair,
   kennelCount,
   recordGeneration,
 } from '../../game/project';
@@ -65,6 +67,7 @@ export function Game({ onExit }: { onExit: () => void }) {
   const [breedBookOpen, setBreedBookOpen] = useState(false);
 
   const [milestones, setMilestones] = useState<Milestone[] | null>(null);
+  const [breedIntent, setBreedIntent] = useState<BreedIntent>(null);
 
   const afterTime = (reports: MonthReport[]) => {
     setTimeReport(reports);
@@ -135,6 +138,10 @@ export function Game({ onExit }: { onExit: () => void }) {
         <div className="max-w-lg mx-auto">
           {tab === 'project' && (
             <ProjectTab
+              onGoTab={(t, intent) => {
+                if (intent) setBreedIntent(intent);
+                setTab(t);
+              }}
               onCloseGeneration={closeGeneration}
               onAdvance={advance}
               onAdvanceToEvent={advanceToEvent}
@@ -145,7 +152,7 @@ export function Game({ onExit }: { onExit: () => void }) {
             />
           )}
           {tab === 'kennel' && <KennelTab onShowPedigree={showPedigree} />}
-          {tab === 'breed' && <BreedTab />}
+          {tab === 'breed' && <BreedTab intent={breedIntent} onIntentUsed={() => setBreedIntent(null)} />}
           {tab === 'puppies' && <PuppiesTab onShowPedigree={showPedigree} />}
           {tab === 'pedigree' && <PedigreeTab focusDog={pedigreeFocus} onFocus={setPedigreeFocus} />}
           {tab === 'analytics' && <AnalyticsTab />}
@@ -319,6 +326,7 @@ export function Game({ onExit }: { onExit: () => void }) {
 // ---------------------------------------------------------------------------
 
 function ProjectTab({
+  onGoTab,
   onCloseGeneration,
   onAdvance,
   onAdvanceToEvent,
@@ -327,6 +335,7 @@ function ProjectTab({
   onExpert,
   onBreedBook,
 }: {
+  onGoTab: (tab: Tab, intent?: BreedIntent) => void;
   onCloseGeneration: () => void;
   onAdvance: (months: number) => void;
   onAdvanceToEvent: () => void;
@@ -335,9 +344,29 @@ function ProjectTab({
   onExpert: () => void;
   onBreedBook: () => void;
 }) {
-  const { project } = useGame();
+  const { project, refresh, say } = useGame();
   const difficulty = useMemo(() => assessDifficulty(project.standard), [project.standard]);
   const standing = reputationTier(project.reputation ?? 0);
+  const step = useMemo(() => nextStep(project), [project, project.month, project.rngCursor, project.pregnancies.length]);
+  const doStep = () => {
+    const a = step.action;
+    if (a.kind === 'evaluate') onGoTab('puppies');
+    else if (a.kind === 'makeRoom') onGoTab('kennel');
+    else if (a.kind === 'advance') {
+      if (a.months) onAdvance(a.months);
+      else onAdvanceToEvent();
+    } else if (a.kind === 'wait') onAdvanceToEvent();
+    else if (a.kind === 'closeGeneration') onCloseGeneration();
+    else if (a.kind === 'outcross') onGoTab('breed', 'outside');
+    else if (a.kind === 'breed') {
+      if (a.plan.pairings.length === 1) {
+        const p = a.plan.pairings[0];
+        const r = breedPair(project, p.sire.id, p.dam.id);
+        say(r.message);
+        refresh();
+      } else onGoTab('breed', 'plan');
+    }
+  };
   const titled = activeDogs(project).filter((d) => d.titles && d.titles.length > 0);
   const heart = project.heartDogId ? project.dogs[project.heartDogId] : undefined;
 
@@ -355,6 +384,15 @@ function ProjectTab({
         {project.standard.vision && (
           <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">{project.standard.vision}</p>
         )}
+      </Card>
+
+      <Card className="mb-4 border-[var(--brand)]" >
+        <div className="text-[11px] font-bold text-[var(--brand)] uppercase tracking-wide mb-0.5">Do this next</div>
+        <div className="display text-[16px] leading-tight mb-1">{step.title}</div>
+        <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">{step.detail}</p>
+        <Button full onClick={doStep}>
+          {step.buttonLabel}
+        </Button>
       </Card>
 
       {heart && (

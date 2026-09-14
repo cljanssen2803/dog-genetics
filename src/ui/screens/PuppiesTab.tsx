@@ -18,7 +18,8 @@ import { DogCard, DogDetailSheet } from '../dogs';
 import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, describeDog } from '../DogFacts';
 import { type Dog, formatAge } from '../../engine/dog';
 import { scoreDog } from '../../engine/standard';
-import { type Litter, kennelCount, puppiesOf, setRetention } from '../../game/project';
+import { type Litter, kennelCount, placeDog, puppiesOf, setRetention } from '../../game/project';
+import { type PuppyAdvice, triageLitter } from '../../game/assist';
 
 export function PuppiesTab({ onShowPedigree }: { onShowPedigree?: (dog: Dog) => void }) {
   const { project } = useGame();
@@ -87,14 +88,32 @@ function LitterBlock({
   onToggle: () => void;
   onOpenDog: (dog: Dog) => void;
 }) {
-  const { project } = useGame();
+  const { project, refresh, say } = useGame();
   const sire = project.dogs[litter.sireId];
   const dam = project.dogs[litter.damId];
   const puppies = puppiesOf(project, litter.id);
   const age = project.month - litter.bornMonth;
+  const [advice, setAdvice] = useState<PuppyAdvice[] | null>(null);
 
   const alive = puppies.filter((p) => p.status !== 'deceased');
   const undecided = alive.filter((p) => p.status === 'kennel' && !p.retention).length;
+
+  const applyAdvice = () => {
+    if (!advice) return;
+    let placed = 0;
+    for (const a of advice) {
+      if (a.dog.status !== 'kennel') continue;
+      if (a.choice === 'pet') {
+        placeDog(project, a.dog.id, a.placement ?? 'familyCompanion');
+        placed += 1;
+      } else {
+        setRetention(project, a.dog.id, a.choice);
+      }
+    }
+    say(`Litter sorted. ${placed} placed in pet homes.`);
+    setAdvice(null);
+    refresh();
+  };
 
   return (
     <div className="mb-4">
@@ -131,6 +150,39 @@ function LitterBlock({
             </div>
           )}
 
+          {undecided > 0 && !advice && (
+            <Button full tone="secondary" className="mb-2" onClick={() => setAdvice(triageLitter(project, litter))}>
+              Sort this litter for me
+            </Button>
+          )}
+          {advice && (
+            <Card className="mb-3 border-[var(--brand)]">
+              <div className="display text-[15px] mb-1">Suggested</div>
+              <p className="text-[12px] text-[var(--text-soft)] leading-relaxed mb-2">
+                Ranked by what each puppy would pass on, with the space you have. Apply the lot, or use
+                it as a guide and decide by hand.
+              </p>
+              {advice.map((a) => (
+                <div key={a.dog.id} className="flex gap-2 py-1.5 border-t border-[var(--line)] text-[12.5px]">
+                  <span className="font-semibold w-20 flex-none">{a.dog.name}</span>
+                  <span className="flex-none">
+                    <Chip tone={a.choice === 'keep' ? 'good' : a.choice === 'wait' ? 'info' : a.choice === 'pet' ? 'neutral' : 'warn'}>
+                      {a.choice === 'keep' ? 'Keep' : a.choice === 'wait' ? 'Wait' : a.choice === 'pet' ? 'Pet home' : 'Keep, no breeding'}
+                    </Chip>
+                  </span>
+                  <span className="text-[var(--text-soft)] leading-snug">{a.reason}</span>
+                </div>
+              ))}
+              <div className="flex gap-2 mt-2">
+                <Button small tone="secondary" onClick={() => setAdvice(null)}>
+                  Never mind
+                </Button>
+                <Button small full onClick={applyAdvice}>
+                  Apply all
+                </Button>
+              </div>
+            </Card>
+          )}
           {alive.length === 0 ? (
             <Empty>No puppies from this litter survived.</Empty>
           ) : (
