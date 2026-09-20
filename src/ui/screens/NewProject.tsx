@@ -25,7 +25,7 @@ import { createProject } from '../../game/project';
 import { saveProject } from '../../game/storage';
 import { assessEstablishment } from '../../game/analytics';
 
-type Mode = 'choose' | 'custom' | 'designer' | 'purebred';
+type Mode = 'choose' | 'custom' | 'designer' | 'purebred' | 'sandbox';
 
 export function NewProject({
   onCreated,
@@ -53,6 +53,18 @@ export function NewProject({
   if (mode === 'purebred') {
     return <PurebredBuilder onBack={() => setMode('choose')} onStart={start} />;
   }
+  if (mode === 'sandbox') {
+    return (
+      <SandboxBuilder
+        onBack={() => setMode('choose')}
+        onStart={async (name, breeds) => {
+          const project = createProject({ name, standard: blankStandard(name), founderBreeds: breeds, sandbox: true });
+          await saveProject(project, 0);
+          onCreated(project.id);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="paper min-h-full">
@@ -68,6 +80,17 @@ export function NewProject({
         <p className="text-[13px] text-[var(--text-soft)] mb-6 leading-relaxed">
           Pick a ready-made project to learn the game, or define your own dog from scratch.
         </p>
+
+        <Section title="Just play">
+          <PresetCard
+            title="Free play"
+            tagline="No standard, no scores, no advice"
+            body="Pick any breeds you like — as many as you want — and get a pair of each. Then breed whoever to whoever and see what comes out. A big kennel, nothing judged, the same genetics underneath."
+            bullets={['Any breeds', 'Room for 60 dogs', 'Nothing to meet']}
+            onStart={() => setMode('sandbox')}
+            action="Choose breeds"
+          />
+        </Section>
 
         <Section title="Preset projects">
           <PresetCard
@@ -409,6 +432,63 @@ function PurebredBuilder({
 
         <Button full onClick={() => onStart(standard.name, standard, [breedKey])} className="mt-4">
           Start with {breed.name} founders
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** Free play: pick as many breeds as you like. */
+function SandboxBuilder({ onBack, onStart }: { onBack: () => void; onStart: (name: string, breeds: string[]) => void }) {
+  const [breeds, setBreeds] = useState<string[]>(['labrador', 'poodleStandard']);
+  const [picking, setPicking] = useState('borderCollie');
+  const [name, setName] = useState('Free play');
+  const add = () => {
+    if (!breeds.includes(picking)) setBreeds([...breeds, picking]);
+  };
+  return (
+    <div className="paper min-h-full">
+      <div className="safe-top" />
+      <div className="max-w-lg mx-auto px-4 pt-4 pb-32">
+        <button onClick={onBack} className="text-[13px] text-[var(--text-faint)] mb-4">
+          ‹ Back
+        </button>
+        <h1 className="display text-[24px] font-semibold mb-1">Free play</h1>
+        <p className="text-[13px] text-[var(--text-soft)] leading-relaxed mb-5">
+          You get a male and a female of every breed you pick. No standard, no scores — just dogs,
+          and whatever you can make from them. You can always bring more breeds in later from the
+          outside-dog search.
+        </p>
+
+        <Section title="Kennel name">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-xl border border-[var(--line)] bg-[var(--card)] px-3 py-2.5 text-[14px]"
+          />
+        </Section>
+
+        <Section title={`Your breeds (${breeds.length})`} subtitle="Tap one to remove it.">
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {breeds.map((k) => (
+              <button
+                key={k}
+                onClick={() => setBreeds(breeds.filter((b) => b !== k))}
+                className="rounded-full border px-3 py-1.5 text-[12px] font-semibold bg-[var(--brand)] text-white border-transparent"
+              >
+                {BREEDS.find((b) => b.key === k)?.name ?? k} ×
+              </button>
+            ))}
+            {breeds.length === 0 && <span className="text-[12.5px] text-[var(--text-faint)]">Nobody yet. Add a breed below.</span>}
+          </div>
+          <BreedPicker value={picking} onChange={setPicking} />
+          <Button full tone="secondary" className="mt-2" onClick={add} disabled={breeds.includes(picking)}>
+            {breeds.includes(picking) ? 'Already in' : `+ Add ${BREEDS.find((b) => b.key === picking)?.name ?? ''}`}
+          </Button>
+        </Section>
+
+        <Button full onClick={() => onStart(name.trim() || 'Free play', breeds)} disabled={breeds.length === 0}>
+          Start with {breeds.length * 2} dogs
         </Button>
       </div>
     </div>

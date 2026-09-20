@@ -127,7 +127,7 @@ function PuppyReveal({
   return (
     <button
       onClick={onLook}
-      className={`card p-2 text-left transition-transform ${awake ? '' : 'active:scale-95'}`}
+      className={`card p-2 text-left min-w-0 transition-transform ${awake ? '' : 'active:scale-95'}`}
       aria-label={awake ? `${puppy.name}, ${colour.name}, ${coat.label}` : 'A sleeping puppy. Tap to look.'}
     >
       <div
@@ -136,7 +136,7 @@ function PuppyReveal({
           transition: 'filter 1100ms ease 350ms',
         }}
       >
-        <DogPortrait dog={puppy} size={150} asleep={!awake} asAge={3} className="mx-auto" />
+        <DogPortrait dog={puppy} fluid asleep={!awake} asAge={3} />
       </div>
       <div className="min-h-[58px] mt-1.5 px-0.5">
         {awake ? (

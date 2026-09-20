@@ -276,6 +276,11 @@ export function previewPairing(project: Project, sire: Dog, dam: Dog): PairingPr
       worstAffected > 0
         ? 'Both parents carry the same disease gene, so some puppies would be affected.'
         : 'Closely related. Usable once if the gain is real, but not something to repeat.';
+  } else if (project.sandbox) {
+    // Free play: nothing to score against, so the only questions are
+    // relatedness and health, both already handled above.
+    verdict = coi < 0.03 ? 'Excellent match' : 'Good match';
+    verdictReason = coi < 0.03 ? 'Unrelated and healthy. Anything could come out of this.' : 'Somewhat related, but safe enough. See what comes out.';
   } else if (meanScore >= 62 && meetingRate >= 0.28 && coi < 0.065) {
     verdict = 'Excellent match';
     verdictReason = 'Strong expected puppies, low inbreeding and no disease risk.';
@@ -438,6 +443,8 @@ export function rankMates(project: Project, parent: Dog): RankedMate[] {
   ranked.sort((a, b) => {
     const order = VERDICT_ORDER[a.preview.verdict] - VERDICT_ORDER[b.preview.verdict];
     if (order !== 0) return order;
+    // Free play ranks by relatedness; everything else by expected quality.
+    if (project.sandbox) return a.preview.coi - b.preview.coi;
     return b.preview.meanScore - a.preview.meanScore;
   });
 

@@ -35,6 +35,7 @@ export interface ProjectSummary {
   dogCount: number;
   standardisation: number;
   updatedAt: number;
+  sandbox?: boolean;
 }
 
 export interface AppSettings {
@@ -92,6 +93,7 @@ export function summarise(project: Project, standardisation: number): ProjectSum
     dogCount: Object.keys(project.dogs).length,
     standardisation,
     updatedAt: project.updatedAt,
+    sandbox: project.sandbox || undefined,
   };
 }
 

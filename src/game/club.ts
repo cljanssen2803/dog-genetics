@@ -152,6 +152,8 @@ export function answerClub(project: Project, proposal: ClubProposal, follow: boo
  * arrived, and a note if a fashion the player resisted has since blown over.
  */
 export function afterGenerationClosed(project: Project): { proposal: ClubProposal | null; vindication: string | null } {
+  // Free play has no standard for a club to argue about.
+  if (project.sandbox) return { proposal: null, vindication: null };
   const club = (project.club ??= { proposals: [], nextAt: FIRST_AT });
   const closed = project.history.length;
   if (closed < club.nextAt) return { proposal: null, vindication: null };

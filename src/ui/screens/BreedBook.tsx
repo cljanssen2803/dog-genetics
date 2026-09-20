@@ -142,7 +142,7 @@ export function BreedBookSheet({ onClose }: { onClose: () => void }) {
     <Sheet
       open
       onClose={onClose}
-      title={`The ${project.standard.name}`}
+      title={project.sandbox ? project.name : `The ${project.standard.name}`}
       subtitle={`${retro.years.toFixed(1)} years · ${retro.generations} generation${retro.generations === 1 ? '' : 's'} · ${retro.everLived} dogs`}
       footer={
         <div className="flex gap-2">
@@ -163,7 +163,7 @@ export function BreedBookSheet({ onClose }: { onClose: () => void }) {
               <div key={d.id} className="flex-none w-[84px] text-center">
                 <DogPortrait dog={d} size={84} />
                 <div className="text-[10.5px] mt-0.5 truncate">{d.name}</div>
-                <div className="text-[9.5px] text-[var(--text-faint)] truncate">{d.status === 'deceased' ? '†' : ''} {scoreDog(d, project.standard).total}</div>
+                <div className="text-[9.5px] text-[var(--text-faint)] truncate">{d.status === 'deceased' ? '†' : ''} {project.sandbox ? '' : scoreDog(d, project.standard).total}</div>
               </div>
             ))}
           </div>
@@ -173,14 +173,18 @@ export function BreedBookSheet({ onClose }: { onClose: () => void }) {
               <div key={d.id} className="flex-none w-[84px] text-center">
                 <DogPortrait dog={d} size={84} />
                 <div className="text-[10.5px] mt-0.5 truncate">{d.name}</div>
-                <div className="text-[9.5px] text-moss truncate">{scoreDog(d, project.standard).total}</div>
+                <div className="text-[9.5px] text-moss truncate">{project.sandbox ? '' : scoreDog(d, project.standard).total}</div>
               </div>
             ))}
           </div>
           {retro.then ? (
             <>
-              <StatRow label="Average score" value={`${Math.round(retro.then.score)} → ${Math.round(retro.now.score)}`} tone={retro.now.score >= retro.then.score ? 'good' : 'warn'} />
-              <StatRow label="Meeting the standard" value={`${Math.round(retro.then.meets)}% → ${Math.round(retro.now.meets)}%`} tone={retro.now.meets >= retro.then.meets ? 'good' : 'warn'} />
+              {!project.sandbox && (
+                <>
+                  <StatRow label="Average score" value={`${Math.round(retro.then.score)} → ${Math.round(retro.now.score)}`} tone={retro.now.score >= retro.then.score ? 'good' : 'warn'} />
+                  <StatRow label="Meeting the standard" value={`${Math.round(retro.then.meets)}% → ${Math.round(retro.now.meets)}%`} tone={retro.now.meets >= retro.then.meets ? 'good' : 'warn'} />
+                </>
+              )}
               <StatRow label="Average weight" value={`${retro.then.weight.toFixed(0)} lb → ${retro.now.weight.toFixed(0)} lb`} />
             </>
           ) : (
@@ -189,7 +193,7 @@ export function BreedBookSheet({ onClose }: { onClose: () => void }) {
         </Card>
       </Section>
 
-      <Section title="The standard" subtitle="Your goals, written up the way a kennel club would.">
+      {!project.sandbox && <Section title="The standard" subtitle="Your goals, written up the way a kennel club would.">
         <Card>
           {standard.map((p, i) => (
             <p key={i} className="text-[12.5px] leading-relaxed mb-2 last:mb-0 font-serif">
@@ -198,7 +202,7 @@ export function BreedBookSheet({ onClose }: { onClose: () => void }) {
             </p>
           ))}
         </Card>
-      </Section>
+      </Section>}
 
       {champions.length > 0 && (
         <Section title="Champions">

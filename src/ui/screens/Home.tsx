@@ -22,7 +22,9 @@ export function Home({
   onOpen,
   onNew,
   onLab,
+  onPlayground,
 }: {
+  onPlayground: () => void;
   onOpen: (id: string) => void;
   onNew: () => void;
   onLab: () => void;
@@ -66,6 +68,9 @@ export function Home({
                       Generation {p.generation} · {p.dogCount} dogs recorded · year{' '}
                       {(p.month / 12).toFixed(1)}
                     </div>
+                    {p.sandbox ? (
+                      <div className="mt-1.5"><Chip tone="info">free play</Chip></div>
+                    ) : (
                     <div className="mt-1.5 flex items-center gap-2">
                       <div className="h-1.5 flex-1 rounded-full bg-[var(--bg-2)] overflow-hidden">
                         <div
@@ -77,6 +82,7 @@ export function Home({
                         {p.standardisation}%
                       </span>
                     </div>
+                    )}
                   </div>
                   <span className="text-[var(--text-faint)] text-[20px]">›</span>
                 </div>
@@ -88,6 +94,19 @@ export function Home({
         <Button full onClick={onNew} className="mb-3">
           + New breeding project
         </Button>
+
+        <Card onClick={onPlayground} className="mb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-[26px]">🎨</span>
+            <div className="flex-1">
+              <div className="display font-semibold text-[16px]">The Playground</div>
+              <div className="text-[12px] text-[var(--text-faint)] leading-snug">
+                Make any dog, cross any two, see the puppies instantly. No kennel, no clock, no score.
+              </div>
+            </div>
+            <span className="text-[var(--text-faint)] text-[20px]">›</span>
+          </div>
+        </Card>
 
         <Card onClick={onLab} className="mb-3">
           <div className="flex items-center gap-3">

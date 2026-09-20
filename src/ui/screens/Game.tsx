@@ -41,6 +41,7 @@ import { DogPortrait } from '../DogPortrait';
 import { checkMilestones } from '../../game/story';
 import type { Milestone } from '../../game/project';
 import { reputationTier } from '../../game/project';
+import { BREED_BY_KEY } from '../../engine/breeds';
 import { LitterRevealSheet } from './LitterReveal';
 import { ClubSheet } from './ClubSheet';
 import { type ClubProposal, afterGenerationClosed, pendingProposal } from '../../game/club';
@@ -143,7 +144,7 @@ export function Game({ onExit }: { onExit: () => void }) {
             <div className="display text-[16px] font-semibold truncate leading-tight">{project.name}</div>
             <div className="text-[11px] opacity-75">
               Year {(project.month / 12).toFixed(1)} · Generation {project.generation} · Kennel{' '}
-              {kennelCount(project)}/{project.kennelCapacity}
+              {kennelCount(project)}{project.sandbox ? '' : `/${project.kennelCapacity}`}
               {activeDogs(project).length > kennelCount(project)
                 ? ` · ${activeDogs(project).length - kennelCount(project)} retired`
                 : ''}
@@ -390,6 +391,7 @@ function ProjectTab({
   onClub: (proposal: ClubProposal) => void;
 }) {
   const { project, refresh, say } = useGame();
+  const sandbox = !!project.sandbox;
   const difficulty = useMemo(() => assessDifficulty(project.standard), [project.standard]);
   const standing = reputationTier(project.reputation ?? 0);
   const step = useMemo(() => nextStep(project), [project, project.month, project.rngCursor, project.pregnancies.length]);
@@ -426,20 +428,25 @@ function ProjectTab({
   return (
     <div className="px-4 pb-40 pt-3">
       <Card className="mb-4">
-        <div className="display text-[19px] font-semibold mb-1">{project.standard.name}</div>
+        <div className="display text-[19px] font-semibold mb-1">{sandbox ? project.name : project.standard.name}</div>
         {project.standard.vision && (
           <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">{project.standard.vision}</p>
         )}
+        {sandbox && project.founderBreeds && project.founderBreeds.length > 0 && (
+          <p className="text-[12px] text-[var(--text-faint)] leading-relaxed mt-1">
+            Started from: {project.founderBreeds.map((k) => BREED_BY_KEY[k]?.name ?? k).join(', ')}.
+          </p>
+        )}
       </Card>
 
-      <Card className="mb-4 border-[var(--brand)]" >
+      {!sandbox && <Card className="mb-4 border-[var(--brand)]" >
         <div className="text-[11px] font-bold text-[var(--brand)] uppercase tracking-wide mb-0.5">Do this next</div>
         <div className="display text-[16px] leading-tight mb-1">{step.title}</div>
         <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">{step.detail}</p>
         <Button full onClick={doStep}>
           {step.buttonLabel}
         </Button>
-      </Card>
+      </Card>}
 
       {heart && (
         <Card className="mb-4 border-rust/50">
@@ -504,22 +511,34 @@ function ProjectTab({
         </Card>
       </Section>
 
-      <Section title="Stuck? Ask the expert" subtitle="A specific read on what your population needs and which pairing to make.">
+      {!sandbox && <Section title="Stuck? Ask the expert" subtitle="A specific read on what your population needs and which pairing to make.">
         <Button full tone="accent" onClick={onExpert}>
           Ask the expert
         </Button>
-      </Section>
+      </Section>}
 
       <Section
         title="Generation report"
-        subtitle="Close out a generation to see what genuinely changed, and what to aim at next."
+        subtitle={sandbox ? 'Close out a generation to see how the kennel has changed.' : 'Close out a generation to see what genuinely changed, and what to aim at next.'}
       >
         <Button full tone="primary" onClick={onCloseGeneration}>
           Close out generation {project.generation}
         </Button>
       </Section>
 
-      <Section
+      {sandbox && (
+        <Section title="Free play" subtitle="What this mode is, and is not.">
+          <Card>
+            <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed">
+              There is no standard here, so nothing is scored and nobody tells you what to do next.
+              Breed whoever you like to whoever you like, bring in any breed from the outside-dog
+              search, and see what turns up. The genetics are exactly the same as in a real project.
+            </p>
+          </Card>
+        </Section>
+      )}
+
+      {!sandbox && <Section
         title="Dog shows"
         subtitle="Outside judgement of how well your breed is coming together."
       >
@@ -540,9 +559,9 @@ function ProjectTab({
             Enter a show
           </Button>
         </Card>
-      </Section>
+      </Section>}
 
-      <Section
+      {!sandbox && <Section
         title="Your standard"
         subtitle="Anything not listed here is on Don't care and is ignored."
         right={
@@ -585,9 +604,9 @@ function ProjectTab({
             />
           )}
         </Card>
-      </Section>
+      </Section>}
 
-      <DifficultyPanel difficulty={difficulty} />
+      {!sandbox && <DifficultyPanel difficulty={difficulty} />}
     </div>
   );
 }
@@ -600,7 +619,7 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
   const { project } = useGame();
   const [open, setOpen] = useState<Dog | null>(null);
   const [filter, setFilter] = useState<'all' | 'F' | 'M' | 'young'>('all');
-  const [sort, setSort] = useState<'score' | 'age' | 'name'>('score');
+  const [sort, setSort] = useState<'score' | 'age' | 'name'>(project.sandbox ? 'age' : 'score');
   const [gene, setGene] = useState<string | null>(null);
 
   /**
@@ -664,7 +683,7 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
           value={sort}
           onChange={setSort}
           options={[
-            { value: 'score', label: 'By score' },
+            ...(project.sandbox ? [] : [{ value: 'score' as const, label: 'By score' }]),
             { value: 'age', label: 'By age' },
             { value: 'name', label: 'By name' },
           ]}
@@ -876,9 +895,11 @@ function GenerationReportSheet({
         <Card>
           <StatRow label="Breeding adults" value={report.snapshot.populationSize} />
           {report.snapshot.goalsTotal ? (
-            <StatRow label="Goals hit (average dog)" value={`${(report.snapshot.averageGoalsHit ?? 0).toFixed(1)} of ${report.snapshot.goalsTotal}`} />
+            <>
+              <StatRow label="Goals hit (average dog)" value={`${(report.snapshot.averageGoalsHit ?? 0).toFixed(1)} of ${report.snapshot.goalsTotal}`} />
+              <StatRow label="Meeting standard" value={`${Math.round(report.snapshot.percentMeetingStandard)}%`} />
+            </>
           ) : null}
-          <StatRow label="Meeting standard" value={`${Math.round(report.snapshot.percentMeetingStandard)}%`} />
           <StatRow label="Average inbreeding" value={`${(report.snapshot.averageCoi * 100).toFixed(1)}%`} />
           <StatRow label="Family lines" value={report.snapshot.familyLines} />
           <StatRow label="Average weight" value={`${report.snapshot.averageWeight.toFixed(1)} lb`} />

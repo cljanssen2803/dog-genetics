@@ -70,6 +70,8 @@ export interface DogFacts {
   goalsHit: number;
   goalsTotal: number;
   goalPips: boolean[];
+  /** True in free play: there is no standard, so no score to show. */
+  scoreless: boolean;
   calm: number;
   trainable: number;
   preyDrive: number;
@@ -148,6 +150,7 @@ export function describeDog(dog: Dog, project: Project): DogFacts {
     goalsHit: score.goalsHit,
     goalsTotal: score.goalsTotal,
     goalPips: score.breakdown.map((b) => b.score >= GOAL_HIT),
+    scoreless: !!project.sandbox || score.goalsTotal === 0,
     calm: calmnessFrom(dog.observed.energy, dog.observed.stability, dog.observed.vocality),
     trainable: Math.round(dog.observed.biddability),
     preyDrive: Math.round(dog.observed.preyDrive),
@@ -211,10 +214,14 @@ export function FactChips({
 }) {
   return (
     <div className="flex flex-wrap gap-1 mt-1.5">
-      <Chip tone={f.score >= 70 ? 'good' : f.score >= 45 ? 'neutral' : 'bad'}>
-        {standardName} {f.score}
-      </Chip>
-      <Pips hit={f.goalsHit} total={f.goalsTotal} hits={f.goalPips} className="px-1" />
+      {!f.scoreless && (
+        <>
+          <Chip tone={f.score >= 70 ? 'good' : f.score >= 45 ? 'neutral' : 'bad'}>
+            {standardName} {f.score}
+          </Chip>
+          <Pips hit={f.goalsHit} total={f.goalsTotal} hits={f.goalPips} className="px-1" />
+        </>
+      )}
       {f.healthAffected.length > 0 && <Chip tone="bad">{f.healthAffected[0]}</Chip>}
       {f.healthAffected.length === 0 && f.healthCarrier.length > 0 && (
         <Chip tone="warn">
@@ -287,11 +294,13 @@ export function dogDescription(dog: Dog, project: Project, includeGenotype: bool
   lines.push(`Ears: ${f.ears}. Tail: ${f.tail}`);
   lines.push(`Eyes: ${f.eyes}. Nose: ${f.nose}`);
   lines.push(`Build: ${f.build}. Face: ${f.muzzle}`);
-  lines.push(
-    `${project.standard.name} score: ${f.score}/100 (likely to produce ${f.producesScore}/100), hits ${f.goalsHit} of ${f.goalsTotal} goals${
-      f.meetsStandard ? ' — meets the standard' : ''
-    }`,
-  );
+  if (!f.scoreless) {
+    lines.push(
+      `${project.standard.name} score: ${f.score}/100 (likely to produce ${f.producesScore}/100), hits ${f.goalsHit} of ${f.goalsTotal} goals${
+        f.meetsStandard ? ' — meets the standard' : ''
+      }`,
+    );
+  }
   lines.push(`Temperament: ${traitWords.join(', ')}`);
   lines.push(
     `Constitution: soundness ${Math.round(dog.observed.structure)}, longevity ${Math.round(

@@ -11,6 +11,7 @@ import { DogPortrait } from '../DogPortrait';
 import { useGame } from '../GameContext';
 import { type Dog, ageMonths, breedingEligibility } from '../../engine/dog';
 import { scoreDog } from '../../engine/standard';
+import { resolveColor } from '../../engine/phenotype';
 import { loadIndex, loadProject } from '../../game/storage';
 import { type PolyTrait, TRAITS } from '../../engine/traits';
 import {
@@ -117,7 +118,7 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
 
       {!parent ? (
         <>
-          {eligible.length > 0 && (
+          {eligible.length > 0 && !project.sandbox && (
             <Card className="mb-4 border-[var(--brand)]">
               <div className="display text-[15px] mb-1">Let the game plan this season</div>
               <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">
@@ -189,7 +190,7 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
 
           <Section
             title={`${ranked.length} possible mate${ranked.length === 1 ? '' : 's'}`}
-            subtitle="Ranked best first. Nothing is hidden — you can always overrule the ranking."
+            subtitle={project.sandbox ? 'Least related first. Anyone goes with anyone.' : 'Ranked best first. Nothing is hidden — you can always overrule the ranking.'}
           >
             {ranked.length === 0 ? (
               <Empty>
@@ -279,8 +280,17 @@ function MateCard({
           <TemperamentLine f={f} />
           <LookLine f={f} />
           <div className="text-[11.5px] text-[var(--text-soft)] leading-snug mt-1">
-            Inbreeding {(preview.coi * 100).toFixed(1)}% · average puppy {Math.round(preview.meanScore)} ·{' '}
-            {preview.standardLow}–{preview.standardHigh}% meet standard
+            {project.sandbox ? (
+              <>
+                Inbreeding {(preview.coi * 100).toFixed(1)}%
+                {preview.coatOutcomes.length > 0 ? ` · ${preview.coatOutcomes.slice(0, 2).map((c) => `${Math.round(c.chance * 100)}% ${c.label.toLowerCase()}`).join(', ')}` : ''}
+              </>
+            ) : (
+              <>
+                Inbreeding {(preview.coi * 100).toFixed(1)}% · average puppy {Math.round(preview.meanScore)} ·{' '}
+                {preview.standardLow}–{preview.standardHigh}% meet standard
+              </>
+            )}
           </div>
           <FactChips
             f={f}
@@ -309,6 +319,8 @@ function PairingSheet({
   onBreed: () => void;
 }) {
   const [showWhy, setShowWhy] = useState(false);
+  const { project } = useGame();
+  const sandbox = !!project.sandbox;
 
   return (
     <Sheet
@@ -318,9 +330,11 @@ function PairingSheet({
       subtitle={preview.verdict}
       footer={
         <div className="flex gap-2">
-          <Button tone="secondary" onClick={() => setShowWhy((v) => !v)} className="flex-none">
-            {showWhy ? 'Hide' : 'Why this match?'}
-          </Button>
+          {!sandbox && (
+            <Button tone="secondary" onClick={() => setShowWhy((v) => !v)} className="flex-none">
+              {showWhy ? 'Hide' : 'Why this match?'}
+            </Button>
+          )}
           <Button full onClick={onBreed} tone={preview.verdict === 'Do not breed' ? 'danger' : 'primary'}>
             Breed this pair
           </Button>
@@ -339,9 +353,11 @@ function PairingSheet({
       {preview.sample.length > 0 && (
         <Section title="A likely litter" subtitle="Six puppies from the simulation, drawn grown up. Every litter is a fresh roll of the dice; this is the shape of it.">
           <SampleLitter sample={preview.sample} size={104} cols={3} />
-          <p className="text-[12px] text-[var(--text-faint)] mt-2 px-1">
-            On average a puppy from this pairing hits {preview.meanGoalsHit.toFixed(1)} of {preview.goalsTotal} goals.
-          </p>
+          {!sandbox && (
+            <p className="text-[12px] text-[var(--text-faint)] mt-2 px-1">
+              On average a puppy from this pairing hits {preview.meanGoalsHit.toFixed(1)} of {preview.goalsTotal} goals.
+            </p>
+          )}
         </Section>
       )}
 
@@ -384,17 +400,21 @@ function PairingSheet({
       <Section title="Expected litter">
         <div className="card p-3">
           <StatRow label="Expected live puppies" value={preview.expectedLitterSize.toFixed(1)} />
-          <StatRow
-            label="Puppies meeting your standard"
-            value={`${preview.standardLow}–${preview.standardHigh}%`}
-          />
-          <StatRow label="Average puppy score" value={Math.round(preview.meanScore)} />
-          <StatRow label="Goals hit (average puppy)" value={`${preview.meanGoalsHit.toFixed(1)} of ${preview.goalsTotal}`} />
-          <StatRow label="Best puppy seen in simulation" value={Math.round(preview.bestScore)} />
+          {!sandbox && (
+            <>
+              <StatRow
+                label="Puppies meeting your standard"
+                value={`${preview.standardLow}–${preview.standardHigh}%`}
+              />
+              <StatRow label="Average puppy score" value={Math.round(preview.meanScore)} />
+              <StatRow label="Goals hit (average puppy)" value={`${preview.meanGoalsHit.toFixed(1)} of ${preview.goalsTotal}`} />
+              <StatRow label="Best puppy seen in simulation" value={Math.round(preview.bestScore)} />
+            </>
+          )}
         </div>
       </Section>
 
-      {preview.improvements.length > 0 && (
+      {!sandbox && preview.improvements.length > 0 && (
         <Section title="Likely improvements">
           <div className="card p-3">
             {preview.improvements.map((s) => (
@@ -407,7 +427,7 @@ function PairingSheet({
         </Section>
       )}
 
-      {preview.weaknesses.length > 0 && (
+      {!sandbox && preview.weaknesses.length > 0 && (
         <Section title="Likely costs">
           <div className="card p-3">
             {preview.weaknesses.map((s) => (
@@ -897,7 +917,9 @@ function SampleLitter({ sample, size, cols, compact = false }: { sample: Dog[]; 
         return (
           <div key={pup.id} className="flex flex-col items-center min-w-0">
             <DogPortrait dog={pup} size={size} />
-            {compact ? (
+            {project.sandbox ? (
+              <div className="text-[10.5px] text-[var(--text-faint)] mt-1 truncate max-w-full">{pup.sex === 'F' ? '♀' : '♂'} {resolveColor(pup.genotype).name}</div>
+            ) : compact ? (
               <Pips hit={s.goalsHit} total={s.goalsTotal} hits={s.breakdown.map((b) => b.score >= 0.7)} size={5} maxWidth={size} className="mt-1" />
             ) : (
               <>

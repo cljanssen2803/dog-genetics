@@ -385,13 +385,18 @@ export function scoreDog(
    * useful separation between decent dogs; the geometric mean makes sure a
    * total miss on a Very high priority cannot be bought off elsewhere.
    */
-  const arithmetic = weightTotal > 0 ? weightedSum / weightTotal : 0.6;
+  // A standard with no goals judges nothing: every dog scores zero and none
+  // "meets" it, so nothing downstream celebrates a fit that was never asked for.
+  if (weightTotal === 0) {
+    return { total: 0, meetsStandard: false, goalsHit: 0, goalsTotal: 0, breakdown: [], weaknesses: [], strengths: [], healthPenalty: Math.round(healthPenalty), healthNotes };
+  }
+  const arithmetic = weightedSum / weightTotal;
 
   let logSum = 0;
   for (const entry of breakdown) {
     logSum += entry.weight * Math.log(Math.max(0.04, entry.score));
   }
-  const geometric = weightTotal > 0 ? Math.exp(logSum / weightTotal) : 0.6;
+  const geometric = Math.exp(logSum / weightTotal);
 
   // Leaning a little back toward the average, so that real progress on most
   // goals still shows up as a rising number rather than being flattened by one
@@ -753,6 +758,26 @@ export const MOUSIE: BreedStandard = {
  * Starting point for a brand new custom project: everything set to "Don't
  * care" except basic health, which is always worth something.
  */
+/** True when the standard asks for nothing at all — a free-play project. */
+export function isScoreless(standard: BreedStandard): boolean {
+  const goals = [...Object.values(standard.traitGoals), ...Object.values(standard.derivedGoals)];
+  if (goals.some((g) => g && g.priority > 0)) return false;
+  if (standard.coatGoal && standard.coatGoal.priority > 0) return false;
+  if (standard.earGoal && standard.earGoal.priority > 0) return false;
+  if (standard.tailGoal && standard.tailGoal.priority > 0) return false;
+  if (standard.colorGoal && standard.colorGoal.priority > 0) return false;
+  return true;
+}
+
+/** The standard a free-play project runs on: no goals, nothing judged. */
+export const FREE_PLAY: BreedStandard = {
+  name: 'Free play',
+  vision: 'No standard, no goals. Put any dogs together and see what you get.',
+  traitGoals: {},
+  derivedGoals: {},
+  healthPriority: 0,
+};
+
 export function blankStandard(name = 'My breed'): BreedStandard {
   return {
     name,

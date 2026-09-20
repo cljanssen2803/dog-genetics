@@ -267,15 +267,19 @@ export function AnalyticsTab() {
       <Section title="Right now">
         <Card>
           <StatRow label="Breeding adults" value={snapshot.populationSize} />
-          <StatRow label="Average score (breeding adults)" value={Math.round(snapshot.averageScore)} />
-          <StatRow
-            label="Meeting your standard"
-            value={`${Math.round(snapshot.percentMeetingStandard)}%`}
-          />
-          <StatRow
-            label="Goals hit (average dog)"
-            value={snapshot.goalsTotal ? `${(snapshot.averageGoalsHit ?? 0).toFixed(1)} of ${snapshot.goalsTotal}` : '—'}
-          />
+          {!project.sandbox && (
+            <>
+              <StatRow label="Average score (breeding adults)" value={Math.round(snapshot.averageScore)} />
+              <StatRow
+                label="Meeting your standard"
+                value={`${Math.round(snapshot.percentMeetingStandard)}%`}
+              />
+              <StatRow
+                label="Goals hit (average dog)"
+                value={snapshot.goalsTotal ? `${(snapshot.averageGoalsHit ?? 0).toFixed(1)} of ${snapshot.goalsTotal}` : '—'}
+              />
+            </>
+          )}
           <StatRow
             label="Average inbreeding"
             value={`${(snapshot.averageCoi * 100).toFixed(1)}%`}
@@ -292,7 +296,7 @@ export function AnalyticsTab() {
 
       {history.length >= 2 && (
         <Section title="Progress by generation">
-          <Card className="mb-2">
+          {!project.sandbox && <Card className="mb-2">
             <Chart
               title="Meeting your standard"
               suffix="%"
@@ -301,7 +305,7 @@ export function AnalyticsTab() {
               color="var(--brand)"
               max={100}
             />
-          </Card>
+          </Card>}
           <Card className="mb-2">
             <Chart
               title="Average inbreeding"
@@ -312,7 +316,7 @@ export function AnalyticsTab() {
               invertGood
             />
           </Card>
-          <Card className="mb-2">
+          {!project.sandbox && <Card className="mb-2">
             <Chart
               title="Average project score"
               values={history.map((h) => h.averageScore)}
@@ -320,7 +324,7 @@ export function AnalyticsTab() {
               color="var(--color-moss)"
               max={100}
             />
-          </Card>
+          </Card>}
           <Card>
             <Chart
               title="Average adult weight"

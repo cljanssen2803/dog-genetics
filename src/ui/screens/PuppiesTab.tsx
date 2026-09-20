@@ -150,7 +150,7 @@ function LitterBlock({
             </div>
           )}
 
-          {undecided > 0 && !advice && (
+          {undecided > 0 && !advice && !project.sandbox && (
             <Button full tone="secondary" className="mb-2" onClick={() => setAdvice(triageLitter(project, litter))}>
               Sort this litter for me
             </Button>

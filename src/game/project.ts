@@ -36,7 +36,7 @@ import {
   effectiveFounders,
 } from '../engine/pedigree';
 import { type NameRegistry, createNameRegistry, pickName, registerName, validateName } from '../engine/names';
-import { type BreedStandard, scoreDog } from '../engine/standard';
+import { type BreedStandard, FREE_PLAY, scoreDog } from '../engine/standard';
 import { ALL_TRAITS, type PolyTrait, sizeToPounds } from '../engine/traits';
 import { BREEDS } from '../engine/breeds';
 import { orderPair } from '../engine/loci';
@@ -138,6 +138,11 @@ export interface Project {
   milestones?: Milestone[];
   /** The breed club and its fashions. See club.ts. */
   club?: ClubState;
+  /**
+   * Free play: no standard, no scores, no club, no advice — a big kennel and
+   * whatever breeds the player felt like starting with.
+   */
+  sandbox?: boolean;
 
   kennelCapacity: number;
   /** Kept only so older saves still load. Health information is always known. */
@@ -263,15 +268,23 @@ export interface NewProjectOptions {
   /** For designer crosses: start from these exact breeds instead of a mixture. */
   founderBreeds?: string[];
   foundationSize?: number;
+  /** Free play. One male and one female of every breed in `founderBreeds`. */
+  sandbox?: boolean;
+  /** Start with these exact dogs (from the playground) instead of fresh ones. */
+  founderDogs?: Dog[];
 }
+
+/** Free-play kennels are roomy; space is not the point of them. */
+export const SANDBOX_KENNEL_CAPACITY = 60;
 
 export function createProject(opts: NewProjectOptions): Project {
   const seed = opts.seed ?? makeSeed();
   const project: Project = {
     id: `proj_${seed.toString(36)}_${Date.now().toString(36)}`,
     name: opts.name,
-    standard: opts.standard,
+    standard: opts.sandbox ? structuredClone(FREE_PLAY) : opts.standard,
     founderBreeds: opts.founderBreeds,
+    sandbox: opts.sandbox || undefined,
     seed,
     rngCursor: 0,
     month: 0,
@@ -281,19 +294,87 @@ export function createProject(opts: NewProjectOptions): Project {
     pregnancies: [],
     litters: [],
     lastLitter: {},
-    kennelCapacity: DEFAULT_KENNEL_CAPACITY,
+    kennelCapacity: opts.sandbox ? SANDBOX_KENNEL_CAPACITY : DEFAULT_KENNEL_CAPACITY,
     discoveries: [],
     log: [],
     history: [],
     candidates: [],
     nerdMode: false,
-    tutorialSeen: false,
+    tutorialSeen: !!opts.sandbox,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
 
-  generateFoundation(project, opts.founderBreeds, opts.foundationSize ?? 8);
+  if (opts.founderDogs && opts.founderDogs.length > 0) {
+    adoptFounders(project, opts.founderDogs);
+  } else if (opts.sandbox) {
+    generateSandboxFoundation(project, opts.founderBreeds ?? []);
+  } else {
+    generateFoundation(project, opts.founderBreeds, opts.foundationSize ?? 8);
+  }
   return project;
+}
+
+/** Free play: a male and a female of every breed the player picked. */
+function generateSandboxFoundation(project: Project, breeds: string[]) {
+  const rng = rngFor(project);
+  const plan = breeds.length > 0 ? breeds : ['labrador'];
+  let count = 0;
+  for (const breedKey of plan) {
+    for (const sex of ['F', 'M'] as Sex[]) {
+      const dog = BREEDS.some((b) => b.key === breedKey)
+        ? createFounder(rng, { breedKey, sex, name: pickName(project.names, sex, rng), currentMonth: 0, ageMonths: rng.int(20, 38), wildcards: true })
+        : createMixedFounder(rng, { sex, name: pickName(project.names, sex, rng), currentMonth: 0, ageMonths: rng.int(20, 38), wildcards: true });
+      project.dogs[dog.id] = dog;
+      remember(dog, 0, 'arrived', `Came to the kennel as one of the founding dogs, a ${dog.breedLabel.toLowerCase()} of ${formatAge(ageMonths(dog, 0))}.`);
+      recordRarities(project, dog);
+      count += 1;
+    }
+  }
+  commitRng(project, rng);
+  addLog(project, 'milestone', `${count} foundation dogs acquired from ${plan.length} breed${plan.length === 1 ? '' : 's'}. Free play begins.`);
+}
+
+/**
+ * Start a kennel with dogs made somewhere else (the playground). Each arrives
+ * as a fresh copy with its pedigree left behind, like a transferred dog.
+ */
+function adoptFounders(project: Project, dogs: Dog[]) {
+  const rng = rngFor(project);
+  for (const source of dogs) {
+    const age = Math.max(12, ageMonths(source, 0));
+    const name = project.names.used.includes(source.name.trim().toLowerCase()) ? pickName(project.names, source.sex, rng) : source.name;
+    registerName(project.names, name);
+    const dog: Dog = {
+      ...structuredClone(source),
+      id: makeDogId(),
+      name,
+      birthMonth: -age,
+      sireId: undefined,
+      damId: undefined,
+      litterId: undefined,
+      generation: 0,
+      status: 'kennel',
+      placement: undefined,
+      retention: undefined,
+      littersProduced: 0,
+      offspringIds: [],
+      rarities: [],
+      titles: [],
+      showPoints: 0,
+      favourite: false,
+      breedingRetired: false,
+      deathMonth: undefined,
+      deathCause: undefined,
+      seedValue: rng.int(1, 2_000_000_000),
+      events: [],
+    };
+    project.dogs[dog.id] = dog;
+    remember(dog, 0, 'arrived', `Came from the playground as one of the founding dogs, a ${dog.breedLabel.toLowerCase()} of ${formatAge(age)}.`);
+    recordRarities(project, dog);
+  }
+  commitRng(project, rng);
+  addLog(project, 'milestone', `${dogs.length} dogs brought over from the playground. Free play begins.`);
 }
 
 /**

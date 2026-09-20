@@ -329,9 +329,11 @@ export interface DogSpriteProps {
   asleep?: boolean;
   /** Draw the dog as if it were this many months old, whatever the calendar says. */
   asAge?: number;
+  /** Fill the width of whatever holds it, keeping the picture's shape; `size` is ignored. */
+  fluid?: boolean;
 }
 
-export function DogSprite({ dog, size = 120, className = '', framed = true, asleep = false, asAge }: DogSpriteProps) {
+export function DogSprite({ dog, size = 120, className = '', framed = true, asleep = false, asAge, fluid = false }: DogSpriteProps) {
   const height = (size * 1086) / 1448;
   // Puppies are drawn at their CURRENT weight, so a litter of newborns is
   // visibly a litter of newborns and a dog grows on screen as the months pass.
@@ -356,8 +358,9 @@ export function DogSprite({ dog, size = 120, className = '', framed = true, asle
     <div
       className={`relative ${framed ? 'stage' : ''} ${className}`}
       style={{
-        width: size,
-        height,
+        width: fluid ? '100%' : size,
+        height: fluid ? undefined : height,
+        aspectRatio: fluid ? '1448 / 1086' : undefined,
         isolation: 'isolate',
         borderRadius: framed ? 14 : 0,
         overflow: 'hidden',

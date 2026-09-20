@@ -11,10 +11,11 @@ import { Home } from './ui/screens/Home';
 import { NewProject } from './ui/screens/NewProject';
 import { Game } from './ui/screens/Game';
 import { Lab } from './ui/screens/Lab';
+import { Playground } from './ui/screens/Playground';
 import type { Project } from './game/project';
 import { loadProject, loadSettings, saveSettings } from './game/storage';
 
-type Route = { name: 'home' } | { name: 'new' } | { name: 'lab' } | { name: 'game'; project: Project };
+type Route = { name: 'home' } | { name: 'new' } | { name: 'lab' } | { name: 'playground' } | { name: 'game'; project: Project };
 
 export default function App() {
   const [route, setRoute] = useState<Route>({ name: 'home' });
@@ -70,7 +71,12 @@ export default function App() {
     <>
       <SpriteFilters />
       {route.name === 'home' && (
-        <Home onOpen={(id) => void open(id)} onNew={() => setRoute({ name: 'new' })} onLab={() => setRoute({ name: 'lab' })} />
+        <Home
+          onOpen={(id) => void open(id)}
+          onNew={() => setRoute({ name: 'new' })}
+          onLab={() => setRoute({ name: 'lab' })}
+          onPlayground={() => setRoute({ name: 'playground' })}
+        />
       )}
 
       {route.name === 'new' && (
@@ -79,6 +85,10 @@ export default function App() {
           onCancel={() => setRoute({ name: 'home' })}
           onLab={() => setRoute({ name: 'lab' })}
         />
+      )}
+
+      {route.name === 'playground' && (
+        <Playground onBack={() => setRoute({ name: 'home' })} onCreated={(id) => void open(id)} onToast={say} />
       )}
 
       {route.name === 'lab' && (

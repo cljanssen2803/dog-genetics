@@ -248,15 +248,19 @@ export function DogDetailSheet({
       {tab === 'overview' && (
         <>
           <div className="card p-3 mb-4">
-            <StatRow
-              label={`${project.standard.name} score`}
-              value={`${score.total} / 100`}
-              tone={score.total >= 70 ? 'good' : score.total >= 45 ? undefined : 'bad'}
-            />
-            <StatRow
-              label="Likely to produce"
-              value={`${bvScore.total} / 100`}
-            />
+            {!project.sandbox && (
+              <>
+                <StatRow
+                  label={`${project.standard.name} score`}
+                  value={`${score.total} / 100`}
+                  tone={score.total >= 70 ? 'good' : score.total >= 45 ? undefined : 'bad'}
+                />
+                <StatRow
+                  label="Likely to produce"
+                  value={`${bvScore.total} / 100`}
+                />
+              </>
+            )}
             <StatRow label="Coat" value={coat.label} />
             <StatRow label="Colour" value={color.name} />
             <StatRow label="Eyes and nose" value={`${color.eyeName} eyes, ${color.noseName} nose`} />
