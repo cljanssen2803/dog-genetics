@@ -31,26 +31,40 @@
  * interface refers to them; the values are the look.
  */
 @theme {
-  --color-paper: #fff8e8;
-  --color-paper-2: #fdeed2;
+  /* The palette: periwinkle, mauve, dusty rose, blush, peach — plus a deep
+     plum-navy ink drawn from the periwinkle. The token NAMES are historical
+     (forest, rust, clay, sun...) because the interface refers to them; the
+     values are the palette. */
+  --color-peri: #b2b8ce;
+  --color-mauve: #bdaec8;
+  --color-rose: #dbb4c6;
+  --color-blush: #fec2c8;
+  --color-peach: #fecdc6;
+
+  --color-paper: #fbf7f3;
+  --color-paper-2: #f3ecec;
   --color-card: #ffffff;
-  --color-ink: #2b2140;
-  --color-ink-soft: #5b5170;
-  --color-ink-faint: #8d84a0;
-  --color-forest: #2fb36a;
-  --color-forest-2: #23985a;
-  --color-moss: #3fa860;
-  /* "rust" and "clay" are the old names for the accent pair; the values are
-     now violet and plum. No orange anywhere. */
-  --color-rust: #7a5af5;
-  --color-rust-deep: #6247d6;
-  --color-clay: #a34a9a;
-  --color-berry: #ef5b7f;
-  --color-sky: #2f9be6;
-  --color-line: #e9d7b6;
-  --color-ink-line: #3a2f55;
-  --color-lilac: #9b7cf6;
-  --color-sun: #ffcf4a;
+  --color-ink: #3b3556;
+  --color-ink-soft: #625b7a;
+  --color-ink-faint: #928ba6;
+  /* brand: icons, links, active text */
+  --color-forest: #6f628f;
+  --color-forest-2: #5c5079;
+  /* good */
+  --color-moss: #6f8f7a;
+  /* accent (Time, secondary actions) and the "carries" text */
+  --color-rust: #fec2c8;
+  --color-rust-deep: #e9a3ad;
+  --color-clay: #8f6f8f;
+  /* bad / danger */
+  --color-berry: #c9647e;
+  /* info */
+  --color-sky: #7f88a8;
+  --color-line: #e4dce3;
+  --color-ink-line: #3b3556;
+  --color-lilac: #bdaec8;
+  /* rare */
+  --color-sun: #fecdc6;
 
   --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -70,34 +84,36 @@
   --brand-2: var(--color-forest-2);
   /* The ink every outline and hard shadow is drawn in. */
   --ink: var(--color-ink-line);
-  /* The colour of the world we are in. Today by default. */
-  --world: var(--color-forest);
-  --world-soft: #dff5e8;
+  /* The colour of the world we are in. Today by default. Every world is a
+     pastel, so text on it is always ink. */
+  --world: var(--color-peri);
+  --world-soft: #e6e9f1;
 }
 
-[data-world='kennel'] { --world: var(--color-sky); --world-soft: #dcefff; }
-[data-world='breed'] { --world: var(--color-berry); --world-soft: #ffe1e9; }
-[data-world='puppies'] { --world: #ffcf4a; --world-soft: #fff3c4; }
-[data-world='play'] { --world: var(--color-lilac); --world-soft: #ece5ff; }
+[data-world='kennel'] { --world: var(--color-mauve); --world-soft: #ebe5ef; }
+[data-world='breed'] { --world: var(--color-rose); --world-soft: #f4e6ec; }
+[data-world='puppies'] { --world: var(--color-blush); --world-soft: #ffeaec; }
+[data-world='play'] { --world: var(--color-peach); --world-soft: #ffeeea; }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1b1f3a;
-    --bg-2: #232a4d;
-    --card: #2a3157;
-    --text: #f6f1ff;
-    --text-soft: #c3bcd8;
-    --text-faint: #8f88a8;
-    --line: #3a4270;
-    --brand: #3fc77a;
-    --brand-2: #35b06b;
-    --ink: #d9d0f0;
-    --world-soft: #2a3a4a;
+    --bg: #1f1d2b;
+    --bg-2: #2a2739;
+    --card: #302c40;
+    --text: #f5f0f4;
+    --text-soft: #c9c2d2;
+    --text-faint: #948ca3;
+    --line: #453f58;
+    --brand: #c9bde0;
+    --brand-2: #b8aad2;
+    --ink: #e6dfec;
+    --world: #4b5068;
+    --world-soft: #2f3346;
   }
-  [data-world='kennel'] { --world-soft: #24344f; }
-  [data-world='breed'] { --world-soft: #4a2a3a; }
-  [data-world='puppies'] { --world-soft: #4a3f22; }
-  [data-world='play'] { --world-soft: #3a2f55; }
+  [data-world='kennel'] { --world: #514660; --world-soft: #342e40; }
+  [data-world='breed'] { --world: #5e4653; --world-soft: #3c2f37; }
+  [data-world='puppies'] { --world: #6a4a52; --world-soft: #40303a; }
+  [data-world='play'] { --world: #6a534d; --world-soft: #403430; }
 }
 
 html,
@@ -157,7 +173,7 @@ nav,
   align-items: center;
   gap: 6px;
   background: var(--world);
-  color: #fff;
+  color: var(--text);
   border: 2px solid var(--ink);
   border-radius: 10px;
   padding: 3px 10px 4px;
@@ -167,9 +183,7 @@ nav,
   font-weight: 700;
   font-size: 16px;
   line-height: 1.1;
-  text-shadow: 1px 1px 0 rgb(0 0 0 / 25%);
 }
-[data-world='puppies'] .ribbon { color: var(--color-ink); text-shadow: none; }
 
 /* Bunting across the top of a world. */
 .bunting {
@@ -214,11 +228,11 @@ nav,
 
 /* The stage every dog stands on: a strip of sky and a strip of grass. */
 .stage {
-  background: linear-gradient(180deg, #dcf1ff 0%, #f3faff 64%, #c7ea9c 64.5%, #a6d982 100%);
+  background: linear-gradient(180deg, #e3e6f0 0%, #f6f4f8 64%, #d6dcc9 64.5%, #bfc9b0 100%);
 }
 @media (prefers-color-scheme: dark) {
   .stage {
-    background: linear-gradient(180deg, #2c3766 0%, #1f2749 64%, #3f6f3f 64.5%, #2f5a33 100%);
+    background: linear-gradient(180deg, #34384c 0%, #2a2838 64%, #3f4a3d 64.5%, #33402f 100%);
   }
 }
 

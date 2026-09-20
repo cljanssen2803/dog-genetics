@@ -10,19 +10,19 @@ export function Wordmark({ width = 300 }: { width?: number }) {
       {/* Rosette */}
       <g transform="translate(34 40)">
         {Array.from({ length: 12 }, (_, i) => (
-          <circle key={i} cx={Math.cos((i / 12) * Math.PI * 2) * 22} cy={Math.sin((i / 12) * Math.PI * 2) * 22} r={7} fill="#ffcf4a" stroke="#3a2f55" strokeWidth={2} />
+          <circle key={i} cx={Math.cos((i / 12) * Math.PI * 2) * 22} cy={Math.sin((i / 12) * Math.PI * 2) * 22} r={7} fill="#fec2c8" stroke="#3b3556" strokeWidth={2} />
         ))}
-        <circle r={20} fill="#ffcf4a" stroke="#3a2f55" strokeWidth={2.5} />
-        <circle r={13} fill="#fff8e8" stroke="#3a2f55" strokeWidth={2} />
+        <circle r={20} fill="#fec2c8" stroke="#3b3556" strokeWidth={2.5} />
+        <circle r={13} fill="#fbf7f3" stroke="#3b3556" strokeWidth={2} />
         {/* paw */}
-        <ellipse cx={0} cy={3.5} rx={5} ry={4.2} fill="#3a2f55" />
-        <circle cx={-5.5} cy={-2.5} r={2.3} fill="#3a2f55" />
-        <circle cx={-1.8} cy={-5} r={2.3} fill="#3a2f55" />
-        <circle cx={1.8} cy={-5} r={2.3} fill="#3a2f55" />
-        <circle cx={5.5} cy={-2.5} r={2.3} fill="#3a2f55" />
+        <ellipse cx={0} cy={3.5} rx={5} ry={4.2} fill="#3b3556" />
+        <circle cx={-5.5} cy={-2.5} r={2.3} fill="#3b3556" />
+        <circle cx={-1.8} cy={-5} r={2.3} fill="#3b3556" />
+        <circle cx={1.8} cy={-5} r={2.3} fill="#3b3556" />
+        <circle cx={5.5} cy={-2.5} r={2.3} fill="#3b3556" />
         {/* tails */}
-        <path d="M-9 20 L-5 42 L-1 36 L3 42 L7 20 Z" fill="#ef5b7f" stroke="#3a2f55" strokeWidth={2} strokeLinejoin="round" />
-        <path d="M-1 22 L3 44 L7 38 L11 44 L15 22 Z" fill="#2f9be6" stroke="#3a2f55" strokeWidth={2} strokeLinejoin="round" transform="translate(-6 0)" />
+        <path d="M-9 20 L-5 42 L-1 36 L3 42 L7 20 Z" fill="#b2b8ce" stroke="#3b3556" strokeWidth={2} strokeLinejoin="round" />
+        <path d="M-1 22 L3 44 L7 38 L11 44 L15 22 Z" fill="#bdaec8" stroke="#3b3556" strokeWidth={2} strokeLinejoin="round" transform="translate(-6 0)" />
       </g>
       {/* Words */}
       <text
@@ -31,8 +31,8 @@ export function Wordmark({ width = 300 }: { width?: number }) {
         fontFamily="Fraunces, Georgia, serif"
         fontWeight={800}
         fontSize={38}
-        fill="#fff8e8"
-        stroke="#3a2f55"
+        fill="#fbf7f3"
+        stroke="#3b3556"
         strokeWidth={5}
         strokeLinejoin="round"
         paintOrder="stroke"
@@ -46,8 +46,8 @@ export function Wordmark({ width = 300 }: { width?: number }) {
         fontFamily="Fraunces, Georgia, serif"
         fontWeight={800}
         fontSize={38}
-        fill="#ffcf4a"
-        stroke="#3a2f55"
+        fill="#fec2c8"
+        stroke="#3b3556"
         strokeWidth={5}
         strokeLinejoin="round"
         paintOrder="stroke"

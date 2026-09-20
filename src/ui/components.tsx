@@ -20,8 +20,8 @@ import {
 type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
 
 const TONE_CLASS: Record<ButtonTone, string> = {
-  primary: 'btn-3d bg-[var(--brand)] text-white border-[var(--ink)]',
-  accent: 'btn-3d bg-rust text-white border-[var(--ink)]',
+  primary: 'btn-3d bg-[var(--ink)] text-[var(--bg)] border-[var(--ink)]',
+  accent: 'btn-3d bg-rust text-[var(--color-ink)] border-[var(--ink)]',
   secondary: 'btn-3d bg-[var(--card)] text-[var(--text)] border-[var(--ink)]',
   ghost: 'bg-transparent text-[var(--text-soft)] border-transparent active:bg-[var(--bg-2)]',
   danger: 'btn-3d bg-berry text-white border-[var(--ink)]',
@@ -198,11 +198,11 @@ export function Chip({
 }) {
   const tones = {
     neutral: 'bg-[var(--card)] text-[var(--text-soft)]',
-    good: 'bg-[#bff0d2] text-[#14603a]',
-    warn: 'bg-[#ffe9a8] text-[#6b4e00]',
-    bad: 'bg-[#ffc9d6] text-[#8f1f3f]',
-    info: 'bg-[#c9e6ff] text-[#144e80]',
-    rare: 'bg-sun text-[#5a3a05]',
+    good: 'bg-[#dfe8de] text-[#3d5a48]',
+    warn: 'bg-[#fecdc6] text-[#7a4a42]',
+    bad: 'bg-[#dbb4c6] text-[#6a2f47]',
+    info: 'bg-[#b2b8ce] text-[#2f3550]',
+    rare: 'bg-[#fec2c8] text-[#6a2f47]',
   };
   return (
     <span
@@ -215,7 +215,7 @@ export function Chip({
 
 /** The score, as a show rosette. Gold for a top dog, then red, blue, green, plain. */
 export function Rosette({ score, size = 44, className = '' }: { score: number; size?: number; className?: string }) {
-  const colour = score >= 85 ? '#ffcf4a' : score >= 70 ? '#ff6b8a' : score >= 55 ? '#5fb8ff' : score >= 40 ? '#7fd39a' : '#e6dccb';
+  const colour = score >= 85 ? '#fec2c8' : score >= 70 ? '#dbb4c6' : score >= 55 ? '#bdaec8' : score >= 40 ? '#b2b8ce' : '#e6e1dc';
   const ink = 'var(--ink)';
   return (
     <svg viewBox="0 0 48 48" width={size} height={size} className={`flex-none ${className}`} role="img" aria-label={`Score ${score}`}>
@@ -223,8 +223,8 @@ export function Rosette({ score, size = 44, className = '' }: { score: number; s
         <circle key={i} cx={24 + Math.cos((i / 12) * Math.PI * 2) * 17} cy={24 + Math.sin((i / 12) * Math.PI * 2) * 17} r={6} fill={colour} stroke={ink} strokeWidth={1.6} />
       ))}
       <circle cx={24} cy={24} r={16} fill={colour} stroke={ink} strokeWidth={1.8} />
-      <circle cx={24} cy={24} r={12} fill="#fff8e8" stroke={ink} strokeWidth={1.4} />
-      <text x={24} y={28.5} textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontWeight={800} fontSize={score >= 100 ? 11 : 13} fill="#2b2140">
+      <circle cx={24} cy={24} r={12} fill="#fbf7f3" stroke={ink} strokeWidth={1.4} />
+      <text x={24} y={28.5} textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontWeight={800} fontSize={score >= 100 ? 11 : 13} fill="#3b3556">
         {score}
       </text>
     </svg>
@@ -272,7 +272,7 @@ export function Pips({
         <span
           key={i}
           style={{ width: size, height: size }}
-          className={`rounded-full ${on ? 'bg-[#1f8a4f]' : 'bg-[var(--line)]'}`}
+          className={`rounded-full ${on ? 'bg-[var(--brand)]' : 'bg-[var(--line)]'}`}
         />
       ))}
       <span className="text-[10.5px] font-bold text-[var(--text-faint)] ml-0.5 tabular-nums">
@@ -347,7 +347,7 @@ export function StatRow({
     tone === 'good'
       ? 'text-moss'
       : tone === 'warn'
-        ? 'text-[#8a6a00]'
+        ? 'text-[#8a5a52]'
         : tone === 'bad'
           ? 'text-berry'
           : '';
