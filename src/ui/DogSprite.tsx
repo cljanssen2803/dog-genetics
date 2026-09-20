@@ -384,6 +384,9 @@ export function DogSprite({ dog, size = 120, className = '', framed = true, asle
   // Small dogs have big eyes, and puppies bigger still.
   const eyeScale = (1 + 0.4 * (1 - sizeT(sizeToPounds(dog.observed.size)))) * (1 + 0.25 * puppy);
 
+  // Nothing shows until the body artwork has arrived, so a card never
+  // flashes two eye dots on an empty stage.
+  const [ready, setReady] = useState(false);
   // Tap the dog and it wags. Purely for the pleasure of it.
   const [wagging, setWagging] = useState(false);
   const wag = () => {
@@ -424,7 +427,7 @@ export function DogSprite({ dog, size = 120, className = '', framed = true, asle
       )}
       {/* Scaled about the feet, so a small dog stands on the same ground as a big
           one instead of floating in the middle of the box. */}
-      <div style={{ position: 'absolute', inset: 0, transform: art.bodyTransform, transformOrigin: '50% 88%' }}>
+      <div style={{ position: 'absolute', inset: 0, transform: art.bodyTransform, transformOrigin: '50% 88%', opacity: ready ? 1 : 0, transition: 'opacity 180ms ease' }}>
         {/* Tail sits behind the body. The wrapper wags about the tail root. */}
         <div
           className={wagging ? 'wagging' : undefined}
@@ -436,7 +439,7 @@ export function DogSprite({ dog, size = 120, className = '', framed = true, asle
         </div>
 
         {/* The dog itself, carrying all the markings. */}
-        <Layer src={art.bodySrc} colour={art.fill}>
+        <Layer src={art.bodySrc} colour={art.fill} onLoad={() => setReady(true)}>
           {art.markings}
         </Layer>
 
@@ -613,11 +616,13 @@ function Layer({
   colour,
   fit,
   children,
+  onLoad,
 }: {
   src: string;
   colour: string;
   fit?: Fit;
   children?: React.ReactNode;
+  onLoad?: () => void;
 }) {
   const url = `url("${BASE}${src}")`;
   const placement = fit ? fitStyle(fit) : {};
@@ -644,6 +649,7 @@ function Layer({
         src={`${BASE}${src}`}
         alt=""
         draggable={false}
+        onLoad={onLoad}
         style={{
           position: 'absolute',
           inset: 0,

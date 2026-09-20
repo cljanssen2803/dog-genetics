@@ -1,5 +1,22 @@
 @import 'tailwindcss';
 
+/* Two faces, self-hosted so the game works offline: Fraunces (a soft, slightly
+   wonky serif) for titles, Inter for everything else. */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('/fonts/fraunces.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/inter.woff2') format('woff2');
+}
+
 /**
  * THEME
  *
@@ -26,13 +43,12 @@
   --color-clay: #d9961e;
   --color-berry: #ef5b7f;
   --color-sky: #2f9be6;
-  --color-line: #f0dcb8;
+  --color-line: #ecdcc0;
   --color-lilac: #9b7cf6;
   --color-sun: #ffcf4a;
 
-  --font-display: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI', system-ui, sans-serif;
-  --font-body:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
 
 :root {
@@ -96,38 +112,51 @@ nav,
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* A faint warm glow in the corners, so big cream areas feel like paper in
-   sunlight rather than a spreadsheet. */
+/* Paper: a faint warm glow and a whisper of grain, so big cream areas read
+   as paper rather than a blank screen. The grain is an inline SVG noise. */
 .paper {
   background-color: var(--bg);
   background-image:
-    radial-gradient(circle at 15% 10%, rgb(255 207 74 / 14%) 0, transparent 40%),
-    radial-gradient(circle at 85% 90%, rgb(47 155 230 / 10%) 0, transparent 40%);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.1 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 15% 10%, rgb(255 207 74 / 12%) 0, transparent 40%),
+    radial-gradient(circle at 85% 90%, rgb(47 155 230 / 8%) 0, transparent 40%);
 }
 
-/* Chunky cut-out cards: a soft border and a flat shadow underneath. */
+/* Cards: a quiet surface with a hairline, no drop. Boxes are for things
+   that need containing; lists and paragraphs mostly sit on the paper. */
 .card {
   background: var(--card);
-  border: 2px solid var(--line);
-  border-radius: 18px;
-  box-shadow: 0 3px 0 var(--line);
+  border: 1px solid var(--line);
+  border-radius: 14px;
 }
 
 .display {
   font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  font-variation-settings: 'opsz' 48, 'SOFT' 60;
 }
 
-/* Buttons push down like a real button. */
+/* Primary buttons press down a touch; nothing else is chunky. */
 .btn-3d {
-  box-shadow: 0 3px 0 var(--btn-shadow, rgb(0 0 0 / 18%));
+  box-shadow: 0 2px 0 var(--btn-shadow, rgb(0 0 0 / 18%));
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
 .btn-3d:active {
-  transform: translateY(2px);
+  transform: translateY(1px);
   box-shadow: 0 1px 0 var(--btn-shadow, rgb(0 0 0 / 18%));
 }
+
+/* Small caps labels: the "DO THIS NEXT" kind of thing. */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Numbers line up. */
+.tabular { font-variant-numeric: tabular-nums; }
 
 /* The stage every dog stands on: a strip of sky and a strip of grass. */
 .stage {

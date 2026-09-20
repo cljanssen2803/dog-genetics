@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { FlaskConical, Palette } from 'lucide-react';
 import { Button, Card, Chip, Empty, Section, Sheet } from '../components';
 import {
   type ProjectSummary,
@@ -97,7 +98,7 @@ export function Home({
 
         <Card onClick={onPlayground} className="mb-3">
           <div className="flex items-center gap-3">
-            <span className="text-[26px]">🎨</span>
+            <Palette size={26} strokeWidth={1.8} className="text-[var(--brand)]" />
             <div className="flex-1">
               <div className="display font-semibold text-[16px]">The Playground</div>
               <div className="text-[12px] text-[var(--text-faint)] leading-snug">
@@ -110,7 +111,7 @@ export function Home({
 
         <Card onClick={onLab} className="mb-3">
           <div className="flex items-center gap-3">
-            <span className="text-[26px]">🧪</span>
+            <FlaskConical size={26} strokeWidth={1.8} className="text-[var(--brand)]" />
             <div className="flex-1">
               <div className="display font-semibold text-[16px]">The Lab</div>
               <div className="text-[12px] text-[var(--text-faint)] leading-snug">

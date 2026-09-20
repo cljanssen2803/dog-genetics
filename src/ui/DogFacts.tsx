@@ -38,6 +38,7 @@ import { LOCI, genopairSymbol } from '../engine/loci';
 import { GOAL_HIT, scoreDog } from '../engine/standard';
 import type { Project } from '../game/project';
 import { Chip, Pips } from './components';
+import { Crown, Trophy } from 'lucide-react';
 
 export interface DogFacts {
   name: string;
@@ -241,10 +242,8 @@ export function NameLine({ f }: { f: DogFacts }) {
   return (
     <div className="flex items-baseline gap-1.5 min-w-0">
       {f.titles.length > 0 && (
-        <span className="text-rust text-[12px] font-semibold">
-          <span aria-hidden="true">
-            {f.titles[f.titles.length - 1].startsWith('Gr') ? '👑' : '🏆'}
-          </span>{' '}
+        <span className="text-rust text-[12px] font-semibold inline-flex items-center gap-1">
+          {f.titles[f.titles.length - 1].startsWith('Gr') ? <Crown size={12} aria-hidden="true" /> : <Trophy size={12} aria-hidden="true" />}
           {f.titles[f.titles.length - 1]}
         </span>
       )}

@@ -27,6 +27,7 @@ import { goalGaps, populationWarnings } from '../../game/analytics';
 import { type GenerationPlan, planGeneration } from '../../game/assist';
 import { BreedPicker } from './NewProject';
 import { BREED_BY_KEY } from '../../engine/breeds';
+import { Dices, Dog as DogIcon, Home, Library, type LucideIcon } from 'lucide-react';
 import { CARRIER_OPTIONS } from '../../engine/twists';
 import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, describeDog } from '../DogFacts';
 import { quirkOdds, quirkText } from '../../engine/quirks';
@@ -766,15 +767,15 @@ function OutsideSheet({
           {founders.slice(0, 3).map((k) => (
             <BigChoice
               key={k}
-              icon="🐕"
+              icon={DogIcon}
               label={`Another ${BREED_BY_KEY[k].name}`}
               hint="More of what you started with"
               onClick={() => { setBreedKey(k); choose('same', k); }}
             />
           ))}
-          <BigChoice icon="📚" label="A breed I choose" hint="Any of the 124 breeds" onClick={() => setMode('choose')} />
-          <BigChoice icon="🎲" label="Surprise me" hint="A village dog of no fixed breed — unrelated to everything you own" onClick={() => choose('random')} />
-          <BigChoice icon="🏡" label="From my other kennels" hint="A grown dog from another of your projects" onClick={() => choose('mine')} />
+          <BigChoice icon={Library} label="A breed I choose" hint="Any of the 124 breeds" onClick={() => setMode('choose')} />
+          <BigChoice icon={Dices} label="Surprise me" hint="A village dog of no fixed breed — unrelated to everything you own" onClick={() => choose('random')} />
+          <BigChoice icon={Home} label="From my other kennels" hint="A grown dog from another of your projects" onClick={() => choose('mine')} />
           {carrierPicker}
         </>
       )}
@@ -847,10 +848,10 @@ function OutsideSheet({
 }
 
 /** One big answer to "what does your kennel need?" */
-function BigChoice({ icon, label, hint, onClick }: { icon: string; label: string; hint: string; onClick: () => void }) {
+function BigChoice({ icon: Icon, label, hint, onClick }: { icon: LucideIcon; label: string; hint: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="card p-3 w-full text-left flex items-center gap-3 mb-2">
-      <span className="text-[24px] leading-none">{icon}</span>
+      <Icon size={24} strokeWidth={1.8} className="flex-none text-[var(--brand)]" />
       <span className="flex-1 min-w-0">
         <span className="block display text-[15px]">{label}</span>
         <span className="block text-[11.5px] text-[var(--text-faint)] leading-snug">{hint}</span>

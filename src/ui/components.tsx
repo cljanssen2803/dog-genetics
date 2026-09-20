@@ -5,6 +5,10 @@
  */
 
 import { useState, type ReactNode, useEffect } from 'react';
+import {
+  AlertTriangle, Award, BookOpen, Brain, CalendarDays, Dna, Dog, Dumbbell, GraduationCap, Home, Hourglass, Leaf,
+  type LucideIcon, Network, PawPrint, Pencil, Pin, Ruler, Scissors, Scroll, Settings, Sparkles, Stethoscope, TrendingUp, Trophy,
+} from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Buttons
@@ -15,8 +19,7 @@ type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
 const TONE_CLASS: Record<ButtonTone, string> = {
   primary: 'btn-3d bg-[var(--brand)] text-white border-transparent [--btn-shadow:#1f8a4f]',
   accent: 'btn-3d bg-rust text-white border-transparent [--btn-shadow:#d5651c]',
-  secondary:
-    'btn-3d bg-[var(--card)] text-[var(--text)] border-[var(--line)] [--btn-shadow:var(--line)]',
+  secondary: 'bg-[var(--card)] text-[var(--text)] border-[var(--line)] active:bg-[var(--bg-2)]',
   ghost: 'bg-transparent text-[var(--text-soft)] border-transparent active:bg-[var(--bg-2)]',
   danger: 'btn-3d bg-berry text-white border-transparent [--btn-shadow:#c23d60]',
 };
@@ -47,7 +50,7 @@ export function Button({
       disabled={disabled}
       className={`${TONE_CLASS[tone]} ${full ? 'w-full' : ''} ${
         small ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-3 text-[15px]'
-      } rounded-2xl border-2 font-bold disabled:opacity-40 disabled:pointer-events-none ${className}`}
+      } rounded-xl border font-semibold disabled:opacity-40 disabled:pointer-events-none ${className}`}
     >
       {children}
     </button>
@@ -83,34 +86,37 @@ export function Card({
  * pass one; otherwise it is guessed from the title, so the whole app picked
  * them up at once without touching every screen.
  */
-const SECTION_ICONS: [RegExp, string][] = [
-  [/breed book|your breed$|standard|aiming/i, '📖'],
-  [/^time$|generation|progress|history|snapshot|right now|numbers/i, '⏳'],
-  [/expert|stuck/i, '🧑‍🏫'],
-  [/show|line-up|judge|critique|scored|champion/i, '🏆'],
-  [/litter|puppies|born|whelp|expected/i, '🐾'],
-  [/death|retire|place in a pet|delete/i, '🍂'],
-  [/attention|warning|cost/i, '⚠️'],
-  [/health|carriers|disease/i, '🩺'],
-  [/diversity|pedigree|family|parents|whose/i, '🌳'],
-  [/coat/i, '🧶'],
-  [/habit|story|post|discover|something new|changed/i, '✨'],
-  [/genetic|polygenic|carries|seed/i, '🧬'],
-  [/temperament/i, '🧠'],
-  [/constitution/i, '💪'],
-  [/retention/i, '📌'],
-  [/breed status|establish/i, '🏅'],
-  [/warning|population/i, '⚠️'],
-  [/size|body/i, '📏'],
-  [/name/i, '✏️'],
-  [/project|preset|build your own|focus/i, '🏡'],
-  [/improve|likely/i, '📈'],
-  [/how long/i, '🗓️'],
+const SECTION_ICONS: [RegExp, LucideIcon][] = [
+  [/breed book|your breed$|standard|aiming/i, BookOpen],
+  [/^time$|generation|progress|history|snapshot|right now|numbers/i, Hourglass],
+  [/expert|stuck/i, GraduationCap],
+  [/show|line-up|judge|critique|scored|champion/i, Trophy],
+  [/litter|puppies|born|whelp|expected|happening/i, PawPrint],
+  [/death|retire|place in a pet|delete/i, Leaf],
+  [/attention|warning|cost/i, AlertTriangle],
+  [/health|carriers|disease/i, Stethoscope],
+  [/diversity|pedigree|family|parents|whose/i, Network],
+  [/coat/i, Scissors],
+  [/habit|story|post|discover|something new|changed/i, Sparkles],
+  [/genetic|polygenic|carries|seed|genes/i, Dna],
+  [/temperament/i, Brain],
+  [/constitution/i, Dumbbell],
+  [/retention/i, Pin],
+  [/breed status|establish/i, Award],
+  [/warning|population/i, AlertTriangle],
+  [/size|body/i, Ruler],
+  [/name/i, Pencil],
+  [/project|preset|build your own|focus|bench|free play|just play/i, Home],
+  [/improve|likely/i, TrendingUp],
+  [/how long/i, CalendarDays],
+  [/club|fashion/i, Scroll],
+  [/settings/i, Settings],
+  [/kennel|take it further/i, Dog],
 ];
 
-function sectionIcon(title: string): string {
+function sectionIcon(title: string): LucideIcon {
   for (const [pattern, icon] of SECTION_ICONS) if (pattern.test(title)) return icon;
-  return '🐶';
+  return Dog;
 }
 
 export function Section({
@@ -126,18 +132,15 @@ export function Section({
   icon?: string;
   children: ReactNode;
 }) {
+  const Icon = sectionIcon(title);
+  void icon;
   return (
-    <section className="mb-8">
-      <header className="flex items-start justify-between gap-3 mb-3 px-1">
-        <div className="flex items-start gap-2.5 min-w-0">
-          <span
-            aria-hidden="true"
-            className="flex-none w-8 h-8 rounded-xl bg-[var(--bg-2)] border-2 border-[var(--line)] flex items-center justify-center text-[16px] leading-none"
-          >
-            {icon ?? sectionIcon(title)}
-          </span>
-          <div className="min-w-0 pt-0.5">
-            <h2 className="display text-[17px] leading-tight">{title}</h2>
+    <section className="mb-7">
+      <header className="flex items-start justify-between gap-3 mb-2.5 px-1">
+        <div className="flex items-start gap-2 min-w-0">
+          <Icon aria-hidden="true" size={18} strokeWidth={2} className="flex-none mt-[3px] text-[var(--brand)]" />
+          <div className="min-w-0">
+            <h2 className="display text-[18px] leading-tight">{title}</h2>
             {subtitle && <p className="text-[12px] text-[var(--text-faint)] mt-0.5 leading-snug">{subtitle}</p>}
           </div>
         </div>
@@ -170,16 +173,16 @@ export function Chip({
   className?: string;
 }) {
   const tones = {
-    neutral: 'bg-[var(--bg-2)] text-[var(--text-soft)] border-[var(--line)]',
-    good: 'bg-moss/15 text-[#1f8a4f] border-moss/40',
-    warn: 'bg-rust/15 text-[#d5651c] border-rust/40',
-    bad: 'bg-berry/15 text-[#c8375c] border-berry/40',
-    info: 'bg-sky/15 text-[#1f7fc0] border-sky/40',
-    rare: 'bg-sun/35 text-[#a1690f] border-sun',
+    neutral: 'bg-[var(--bg-2)] text-[var(--text-soft)]',
+    good: 'bg-moss/12 text-[#1f7a46]',
+    warn: 'bg-rust/12 text-[#b85a19]',
+    bad: 'bg-berry/12 text-[#b3304f]',
+    info: 'bg-sky/12 text-[#1d6fa8]',
+    rare: 'bg-sun/30 text-[#8a5a0c]',
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold whitespace-nowrap ${tones[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap ${tones[tone]} ${className}`}
     >
       {children}
     </span>

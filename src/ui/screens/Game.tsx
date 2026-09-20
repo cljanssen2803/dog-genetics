@@ -9,6 +9,7 @@
 import { useMemo, useState } from 'react';
 import { Button, Card, Chip, Empty, Explain, Intro, Section, Segmented, Sheet, StatRow } from '../components';
 import { UiContext, type UiActions } from '../UiContext';
+import { Baby, BookOpen, ChevronLeft, Dna, ChevronRight, Dog as DogIcon, FastForward, GraduationCap, Heart, Home, type LucideIcon, Milk, MoreHorizontal, Network, PawPrint, Scroll, TrendingUp, Trophy } from 'lucide-react';
 import { useGame } from '../GameContext';
 import { DogCard, DogDetailSheet } from '../dogs';
 import { type BreedIntent, BreedTab } from './BreedTab';
@@ -49,11 +50,11 @@ import { type ClubProposal, afterGenerationClosed, pendingProposal } from '../..
 
 type Tab = 'today' | 'kennel' | 'breed' | 'puppies';
 
-const TABS: { key: Tab; label: string; icon: string }[] = [
-  { key: 'today', label: 'Today', icon: '🏡' },
-  { key: 'kennel', label: 'Kennel', icon: '🐕' },
-  { key: 'breed', label: 'Breed', icon: '💞' },
-  { key: 'puppies', label: 'Puppies', icon: '🐾' },
+const TABS: { key: Tab; label: string; icon: LucideIcon }[] = [
+  { key: 'today', label: 'Today', icon: Home },
+  { key: 'kennel', label: 'Kennel', icon: DogIcon },
+  { key: 'breed', label: 'Breed', icon: Heart },
+  { key: 'puppies', label: 'Puppies', icon: PawPrint },
 ];
 
 export function Game({ onExit }: { onExit: () => void }) {
@@ -156,15 +157,15 @@ export function Game({ onExit }: { onExit: () => void }) {
     <UiContext.Provider value={ui}>
     <div className="paper min-h-full flex flex-col">
       {/* ---------------------------------------------------------- header */}
-      <header className="flex-none safe-top text-white" style={{ background: 'linear-gradient(160deg, #5cc3ff 0%, #2f9be6 60%, #2589cf 100%)' }}>
-        <div className="max-w-lg mx-auto px-4 py-2.5 flex items-center gap-3">
-          <button onClick={onExit} className="text-[20px] leading-none opacity-80" aria-label="All projects">
-            ‹
+      <header className="flex-none safe-top paper border-b border-[var(--line)]">
+        <div className="max-w-lg mx-auto px-4 pt-3 pb-2.5 flex items-center gap-3">
+          <button onClick={onExit} className="text-[var(--text-faint)] -ml-1" aria-label="All projects">
+            <ChevronLeft size={22} />
           </button>
           <div className="flex-1 min-w-0">
-            <div className="display text-[16px] font-semibold truncate leading-tight">{project.name}</div>
-            <div className="text-[11px] opacity-75">
-              Year {(project.month / 12).toFixed(1)} · Generation {project.generation} · Kennel{' '}
+            <div className="display text-[20px] truncate leading-tight">{project.name}</div>
+            <div className="text-[11.5px] text-[var(--text-faint)] tabular">
+              Year {(project.month / 12).toFixed(1)} · Gen {project.generation} · Kennel{' '}
               {kennelCount(project)}{project.sandbox ? '' : `/${project.kennelCapacity}`}
               {activeDogs(project).length > kennelCount(project)
                 ? ` · ${activeDogs(project).length - kennelCount(project)} retired`
@@ -173,10 +174,10 @@ export function Game({ onExit }: { onExit: () => void }) {
           </div>
           <button
             onClick={() => setMoreOpen(true)}
-            className="h-8 px-3 rounded-full bg-white/25 text-[12px] font-bold leading-none"
+            className="h-9 w-9 rounded-full border border-[var(--line)] bg-[var(--card)] flex items-center justify-center text-[var(--text-soft)]"
             aria-label="More"
           >
-            More
+            <MoreHorizontal size={20} />
           </button>
         </div>
       </header>
@@ -201,28 +202,29 @@ export function Game({ onExit }: { onExit: () => void }) {
       </main>
 
       {/* ------------------------------------------------------------ tabs */}
-      <nav className="flex-none border-t-2 border-[var(--line)] bg-[var(--card)] safe-bottom">
-        <div className="max-w-lg mx-auto flex px-1 py-1">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-2xl ${
-                tab === t.key ? 'bg-[var(--bg-2)] text-[var(--brand)]' : 'text-[var(--text-faint)]'
-              }`}
-            >
-              <span className={`text-[18px] leading-none ${tab === t.key ? '' : 'grayscale opacity-70'}`}>{t.icon}</span>
-              <span className="text-[10px] font-bold">{t.label}</span>
-            </button>
-          ))}
+      <nav className="flex-none border-t border-[var(--line)] bg-[var(--card)] safe-bottom">
+        <div className="max-w-lg mx-auto flex px-2 py-1.5 gap-1">
+          {TABS.map((t) => {
+            const on = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl ${on ? 'text-[var(--brand)]' : 'text-[var(--text-faint)]'}`}
+              >
+                <t.icon size={22} strokeWidth={on ? 2.4 : 1.8} />
+                <span className="text-[10px] font-semibold">{t.label}</span>
+              </button>
+            );
+          })}
           {/* Time: the one control that moves the calendar. */}
           <button
             onClick={advanceToEvent}
-            className="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-2xl bg-rust text-white btn-3d [--btn-shadow:#d5651c]"
+            className="flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl bg-rust text-white btn-3d [--btn-shadow:#d5651c]"
             aria-label="Advance time"
           >
-            <span className="text-[18px] leading-none">⏩</span>
-            <span className="text-[10px] font-bold">Time</span>
+            <FastForward size={22} strokeWidth={2.2} />
+            <span className="text-[10px] font-semibold">Time</span>
           </button>
         </div>
       </nav>
@@ -395,19 +397,19 @@ function TodayTab({
   const undecided = dogs.filter((d) => d.litterId && ((!d.retention && ageMonths(d, project.month) >= 2) || (d.retention === 'wait' && ageMonths(d, project.month) >= 4)));
   const due = project.pregnancies.length ? Math.max(1, Math.min(...project.pregnancies.map((p) => p.dueMonth - project.month))) : 0;
   const over = kennelCount(project) - project.kennelCapacity;
-  const happening: { icon: string; text: string; tab?: Tab }[] = [];
-  if (project.pregnancies.length > 0) happening.push({ icon: '🤰', text: `${project.pregnancies.length} litter${project.pregnancies.length === 1 ? '' : 's'} on the way — due in ${due} month${due === 1 ? '' : 's'}`, tab: 'breed' });
-  if (babies.length > 0) happening.push({ icon: '🍼', text: `${babies.length} newborn${babies.length === 1 ? '' : 's'} growing — worth judging at eight weeks`, tab: 'puppies' });
-  if (undecided.length > 0) happening.push({ icon: '🐾', text: `${undecided.length} ${undecided.length === 1 ? 'puppy' : 'puppies'} waiting on a decision`, tab: 'puppies' });
-  if (over > 0 && !sandbox) happening.push({ icon: '🏠', text: `${over} over capacity — place someone before breeding`, tab: 'kennel' });
+  const happening: { icon: LucideIcon; text: string; tab?: Tab }[] = [];
+  if (project.pregnancies.length > 0) happening.push({ icon: Baby, text: `${project.pregnancies.length} litter${project.pregnancies.length === 1 ? '' : 's'} on the way — due in ${due} month${due === 1 ? '' : 's'}`, tab: 'breed' });
+  if (babies.length > 0) happening.push({ icon: Milk, text: `${babies.length} newborn${babies.length === 1 ? '' : 's'} growing — worth judging at eight weeks`, tab: 'puppies' });
+  if (undecided.length > 0) happening.push({ icon: PawPrint, text: `${undecided.length} ${undecided.length === 1 ? 'puppy' : 'puppies'} waiting on a decision`, tab: 'puppies' });
+  if (over > 0 && !sandbox) happening.push({ icon: Home, text: `${over} over capacity — place someone before breeding`, tab: 'kennel' });
   const notice = pendingProposal(project);
-  if (notice) happening.push({ icon: '📜', text: `The breed club is waiting on an answer: ${notice.title.toLowerCase()}` });
+  if (notice) happening.push({ icon: Scroll, text: `The breed club is waiting on an answer: ${notice.title.toLowerCase()}` });
 
   return (
     <div className="px-4 pb-28 pt-3">
       {!sandbox && (
         <Card className="mb-4 border-[var(--brand)]">
-          <div className="text-[11px] font-bold text-[var(--brand)] uppercase tracking-wide mb-0.5">Do this next</div>
+          <div className="eyebrow text-[var(--brand)] mb-1">Do this next</div>
           <div className="display text-[16px] leading-tight mb-1">{step.title}</div>
           <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">{step.detail}</p>
           <Button full onClick={doStep}>
@@ -432,7 +434,7 @@ function TodayTab({
       <Section title="Happening now">
         <Card>
           {happening.length === 0 ? (
-            <p className="text-[12.5px] text-[var(--text-soft)]">A quiet moment. Breed a pair, or press ⏩ to move time on.</p>
+            <p className="text-[12.5px] text-[var(--text-soft)]">A quiet moment. Breed a pair, or press Time to move on.</p>
           ) : (
             happening.map((h, i) => (
               <button
@@ -440,9 +442,9 @@ function TodayTab({
                 onClick={() => h.tab && onGoTab(h.tab)}
                 className="w-full text-left flex items-start gap-2 py-1.5 border-b border-[var(--line)] last:border-0"
               >
-                <span className="text-[16px] leading-none">{h.icon}</span>
+                <h.icon size={16} className="flex-none mt-0.5 text-[var(--text-faint)]" />
                 <span className="text-[12.5px] leading-snug flex-1">{h.text}</span>
-                {h.tab && <span className="text-[var(--text-faint)]">›</span>}
+                {h.tab && <ChevronRight size={16} className="text-[var(--text-faint)]" />}
               </button>
             ))
           )}
@@ -473,9 +475,10 @@ function TodayTab({
         </Card>
       )}
 
-      <Button full tone="secondary" onClick={onMore}>
-        Breed book, shows, expert, standard, trends…
-      </Button>
+      <button onClick={onMore} className="w-full flex items-center justify-between px-1 py-2 text-[13px] text-[var(--text-soft)]">
+        <span>Breed book, shows, expert, standard, trends</span>
+        <ChevronRight size={16} className="text-[var(--text-faint)]" />
+      </button>
     </div>
   );
 }
@@ -485,15 +488,15 @@ function TodayTab({
 // ---------------------------------------------------------------------------
 
 /** One line in the More sheet. */
-function Row({ icon, label, hint, onClick }: { icon: string; label: string; hint?: string; onClick: () => void }) {
+function Row({ icon: Icon, label, hint, onClick }: { icon: LucideIcon; label: string; hint?: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="w-full text-left flex items-center gap-3 py-2.5 border-b border-[var(--line)] last:border-0">
-      <span className="text-[18px] leading-none w-6 text-center">{icon}</span>
+      <Icon size={20} strokeWidth={1.9} className="flex-none text-[var(--brand)]" />
       <span className="flex-1 min-w-0">
         <span className="block text-[13.5px] font-semibold">{label}</span>
         {hint && <span className="block text-[11.5px] text-[var(--text-faint)] truncate">{hint}</span>}
       </span>
-      <span className="text-[var(--text-faint)]">›</span>
+      <ChevronRight size={16} className="text-[var(--text-faint)]" />
     </button>
   );
 }
@@ -538,11 +541,11 @@ function MoreSheet({
   return (
     <Sheet open onClose={onClose} title="More" subtitle={project.name}>
       <Card className="mb-4">
-        <Row icon="📖" label="Breed book" hint="Everything you have made so far" onClick={onBreedBook} />
-        <Row icon="🌳" label="Family tree" hint="Pedigrees and who the gene pool comes from" onClick={onFamily} />
-        <Row icon="📈" label="Trends" hint="Generation by generation" onClick={onTrends} />
-        {!sandbox && <Row icon="🏆" label="Dog shows" hint={`${standing.label}${project.reputation ? ` · ${project.reputation} points` : ''}${titled.length ? ` · ${titled.length} titled` : ''}`} onClick={onShows} />}
-        {!sandbox && <Row icon="🧑‍🏫" label="Ask the expert" hint="A read on what the kennel needs" onClick={onExpert} />}
+        <Row icon={BookOpen} label="Breed book" hint="Everything you have made so far" onClick={onBreedBook} />
+        <Row icon={Network} label="Family tree" hint="Pedigrees and who the gene pool comes from" onClick={onFamily} />
+        <Row icon={TrendingUp} label="Trends" hint="Generation by generation" onClick={onTrends} />
+        {!sandbox && <Row icon={Trophy} label="Dog shows" hint={`${standing.label}${project.reputation ? ` · ${project.reputation} points` : ''}${titled.length ? ` · ${titled.length} titled` : ''}`} onClick={onShows} />}
+        {!sandbox && <Row icon={GraduationCap} label="Ask the expert" hint="A read on what the kennel needs" onClick={onExpert} />}
       </Card>
 
       <Section title="Generation" subtitle={sandbox ? 'Close out a generation to see how the kennel has changed.' : 'Close a chapter to see what changed and what to aim at next.'}>
@@ -746,7 +749,7 @@ function KennelTab() {
             className={`flex-none rounded-xl border px-2.5 py-2 text-[12px] font-semibold ${gene ? 'bg-[var(--brand)] text-white border-transparent' : 'bg-[var(--card)] border-[var(--line)]'}`}
             aria-label="Filter by gene"
           >
-            🧬{gene ? ' 1' : ''}
+            <span className="inline-flex items-center gap-1"><Dna size={14} />{gene ? '1' : ''}</span>
           </button>
         )}
       </div>
