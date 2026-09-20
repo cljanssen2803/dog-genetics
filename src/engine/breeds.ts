@@ -1503,14 +1503,14 @@ export const BREEDS: BreedProfile[] = [
   {
     key: 'kerryBlue', name: 'Kerry Blue Terrier', group: 'Terrier', weight: 36,
     traits: { biddability: 64, sociability: 56, energy: 78, stability: 54, preyDrive: 84, persistence: 90, independence: 62, alertness: 84, vocality: 60, handling: 60, structure: 72, longevity: 72, fertility: 66, substance: 54, muzzle: 74, earSet: 40, tailSet: 62 },
-    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.6, cu: 0.4 }, furnishings: bearded, shedding: shedsLittle },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.3, cu: 0.7 }, furnishings: bearded, shedding: shedsLittle },
     diseases: {},
     blurb: 'Born black, fades to slate blue by two. Soft wavy coat, hard Irish head.',
   },
   {
     key: 'wheaten', name: 'Soft-Coated Wheaten Terrier', group: 'Terrier', weight: 38,
     traits: { biddability: 66, sociability: 84, energy: 80, stability: 56, preyDrive: 72, persistence: 76, independence: 52, alertness: 78, vocality: 62, handling: 72, structure: 70, longevity: 70, fertility: 68, substance: 52, muzzle: 66, earSet: 40, tailSet: 62 },
-    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.5, cu: 0.5 }, furnishings: bearded, shedding: shedsLittle },
+    alleles: { undercoat: singleCoat, coatLength: coatLong, curl: { Cu: 0.3, cu: 0.7 }, furnishings: bearded, shedding: shedsLittle },
     diseases: {},
     blurb: 'The Irish farm terrier that greets everyone with a leap. Wheat-gold, silky, low-shedding.',
   },

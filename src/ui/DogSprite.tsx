@@ -206,7 +206,6 @@ const HAVE = new Set<string>([
   'tail-curlfluff.png',
   'tail-bushy.png',
   'tail-bobfluff.png',
-  'ear-fold.png',
   'body-shepherd.png',
   'body-softwavy.png',
   'body-hound.png',
@@ -303,8 +302,8 @@ const BAT_EAR_FIT: Fit = { anchor: [45, 83], target: [74.5, 19], scale: 0.3 };
 /** The small rose ear folded back: sighthounds and Bulldogs. */
 const ROSE_EAR_FIT: Fit = { anchor: [75, 37], target: [75, 17], scale: 0.6 };
 /** The short neat drop ear of a retriever. Hangs from its top edge. */
-/** The folded-over drop ear of a retriever (ear-fold.png). Hangs from its top. */
-const SHORT_DROP_FIT: Fit = { anchor: [53, 22.5], target: [75.5, 16.5], scale: 0.25 };
+/** The short neat drop ear of a retriever. Hangs from its top edge. */
+const SHORT_DROP_FIT: Fit = { anchor: [76, 31], target: [75.5, 16.5], scale: 0.55 };
 
 const EAR_FIT: Record<EarType, Fit> = {
   erect: { anchor: [55.1, 91.7], target: [74.5, 19], scale: 0.206 },
@@ -898,7 +897,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
             : roseEars
               ? 'ear-rose.png'
               : shortDrop
-                ? 'ear-fold.png'
+                ? 'ear-shortdrop.png'
                 : EAR_SRC[ears],
     tailSrc,
     tailStandin: standin?.transform,

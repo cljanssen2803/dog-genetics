@@ -608,7 +608,7 @@ export function resolveSilhouette(
   // Pricked ears on a plush coat: a Spitz if the coat is properly fluffy or
   // the tail curls up over the back; otherwise a shepherd or heeler — the
   // same coat on a leaner, longer frame with the tail carried low.
-  if (plain && coat.undercoat && earSet > 68) return coat.kind === 'doubleThick' || tailSet >= 62 ? 'spitz' : 'shepherd';
+  if (plain && coat.undercoat && earSet > 68) return coat.kind === 'doubleThick' || tailSet >= 62 || sizeLbs < 22 ? 'spitz' : 'shepherd';
   if (coat.kind === 'smooth' || coat.kind === 'short') {
     // The bull body: a flat face, or a heavy dog with a short broad muzzle
     // (the bull-and-terrier breeds). The heavy body: heavy with a real muzzle.
@@ -640,7 +640,9 @@ export function resolveSilhouette(
     // The athletic pointing and scenting dogs: lean, deep-chested, long-headed.
     if (!coat.undercoat && substance >= 36 && substance < 74 && muzzle > 66 && sizeLbs >= 35 && earSet < 58) return 'pointer';
     // The true sighthounds: lighter still.
-    if (substance < 46 && muzzle > 60 && !coat.undercoat) return sizeLbs > 50 ? 'tallHound' : 'sighthound';
+    // A small lean terrier is not a sighthound; a genuinely whip-thin toy
+    // (Italian Greyhound) is.
+    if (substance < 46 && muzzle > 60 && !coat.undercoat && (sizeLbs >= 20 || substance < 30)) return sizeLbs > 50 ? 'tallHound' : 'sighthound';
     // Small, compact, square: the terrier body.
     if (sizeLbs < 30 && muzzle >= 40 && earSet > 30 && !coat.undercoat) return 'terrier';
     if (coat.undercoat && substance >= 50 && muzzle > 50 && sizeLbs >= 40) return 'retriever';
