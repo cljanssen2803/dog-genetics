@@ -281,3 +281,22 @@ the two-tails-in-one file, the ear-and-legs composite, the muzzle piece, and
 the originals of every replaced body.
 Not used yet: feathered legs, the wide feathered flag, the feathered spaniel
 ear variant.
+
+## Round six — one more body
+
+### 14. Greyhound body (`body-greyhound.png`)
+
+The current Greyhound stencil is really a Whippet standing square: a level
+back and an ordinary chest. A real Greyhound reads from its outline alone.
+
+> A side-view cartoon dog standing in profile, facing RIGHT, drawn entirely
+> in flat pure white with soft light-grey shading for muscle and coat
+> shapes, minimal or no outline. Transparent background, PNG with alpha.
+> 1448 × 1086 canvas, the dog centred with its feet on a ground line 975
+> pixels from the top. This dog is a GREYHOUND: very tall and narrow, a
+> very deep chest that drops almost to the elbow, then a dramatic tuck-up
+> to a tiny waist, a back that arches up over the loin and slopes away to
+> the tail, long slender legs, a long slim neck, and a long narrow head.
+> Smooth short coat. NO ears and NO tail — those are separate pieces. No
+> background, no scenery, no ground shadow, no text. Children's picture-book
+> style, warm and appealing, not photorealistic.

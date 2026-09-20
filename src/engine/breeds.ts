@@ -928,7 +928,7 @@ export const BREEDS: BreedProfile[] = [
     traits: {
       biddability: 84, sociability: 48, energy: 76, stability: 54, preyDrive: 74,
       persistence: 84, independence: 34, alertness: 94, vocality: 52, handling: 62,
-      structure: 62, longevity: 30, fertility: 68, substance: 52, muzzle: 80, earSet: 40, tailSet: 34,
+      structure: 62, longevity: 30, fertility: 68, substance: 52, muzzle: 80, earSet: 88, tailSet: 34,
     },
     alleles: { undercoat: singleCoat,
       coatLength: coatShort, curl: straight, furnishings: smoothFace,
@@ -1103,21 +1103,21 @@ export const BREEDS: BreedProfile[] = [
   },
   {
     key: 'cattleDog', name: 'Australian Cattle Dog', group: 'Herding', weight: 40,
-    traits: { biddability: 76, sociability: 34, energy: 96, stability: 62, preyDrive: 86, persistence: 96, independence: 56, alertness: 94, vocality: 46, handling: 48, structure: 80, longevity: 80, fertility: 72, substance: 58, muzzle: 66, earSet: 96, tailSet: 40 },
+    traits: { biddability: 76, sociability: 34, energy: 96, stability: 62, preyDrive: 86, persistence: 96, independence: 56, alertness: 94, vocality: 46, handling: 48, structure: 80, longevity: 80, fertility: 72, substance: 66, muzzle: 66, earSet: 96, tailSet: 40 },
     alleles: { undercoat: plush, coatLength: coatShort, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0.1, kbr: 0, ky: 0.9 }, locusA: { ay: 0.1, aw: 0.1, at: 0.8, a: 0 }, locusS: { S: 0, sp: 1 }, ticking: { T: 1, t: 0 }, locusB: { B: 0.7, b: 0.3 } },
     diseases: { prcdPRA: 0.1 },
     blurb: 'The hardest-working, longest-lived dog in this bank. Heavily ticked blue or red, and will heel anything that moves, including you.',
   },
   {
     key: 'sheltie', name: 'Shetland Sheepdog', group: 'Herding', weight: 22,
-    traits: { biddability: 90, sociability: 40, energy: 70, stability: 38, preyDrive: 60, persistence: 72, independence: 30, alertness: 92, vocality: 94, handling: 50, structure: 66, longevity: 74, fertility: 62, substance: 42, muzzle: 74, earSet: 60, tailSet: 44 },
+    traits: { biddability: 90, sociability: 40, energy: 70, stability: 38, preyDrive: 60, persistence: 72, independence: 30, alertness: 92, vocality: 94, handling: 50, structure: 66, longevity: 74, fertility: 62, substance: 42, muzzle: 74, earSet: 82, tailSet: 44 },
     alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0.1, kbr: 0, ky: 0.9 }, locusA: { ay: 0.6, aw: 0, at: 0.35, a: 0.05 }, merle: { M: 0.2, m: 0.8 }, locusS: { S: 0.15, sp: 0.85 } },
     diseases: { cea: 0.6, mdr1: 0.15 },
     blurb: 'A miniature Collie that is brilliant, sensitive, and possibly the barkiest dog alive. Eye disease runs through most of the breed.',
   },
   {
     key: 'roughCollie', name: 'Rough Collie', group: 'Herding', weight: 60,
-    traits: { biddability: 84, sociability: 62, energy: 60, stability: 48, preyDrive: 54, persistence: 64, independence: 32, alertness: 84, vocality: 82, handling: 62, structure: 66, longevity: 66, fertility: 64, substance: 44, muzzle: 90, earSet: 62, tailSet: 44 },
+    traits: { biddability: 84, sociability: 62, energy: 60, stability: 48, preyDrive: 54, persistence: 64, independence: 32, alertness: 84, vocality: 82, handling: 62, structure: 66, longevity: 66, fertility: 64, substance: 44, muzzle: 90, earSet: 76, tailSet: 44 },
     alleles: { undercoat: plush, coatLength: coatLong, curl: straight, furnishings: smoothFace, shedding: shedsHeavily, locusK: { KB: 0, kbr: 0, ky: 1 }, locusA: { ay: 0.65, aw: 0, at: 0.35, a: 0 }, merle: { M: 0.2, m: 0.8 }, locusS: { S: 0.1, sp: 0.9 } },
     diseases: { cea: 0.7, mdr1: 0.35 },
     blurb: 'Lassie. Elegant, gentle, and carrying more eye disease and drug sensitivity than almost any breed.',
@@ -1293,7 +1293,7 @@ export const BREEDS: BreedProfile[] = [
   {
     key: 'chessie', name: 'Chesapeake Bay Retriever', group: 'Gundog', weight: 70,
     traits: { biddability: 66, sociability: 46, energy: 80, stability: 70, preyDrive: 70, persistence: 92, independence: 60, alertness: 82, vocality: 40, handling: 62, structure: 64, longevity: 60, fertility: 70, substance: 72, muzzle: 66, earSet: 8, tailSet: 44 },
-    alleles: { undercoat: plush, coatLength: coatShort, curl: { Cu: 0.5, cu: 0.5 }, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0, E: 0.3, e: 0.7 }, locusB: { B: 0, b: 1 }, intensity: { I: 0.5, i: 0.5 }, locusS: { S: 0.98, sp: 0.02 } },
+    alleles: { undercoat: plush, coatLength: coatShort, curl: { Cu: 0.03, cu: 0.97 }, furnishings: smoothFace, shedding: shedsHeavily, locusE: { Em: 0, E: 0.3, e: 0.7 }, locusB: { B: 0, b: 1 }, intensity: { I: 0.5, i: 0.5 }, locusS: { S: 0.98, sp: 0.02 } },
     diseases: { prcdPRA: 0.1, eic: 0.08, dm: 0.1 },
     blurb: 'The toughest retriever: an oily wavy coat that sheds ice water, a protective streak, and the will to break ice for a duck.',
   },

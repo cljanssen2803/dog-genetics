@@ -163,7 +163,7 @@ const RIG: Partial<Record<Silhouette, { ear: [number, number]; tail: [number, nu
   terrier: { ear: [74.3, 16.9], tail: [28.5, 45.4] },
   egg: { ear: [75, 18.5], tail: [27.8, 48.4] },
   jowl: { ear: [79.0, 16.9], tail: [27.0, 44.3] },
-  lowWire: { ear: [77.5, 25.5], tail: [26.2, 56.3] },
+  lowWire: { ear: [74.5, 21], tail: [26.2, 56.3] },
   greyhound: { ear: [76.7, 16.9], tail: [28.1, 48.4] },
   tallHound: { ear: [79.5, 12.5], tail: [27.3, 44.7] },
   wrinkle: { ear: [76, 24], tail: [27.5, 49.8] },
@@ -754,7 +754,9 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // deserve its own silhouette. Without the artwork, stretch the fallback.
   const silhouette = force?.silhouette ?? resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight, shortLegs, dog.observed.tailSet);
   let bodySrc = BODY_SRC[coat.kind];
-  let standinStretch = '';
+  // A small curly dog (Bichon, Toy Poodle) is a round little thing, not a
+  // leggy Standard Poodle: the Poodle frame drawn shorter and rounder.
+  let standinStretch = coat.kind === 'curly' && weight < 25 ? ' scale(1.12, 0.86)' : '';
   let rig: { ear: [number, number]; tail: [number, number] } | undefined = RIG[coat.kind];
   let face = FACE[coat.kind];
   // The giant smooth dogs (Great Dane, European type) wear the mastiff's
@@ -764,12 +766,20 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
     rig = RIG.jowl;
     face = FACE.jowl;
     standinStretch = ' scale(0.88, 1.06)';
+  } else if (silhouette === 'shepherd' && dog.observed.substance >= 50) {
+    // A thick-set heeler (Cattle Dog) is a stocky, muscular little dog,
+    // not a lean Malinois: the bull-and-terrier frame with its ears up.
+    bodySrc = 'body-bully.png';
+    rig = RIG.bully;
+    face = FACE.bully;
   } else if ((BUILD_SILHOUETTES as string[]).includes(silhouette)) {
     const want = SILHOUETTE_SRC[silhouette as BuildSilhouette];
     if (HAVE.has(want.file)) {
       bodySrc = want.file;
       rig = RIG[silhouette];
       face = FACE[silhouette];
+      // The Scottie's body is drawn long; pull it in and lift it a touch.
+      if (silhouette === 'lowWire') standinStretch = ' scale(0.9, 1.05)';
     } else {
       bodySrc = BODY_SRC[want.fallback];
       standinStretch = silhouette === 'sighthound' ? ' scale(0.88, 1.06)' : silhouette === 'bull' || silhouette === 'heavy' ? ' scale(1.14, 0.92)' : '';
@@ -786,7 +796,10 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // Cavalier). Plush-coated retrievers and the bull types keep short ears.
   const longEared =
     ears === 'drop' && !coat.undercoat && !coat.hairless && silhouette !== 'sighthound' && silhouette !== 'bull';
-  const houndEars = longEared && (coat.kind === 'smooth' || coat.kind === 'short') && (dog.observed.muzzle > 55 || silhouette === 'hound') && silhouette !== 'tallHound';
+  // The lean pointing and running dogs (Pointer, Dalmatian, Vizsla, the
+  // sighthounds) carry a neat drop ear, not a hound's flap.
+  const sleek = silhouette === 'pointer' || silhouette === 'greyhound' || silhouette === 'sighthound' || silhouette === 'tallHound';
+  const houndEars = longEared && (coat.kind === 'smooth' || coat.kind === 'short') && (dog.observed.muzzle > 55 || silhouette === 'hound') && !sleek;
   const spanielEars = longEared && !houndEars && (coat.kind === 'silky' || coat.kind === 'long' || silhouette === 'flatLong');
   // Big bat ears on the small flat-faced and low dogs; rose ears folded back
   // on sighthounds and Bulldogs; short neat drops on the plush-coated retrievers.
@@ -861,8 +874,11 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   const substance = burly
     ? 0.8 + (dog.observed.substance / 100) * 0.24
     : silhouette === 'sighthound' || silhouette === 'tallHound' || silhouette === 'greyhound'
-      ? 0.84 + (dog.observed.substance / 100) * 0.22
-      : (shepherd ? 0.84 : 0.94) + (dog.observed.substance / 100) * 0.14;
+      ? 0.78 + (dog.observed.substance / 100) * 0.28
+      : bodySrc === 'body-bully.png'
+        // The bull-and-terrier frame: a Staffie is visibly beefier than a Boxer.
+        ? 0.86 + (dog.observed.substance / 100) * 0.24
+        : (shepherd ? 0.84 : 0.94) + (dog.observed.substance / 100) * 0.14;
   // Short-legged dogs read as longer and lower rather than simply smaller.
   // Short-legged dogs read as longer and lower; so does a shepherd type,
   // which is a longer, leaner animal than the Spitz whose body it borrows.
@@ -877,7 +893,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // Only when the purpose-made low body is actually in use; a stand-in still
   // needs its legs squashed.
   const lowBody = rig !== undefined && (silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire' || silhouette === 'flatLong' || silhouette === 'basset');
-  const legSquash = lowBody ? 1 : shortLegs === 2 ? 0.66 : shortLegs === 1 ? 0.82 : shepherd ? 0.93 : 1;
+  const legSquash = lowBody ? 1 : silhouette === 'spaniel' && shortLegs > 0 ? 0.88 : shortLegs === 2 ? 0.66 : shortLegs === 1 ? 0.82 : shepherd ? 0.93 : 1;
   const stretch = shepherd ? 1.1 : 1;
 
   const bodyTransform = `scale(${(sizeScale * substance * stretch).toFixed(3)}, ${(sizeScale * legSquash).toFixed(3)})${standinStretch}`;
@@ -922,6 +938,17 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
         ? { ...EAR_FIT.drop, scale: EAR_FIT.drop.scale * 0.8 }
         : silhouette === 'sighthound' || silhouette === 'tallHound' || silhouette === 'greyhound'
           ? { ...EAR_FIT[ears], scale: EAR_FIT[ears].scale * 0.7 }
+          : silhouette === 'pointer' && ears === 'drop'
+            ? { ...EAR_FIT.drop, scale: EAR_FIT.drop.scale * 0.85 }
+          : coat.kind === 'curly' && weight < 25 && ears === 'drop'
+            // A Bichon's ears are small and lost in the fluff.
+            ? { ...EAR_FIT.drop, scale: EAR_FIT.drop.scale * 0.62 }
+          : silhouette === 'lowWire' && ears === 'erect'
+            // A Scottie's or Westie's pricked ear is a small neat point.
+            ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * 0.6 }
+          : bodySrc === 'body-bully.png' && ears === 'erect'
+            // A heeler's pricked ear is a broad short triangle, not a sail.
+            ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * 0.8 }
           : roundEars
             ? ROUND_EAR_FIT
             : houndEars
