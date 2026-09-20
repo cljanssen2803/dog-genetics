@@ -611,7 +611,14 @@ export function resolveSilhouette(
   // A German Shepherd is a plush, heavy-set herder: it keeps the fluffy
   // Spitz frame (narrowed and lengthened by the renderer). Malinois, Cattle
   // Dogs and Kelpies are lighter and short-coated: the sleek shepherd frame.
-  if (plain && coat.undercoat && earSet > 68) return coat.kind === 'doubleThick' || tailSet >= 62 || sizeLbs < 22 || (sizeLbs >= 55 && substance >= 48) ? 'spitz' : 'shepherd';
+  if (plain && coat.undercoat && earSet > 68) {
+    // A plush, heavy herder with a low tail — the German Shepherd, the
+    // Tervuren — wears the long-coated plush frame with pricked ears, not
+    // the Husky's ruff. Curled and sickle tails are the Spitz family proper.
+    if (tailSet < 62 && sizeLbs >= 55 && substance >= 48) return 'plush';
+    if (coat.kind === 'doubleThick' || tailSet >= 62 || sizeLbs < 22) return 'spitz';
+    return 'shepherd';
+  }
   if (coat.kind === 'smooth' || coat.kind === 'short') {
     // The bull body: a flat face, or a heavy dog with a short broad muzzle
     // (the bull-and-terrier breeds). The heavy body: heavy with a real muzzle.

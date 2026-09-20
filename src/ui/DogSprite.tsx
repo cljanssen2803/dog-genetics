@@ -757,7 +757,14 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   let standinStretch = '';
   let rig: { ear: [number, number]; tail: [number, number] } | undefined = RIG[coat.kind];
   let face = FACE[coat.kind];
-  if ((BUILD_SILHOUETTES as string[]).includes(silhouette)) {
+  // The giant smooth dogs (Great Dane, European type) wear the mastiff's
+  // heavy head on a taller, narrower frame: the jowl body stretched up.
+  if (silhouette === 'tallHound') {
+    bodySrc = 'body-jowl.png';
+    rig = RIG.jowl;
+    face = FACE.jowl;
+    standinStretch = ' scale(0.88, 1.06)';
+  } else if ((BUILD_SILHOUETTES as string[]).includes(silhouette)) {
     const want = SILHOUETTE_SRC[silhouette as BuildSilhouette];
     if (HAVE.has(want.file)) {
       bodySrc = want.file;
@@ -779,14 +786,14 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // Cavalier). Plush-coated retrievers and the bull types keep short ears.
   const longEared =
     ears === 'drop' && !coat.undercoat && !coat.hairless && silhouette !== 'sighthound' && silhouette !== 'bull';
-  const houndEars = longEared && (coat.kind === 'smooth' || coat.kind === 'short') && (dog.observed.muzzle > 55 || silhouette === 'hound');
+  const houndEars = longEared && (coat.kind === 'smooth' || coat.kind === 'short') && (dog.observed.muzzle > 55 || silhouette === 'hound') && silhouette !== 'tallHound';
   const spanielEars = longEared && !houndEars && (coat.kind === 'silky' || coat.kind === 'long' || silhouette === 'flatLong');
   // Big bat ears on the small flat-faced and low dogs; rose ears folded back
   // on sighthounds and Bulldogs; short neat drops on the plush-coated retrievers.
   const batEars = ears === 'erect' && !roundEars && (silhouette === 'bull' || silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'terrier');
   // The Frenchie and Corgi wear the full bat; a terrier's or Dachshund's
   // pricked ear is a smaller thing, and a flat-faced toy's smaller still.
-  const batScale = silhouette === 'bull' || silhouette === 'lowHeavy' ? 1 : 0.78;
+  const batScale = (silhouette === 'bull' && weight >= 24) || silhouette === 'lowHeavy' ? 1 : silhouette === 'bull' ? 0.68 : 0.78;
   const roseEars = (ears === 'button' || ears === 'semiErect') && (silhouette === 'sighthound' || silhouette === 'tallHound' || silhouette === 'greyhound' || silhouette === 'bull' || silhouette === 'egg' || silhouette === 'wrinkle');
   const shortDrop = ears === 'drop' && coat.undercoat && !coat.hairless;
 
@@ -918,7 +925,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
           : roundEars
             ? ROUND_EAR_FIT
             : houndEars
-              ? HOUND_EAR_FIT
+              ? { ...HOUND_EAR_FIT, scale: HOUND_EAR_FIT.scale * (silhouette === 'basset' || silhouette === 'hound' || weight >= 45 ? 1 : 0.76) }
               : spanielEars
                 ? SPANIEL_EAR_FIT
                 : batEars

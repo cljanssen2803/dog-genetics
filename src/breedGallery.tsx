@@ -50,7 +50,9 @@ function Combos() {
     <div className="paper min-h-full p-2">
       <SpriteFilters />
       {bodies.map((sil) => {
-        const key = REP[sil] && BREED_BY_KEY[REP[sil]!] ? REP[sil]! : 'beagle';
+        // ?rep=gsd draws that breed on every body listed, to compare frames.
+        const forced = params.get('rep');
+        const key = forced && BREED_BY_KEY[forced] ? forced : REP[sil] && BREED_BY_KEY[REP[sil]!] ? REP[sil]! : 'beagle';
         const dog = createFounder(rng, { breedKey: key, sex: 'M', name: sil, currentMonth: 0, ageMonths: 30, wildcards: false });
         return (
           <div key={sil} className="mb-3">
