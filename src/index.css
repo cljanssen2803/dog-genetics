@@ -178,6 +178,15 @@ nav,
   animation: wag 0.7s ease-in-out;
 }
 
+/* A slow blink, every six seconds or so. Closes about the eye's centre. */
+@keyframes blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  95.5%, 97.5% { transform: scaleY(0.08); }
+}
+.blink {
+  animation: blink 6s infinite;
+}
+
 /* Confetti for a first place. Soft colours, short, no fireworks. */
 @keyframes confetti-fall {
   0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
@@ -195,6 +204,7 @@ nav,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .blink,
   .sheet-in,
   .fade-in,
   .wagging,

@@ -489,9 +489,14 @@ export function createFounder(rng: Rng, opts: FounderOptions): Dog {
       const envSd = def.sd * Math.sqrt(1 - def.h2);
       const breedMean = breed?.traits?.[trait as Exclude<PolyTrait, 'size'>] ?? 50;
       const mean = breedMean + (opts.nudge?.[trait] ?? 0);
-      bv[trait] = rng.clampedNormal(mean, geneticSd);
+      // A founder of a named breed LOOKS like its breed: the build and head
+      // traits are drawn closer to the breed's mean than the maths would
+      // otherwise wander (a Greyhound is not sometimes stocky). The hidden
+      // variety it carries (`het`) is untouched, so its puppies vary as before.
+      const looks = breed && def.category === 'form' ? 0.5 : 1;
+      bv[trait] = rng.clampedNormal(mean, geneticSd * looks);
       het[trait] = geneticSd;
-      observed[trait] = clampScore(bv[trait] + rng.normal(0, envSd));
+      observed[trait] = clampScore(bv[trait] + rng.normal(0, envSd * looks));
     }
 
     guessNoise[trait] = rng.clampedNormal(0, 1, 2.2);

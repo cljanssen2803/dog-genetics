@@ -83,6 +83,9 @@ function Gallery() {
   const keys = only === 'all' ? BREEDS.map((b) => b.key) : only ? only.split(',').filter((k) => BREED_BY_KEY[k]) : SHOWCASE;
   const size = Number(new URLSearchParams(window.location.search).get('size') ?? 300);
   const cols = Number(new URLSearchParams(window.location.search).get('cols') ?? 0);
+  // ?age=2 draws every dog as a puppy of that many months.
+  const ageParam = new URLSearchParams(window.location.search).get('age');
+  const asAge = ageParam ? Number(ageParam) : undefined;
   return (
     <div className="paper min-h-full p-4">
       <SpriteFilters />
@@ -99,7 +102,7 @@ function Gallery() {
           const body = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, lbs, legShortening(dog.genotype));
           return (
             <div key={key} className="card p-1">
-              <DogSprite dog={dog} size={size} />
+              <DogSprite dog={dog} size={size} asAge={asAge} />
               <div className="text-[12.5px] font-semibold mt-1">{breed.name}</div>
               <div className="text-[10.5px] text-[var(--text-faint)] leading-snug">
                 {lbs.toFixed(0)} lb · {colour.name}

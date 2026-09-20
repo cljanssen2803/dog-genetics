@@ -172,3 +172,81 @@ sighthound (Greyhound, Dane), feathered sighthound (Saluki/Borzoi/Afghan),
 retriever (Lab, Chessie), pointer (Vizsla, Weimaraner, GSP, Doberman,
 Dalmatian). One of the two plain smooth bodies was a near-duplicate and was
 not installed. Komondor and Puli added as breeds.
+
+## Round five — wanted 2026-09-20 (from the full sprite review)
+
+Same rules as every body so far: **1448 × 1086, transparent PNG, dog facing
+right, feet on the ground line at y ≈ 975, top of the back at y ≈ 380, no
+ears, no tail, no background, no ground shadow, no text.** White fur with
+soft light-grey cel shading — a flat white silhouette cannot be used.
+
+**12 — Low wire body, redo** (`body-lowwire.png`) — Westie, Cairn, Scottie,
+wire Dachshund. The first one arrived as a flat white shape with a tail and
+an ear drawn on, so it had to be retired.
+
+> Flat vector illustration of a dog, side profile facing right, standing
+> square with all four legs visible. Pure white fur with soft light-grey cel
+> shading only — absolutely no colour, no brown, no black. Clean simple
+> shapes, minimal or no outline. Transparent background, PNG with alpha.
+> 1448 × 1086 canvas, the dog centred with its feet on a ground line 975
+> pixels from the top. This dog is a SHORT-LEGGED, long-bodied, wire-coated
+> terrier like a West Highland White or a Cairn: legs clearly shorter than
+> the body is deep, a sturdy rectangular body carried low, a harsh shaggy
+> coat with a scruffy beard and eyebrows, a blunt strong muzzle. NO ears and
+> NO tail whatsoever — leave the top of the head smooth and the rump smooth;
+> those are separate pieces. Shade it like a real drawing: lighter along the
+> back, softly darker under the belly and on the far legs. No background, no
+> scenery, no ground shadow, no text. Children's picture-book style, warm and
+> appealing, not photorealistic.
+
+**13 — Bull-and-terrier body** (`body-bully.png`) — Boston Terrier, Boxer,
+American Staffordshire, Staffordshire Bull Terrier. Today these borrow the
+English Bulldog frame (too squat) or the mastiff frame (too big).
+
+> Flat vector illustration of a dog, side profile facing right, standing
+> square with all four legs visible. Pure white fur with soft light-grey cel
+> shading only — absolutely no colour, no brown, no black. Clean simple
+> shapes, minimal or no outline. Transparent background, PNG with alpha.
+> 1448 × 1086 canvas, the dog centred with its feet on a ground line 975
+> pixels from the top. This dog is a medium-sized, athletic BULL-AND-TERRIER
+> type like a Boxer or a Staffordshire Bull Terrier: a square, muscular body
+> with a deep chest and a tucked-up waist, straight strong legs of normal
+> length (not short, not stocky like a Bulldog), a broad skull with a SHORT
+> but clearly present muzzle, a slight underbite, and a smooth short coat.
+> Lean and sporty rather than heavy. NO ears and NO tail — those are
+> separate pieces. No background, no scenery, no ground shadow, no text.
+> Children's picture-book style, warm and appealing, not photorealistic.
+
+**14 — Shepherd body** (`body-shepherd.png`) — Australian Cattle Dog,
+Kelpie, Malinois, Dutch Shepherd. Today they borrow the fluffy Spitz body and
+come out looking like Huskies.
+
+> Flat vector illustration of a dog, side profile facing right, standing
+> square with all four legs visible. Pure white fur with soft light-grey cel
+> shading only — absolutely no colour, no brown, no black. Clean simple
+> shapes, minimal or no outline. Transparent background, PNG with alpha.
+> 1448 × 1086 canvas, the dog centred with its feet on a ground line 975
+> pixels from the top. This dog is a lean, athletic HERDING type like a
+> Belgian Malinois or an Australian Cattle Dog: a slightly longer-than-tall
+> body, a level back, a deep but narrow chest, long straight legs, a
+> wedge-shaped head with a long muzzle, and a SHORT, sleek, close-lying coat
+> with only a little thickness at the neck — no fluffy ruff, no feathering.
+> NO ears and NO tail — those are separate pieces. No background, no
+> scenery, no ground shadow, no text. Children's picture-book style, warm
+> and appealing, not photorealistic.
+
+**15 — Soft wavy-coated terrier body** (`body-softwavy.png`) — Wheaten,
+Kerry Blue, Lagotto. Today they use the Poodle's curly body.
+
+> Flat vector illustration of a dog, side profile facing right, standing
+> square with all four legs visible. Pure white fur with soft light-grey cel
+> shading only — absolutely no colour, no brown, no black. Clean simple
+> shapes, minimal or no outline. Transparent background, PNG with alpha.
+> 1448 × 1086 canvas, the dog centred with its feet on a ground line 975
+> pixels from the top. This dog is a medium-sized SOFT-COATED terrier like a
+> Wheaten or a Kerry Blue: a square sturdy body, legs of normal length, and a
+> single soft coat of loose gentle waves all over — not tight poodle curls,
+> not wiry — with a fall of hair over the eyes and a soft beard on a
+> rectangular muzzle. NO ears and NO tail — those are separate pieces. No
+> background, no scenery, no ground shadow, no text. Children's picture-book
+> style, warm and appealing, not photorealistic.

@@ -21,7 +21,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { type Dog, currentWeight } from '../engine/dog';
+import { type Dog, ageMonths, currentWeight } from '../engine/dog';
 import { useGameMaybe } from './GameContext';
 import { sizeToPounds } from '../engine/traits';
 import {
@@ -316,6 +316,11 @@ function fitStyle(fit: Fit): { transform: string; transformOrigin: string } {
   };
 }
 
+/** Where a weight sits between the smallest dog (0) and the biggest (1), on the log scale the eye reads size by. */
+function sizeT(lbs: number): number {
+  return Math.min(1, Math.max(0, (Math.log(lbs) - Math.log(4)) / (Math.log(170) - Math.log(4))));
+}
+
 /** A deterministic little generator so a dog's patches never move. */
 function makeNoise(seed: number) {
   let s = seed >>> 0;
@@ -354,13 +359,18 @@ export function DogSprite({ dog, size = 120, className = '', framed = true, asle
   // Puppies are drawn at their CURRENT weight, so a litter of newborns is
   // visibly a litter of newborns and a dog grows on screen as the months pass.
   const game = useGameMaybe();
-  const nowLbs =
-    asAge !== undefined
-      ? currentWeight({ ...dog, birthMonth: 0 }, asAge)
-      : game
-        ? currentWeight(dog, game.project.month)
-        : sizeToPounds(dog.observed.size);
+  const months = asAge ?? (game ? ageMonths(dog, game.project.month) : 30);
+  const nowLbs = asAge !== undefined ? currentWeight({ ...dog, birthMonth: 0 }, asAge) : game ? currentWeight(dog, game.project.month) : sizeToPounds(dog.observed.size);
   const art = useMemo(() => describe(dog, nowLbs, force), [dog, nowLbs, force]);
+
+  // Puppy proportions. A puppy is not a shrunk adult: its head is bigger for
+  // its body and its muzzle shorter. The head is drawn again, clipped and
+  // enlarged about the neck, over the ordinary body; the ear and face ride
+  // inside the same enlargement so they stay on the head.
+  const puppy = Math.max(0, 1 - months / 8);
+  const headScale = 1 + 0.22 * puppy;
+  // Small dogs have big eyes, and puppies bigger still.
+  const eyeScale = (1 + 0.4 * (1 - sizeT(sizeToPounds(dog.observed.size)))) * (1 + 0.25 * puppy);
 
   // Tap the dog and it wags. Purely for the pleasure of it.
   const [wagging, setWagging] = useState(false);
@@ -418,13 +428,24 @@ export function DogSprite({ dog, size = 120, className = '', framed = true, asle
           {art.markings}
         </Layer>
 
-        {/* Ear in front. Slightly darker, as ear leather usually is. */}
-        <Layer src={art.earSrc} colour={art.earColour} fit={art.earFit} />
+        {/* The head, ear and face — enlarged together on a puppy. */}
+        <div style={{ position: 'absolute', inset: 0, transform: headScale > 1 ? `scale(${headScale.toFixed(3)}, ${(headScale * 1.04).toFixed(3)})` : undefined, transformOrigin: `${art.headPivot[0]}% ${art.headPivot[1]}%` }}>
+          {headScale > 1 && (
+            <div style={{ position: 'absolute', inset: 0, WebkitMaskImage: art.headClip, maskImage: art.headClip, WebkitMaskComposite: 'source-in', maskComposite: 'intersect' }}>
+              <Layer src={art.bodySrc} colour={art.fill}>
+                {art.markings}
+              </Layer>
+            </div>
+          )}
 
-        {/* Eye and nose, in the colours the genes give them. Drawn last and
-            unmasked, over the artwork's own dark dots, so a blue eye or a
-            liver nose actually shows. */}
-        <Face face={art.face} eye={art.eyeColour} nose={art.noseColour} asleep={asleep} />
+          {/* Ear in front. Slightly darker, as ear leather usually is. */}
+          <Layer src={art.earSrc} colour={art.earColour} fit={art.earFit} />
+
+          {/* Eye and nose, in the colours the genes give them. Drawn last and
+              unmasked, over the artwork's own dark dots, so a blue eye or a
+              liver nose actually shows. */}
+          <Face face={art.face} eye={art.eyeColour} nose={art.noseColour} asleep={asleep} eyeScale={eyeScale} blinkSeed={dog.seedValue ?? 0} />
+        </div>
       </div>
     </div>
   );
@@ -436,12 +457,19 @@ function Face({
   eye,
   nose,
   asleep = false,
+  eyeScale = 1,
+  blinkSeed = 0,
 }: {
   face: { eye: [number, number]; nose: [number, number] };
   eye: string;
   nose: string;
   asleep?: boolean;
+  /** 1 for a big dog; up to about 1.75 for a tiny puppy. */
+  eyeScale?: number;
+  /** Staggers the blink so a litter does not blink in unison. */
+  blinkSeed?: number;
 }) {
+  const e = eyeScale;
   const dot = (cx: number, cy: number, w: number, h: number, fill: string, extra?: React.CSSProperties) => (
     <div
       style={{
@@ -469,10 +497,16 @@ function Face({
   }
   return (
     <>
-      {/* Iris, pupil, catchlight. Height is width × canvas aspect so it is round. */}
-      {dot(face.eye[0], face.eye[1], 1.9, 1.9 * 1.333, eye, { boxShadow: '0 0 0 0.6px rgba(0,0,0,0.35)' })}
-      {dot(face.eye[0] + 0.15, face.eye[1] + 0.2, 0.9, 0.9 * 1.333, '#1a1512')}
-      {dot(face.eye[0] - 0.35, face.eye[1] - 0.45, 0.5, 0.5 * 1.333, 'rgba(255,255,255,0.85)')}
+      {/* Iris, pupil, catchlight. Height is width × canvas aspect so it is
+          round. The whole eye blinks now and then, closing about its centre. */}
+      <div
+        className="blink"
+        style={{ position: 'absolute', inset: 0, transformOrigin: `${face.eye[0]}% ${face.eye[1]}%`, animationDelay: `${-((blinkSeed % 7000) / 1000).toFixed(2)}s`, animationDuration: `${(5.5 + (blinkSeed % 2300) / 1000).toFixed(2)}s` }}
+      >
+        {dot(face.eye[0], face.eye[1], 1.9 * e, 1.9 * e * 1.333, eye, { boxShadow: '0 0 0 0.6px rgba(0,0,0,0.35)' })}
+        {dot(face.eye[0] + 0.15 * e, face.eye[1] + 0.2 * e, 0.9 * e, 0.9 * e * 1.333, '#1a1512')}
+        {dot(face.eye[0] - 0.35 * e, face.eye[1] - 0.45 * e, 0.5 * e, 0.5 * e * 1.333, 'rgba(255,255,255,0.85)')}
+      </div>
       {/* Nose, slightly wider than tall, with a soft edge. */}
       {dot(face.nose[0], face.nose[1], 2.6, 2.6 * 1.1, nose, { boxShadow: '0 0 0 0.5px rgba(0,0,0,0.25)' })}
     </>
@@ -730,7 +764,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // made every dog look the same. Weight is on a log scale here because that is
   // how size reads to the eye: 5 lb to 15 lb is a bigger visual jump than
   // 100 lb to 110 lb.
-  const sizeScale = 0.46 + 0.7 * Math.min(1, Math.max(0, (Math.log(visual) - Math.log(4)) / (Math.log(170) - Math.log(4))));
+  const sizeScale = 0.46 + 0.7 * sizeT(visual);
   // Build widens the dog a little. On the bull and heavy bodies it does more,
   // because the artwork is drawn at the burly extreme: a Boxer shares the
   // Bulldog's frame but is a much leaner animal.
@@ -769,9 +803,20 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   const RAINBOW = 'linear-gradient(105deg, #ff8a8a 0%, #ffc07a 20%, #fff29a 40%, #9ee8a8 60%, #8ccfff 80%, #d3a6ff 100%)';
   const fill = colour.rainbow ? RAINBOW : base;
 
+  // Where a puppy's enlarged head is cut from the body and grown about: the
+  // neck, just behind the skull. Low bodies carry their heads lower.
+  const lowHead = silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire';
+  // Feathered, not hard-cut, so the enlarged copy fades into the body at
+  // the neck and chest instead of leaving a step.
+  const chest = lowHead ? 70 : silhouette === 'tallHound' || silhouette === 'sighthound' ? 46 : 54;
+  const headClip = `linear-gradient(to right, transparent 58%, black 66%), linear-gradient(to bottom, black ${chest - 12}%, transparent ${chest + 2}%)`;
+  const headPivot: [number, number] = lowHead ? [70, 50] : [70, 34];
+
   return {
     bodySrc,
     fill,
+    headClip,
+    headPivot,
     earSrc: roundEars
       ? 'ear-round.png'
       : houndEars
