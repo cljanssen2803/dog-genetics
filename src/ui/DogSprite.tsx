@@ -128,25 +128,31 @@ const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'tallHound', 'bull',
  * their own, measured from the artwork (top-rear of the skull, and the top of
  * the rump). Anything not listed uses the shared skeleton.
  */
+/**
+ * Measured from the artwork (scripts: the rump is the left end of the back
+ * line, the skull top the highest point of the head), then offset the way the
+ * smooth body's shared points are: the tail root 2.4% behind and 2.7% below
+ * the rump corner, the ear 6% below the skull top.
+ */
 const RIG: Partial<Record<Silhouette, { ear: [number, number]; tail: [number, number] }>> = {
-  sighthound: { ear: [76.5, 18.5], tail: [29, 47] },
-  bull: { ear: [79.5, 24], tail: [28, 52] },
-  heavy: { ear: [76.5, 21], tail: [29, 50] },
-  spitz: { ear: [75, 19], tail: [28, 49] },
-  lowSmooth: { ear: [78, 27], tail: [25.5, 50] },
-  lowHeavy: { ear: [77, 26], tail: [22, 48] },
-  flatLong: { ear: [78.5, 20.5], tail: [22, 41] },
-  terrier: { ear: [75, 23], tail: [28, 49] },
-  egg: { ear: [75, 18.5], tail: [23, 42] },
-  jowl: { ear: [77, 18], tail: [21, 40] },
-  lowWire: { ear: [78, 32], tail: [24, 50] },
-  tallHound: { ear: [79.5, 12.5], tail: [21, 38] },
-  wrinkle: { ear: [76, 24], tail: [23, 44] },
-  roughHound: { ear: [77, 18], tail: [24, 43] },
-  silkyHound: { ear: [79, 15], tail: [22, 40] },
-  retriever: { ear: [77, 14.5], tail: [23, 40] },
-  pointer: { ear: [78.5, 13], tail: [21, 37] },
-  corded: { ear: [77, 16], tail: [22, 41] },
+  sighthound: { ear: [76.5, 18.5], tail: [28.6, 48.9] },
+  bull: { ear: [79.5, 24], tail: [28.8, 51.5] },
+  heavy: { ear: [76.5, 21], tail: [30.3, 48.9] },
+  spitz: { ear: [75, 19], tail: [30.0, 46.0] },
+  lowSmooth: { ear: [78, 27], tail: [25.5, 60.7] },
+  lowHeavy: { ear: [77, 26], tail: [21.9, 57.2] },
+  flatLong: { ear: [78.5, 20.5], tail: [25.9, 49.5] },
+  terrier: { ear: [75, 23], tail: [32.6, 52.6] },
+  egg: { ear: [75, 18.5], tail: [27.8, 48.4] },
+  jowl: { ear: [77, 18], tail: [26.2, 46.7] },
+  lowWire: { ear: [78, 32], tail: [25.7, 62.0] },
+  tallHound: { ear: [79.5, 12.5], tail: [27.3, 44.7] },
+  wrinkle: { ear: [76, 24], tail: [27.5, 49.8] },
+  roughHound: { ear: [77, 18], tail: [29.6, 48.0] },
+  silkyHound: { ear: [79, 15], tail: [27.8, 46.3] },
+  retriever: { ear: [77, 14.5], tail: [28.1, 46.3] },
+  pointer: { ear: [78.5, 13], tail: [26.8, 44.5] },
+  corded: { ear: [77, 16], tail: [28.1, 46.7] },
 };
 
 const TAIL_SRC: Record<TailType, string> = {
@@ -182,7 +188,9 @@ const HAVE = new Set<string>([
   'body-terrier.png',
   'body-egg.png',
   'body-jowl.png',
-  'body-lowwire.png',
+  // 'body-lowwire.png' — the file exists but is a flat silhouette with the
+  // tail and ear drawn in; until it is redrawn the wire body stands in.
+
   'ear-bat.png',
   'ear-rose.png',
   'ear-shortdrop.png',
@@ -331,9 +339,17 @@ export interface DogSpriteProps {
   asAge?: number;
   /** Fill the width of whatever holds it, keeping the picture's shape; `size` is ignored. */
   fluid?: boolean;
+  /** Dev galleries only: force a body, tail or ear regardless of the genes. */
+  force?: SpriteOverride;
 }
 
-export function DogSprite({ dog, size = 120, className = '', framed = true, asleep = false, asAge, fluid = false }: DogSpriteProps) {
+export interface SpriteOverride {
+  silhouette?: Silhouette;
+  tail?: TailType;
+  ears?: EarType;
+}
+
+export function DogSprite({ dog, size = 120, className = '', framed = true, asleep = false, asAge, fluid = false, force }: DogSpriteProps) {
   const height = (size * 1086) / 1448;
   // Puppies are drawn at their CURRENT weight, so a litter of newborns is
   // visibly a litter of newborns and a dog grows on screen as the months pass.
@@ -344,7 +360,7 @@ export function DogSprite({ dog, size = 120, className = '', framed = true, asle
       : game
         ? currentWeight(dog, game.project.month)
         : sizeToPounds(dog.observed.size);
-  const art = useMemo(() => describe(dog, nowLbs), [dog, nowLbs]);
+  const art = useMemo(() => describe(dog, nowLbs, force), [dog, nowLbs, force]);
 
   // Tap the dog and it wags. Purely for the pleasure of it.
   const [wagging, setWagging] = useState(false);
@@ -627,18 +643,18 @@ function forShading(hex: string): string {
   return shade(hex, (96 - light) * 0.72);
 }
 
-function describe(dog: Dog, drawLbs?: number) {
+function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   const weight = sizeToPounds(dog.observed.size);
   const visual = drawLbs ?? weight;
   const coat = resolveCoat(dog.genotype, weight);
   const colour = resolveColor(dog.genotype);
-  const ears = resolveEars(dog.observed.earSet);
-  const tail = resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind);
+  const ears = force?.ears ?? resolveEars(dog.observed.earSet);
+  const tail = force?.tail ?? resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind, weight);
   const shortLegs = legShortening(dog.genotype);
 
   // Which body. The coat, unless the build or head is distinctive enough to
   // deserve its own silhouette. Without the artwork, stretch the fallback.
-  const silhouette = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight, shortLegs);
+  const silhouette = force?.silhouette ?? resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight, shortLegs);
   let bodySrc = BODY_SRC[coat.kind];
   let standinStretch = '';
   let rig: { ear: [number, number]; tail: [number, number] } | undefined;
@@ -670,6 +686,9 @@ function describe(dog: Dog, drawLbs?: number) {
   // Big bat ears on the small flat-faced and low dogs; rose ears folded back
   // on sighthounds and Bulldogs; short neat drops on the plush-coated retrievers.
   const batEars = ears === 'erect' && !roundEars && (silhouette === 'bull' || silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'terrier');
+  // The Frenchie and Corgi wear the full bat; a terrier's or Dachshund's
+  // pricked ear is a smaller thing, and a flat-faced toy's smaller still.
+  const batScale = silhouette === 'bull' || silhouette === 'lowHeavy' ? 1 : 0.78;
   const roseEars = (ears === 'button' || ears === 'semiErect') && (silhouette === 'sighthound' || silhouette === 'tallHound' || silhouette === 'bull' || silhouette === 'egg' || silhouette === 'wrinkle');
   const shortDrop = ears === 'drop' && coat.undercoat && !coat.hairless;
 
@@ -736,7 +755,9 @@ function describe(dog: Dog, drawLbs?: number) {
   // the dog read as long, and a Scottie is low without being a sausage.
   // Dogs drawn on a purpose-made low body need no squash; coated
   // short-legged dogs (a Scottie, a Pekingese) still borrow a normal body.
-  const lowBody = silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire' || silhouette === 'flatLong';
+  // Only when the purpose-made low body is actually in use; a stand-in still
+  // needs its legs squashed.
+  const lowBody = rig !== undefined && (silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire' || silhouette === 'flatLong');
   const legSquash = lowBody ? 1 : shortLegs === 2 ? 0.66 : shortLegs === 1 ? 0.82 : shepherd ? 0.93 : 1;
   const stretch = shepherd ? 1.1 : 1;
 
@@ -778,7 +799,7 @@ function describe(dog: Dog, drawLbs?: number) {
               : spanielEars
                 ? SPANIEL_EAR_FIT
                 : batEars
-                  ? BAT_EAR_FIT
+                  ? { ...BAT_EAR_FIT, scale: BAT_EAR_FIT.scale * batScale }
                   : roseEars
                     ? ROSE_EAR_FIT
                     : shortDrop
@@ -786,7 +807,10 @@ function describe(dog: Dog, drawLbs?: number) {
             : silhouette === 'spitz' && ears === 'erect'
               // Spitz ears are small, thick triangles, not Shepherd sails.
               ? { ...EAR_FIT.erect, scale: EAR_FIT.erect.scale * (shortLegs > 0 ? 0.6 : 0.72) }
-              : EAR_FIT[ears],
+              : silhouette === 'flatLong' && (ears === 'erect' || ears === 'semiErect')
+                // A Papillon-eared toy, not a Shepherd.
+                ? { ...EAR_FIT[ears], scale: EAR_FIT[ears].scale * 0.7 }
+                : EAR_FIT[ears],
       rig?.ear,
       SHARED_EAR,
     ),

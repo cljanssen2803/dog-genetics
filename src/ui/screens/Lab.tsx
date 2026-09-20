@@ -85,7 +85,7 @@ export function Lab({ onBack, onCreated }: { onBack: () => void; onCreated: (id:
   const colour = resolveColor(dog.genotype);
   const coat = resolveCoat(dog.genotype, lbs);
   const ears = EAR_LABEL[resolveEars(dog.observed.earSet)];
-  const tail = TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind)];
+  const tail = TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind, lbs)];
 
   const singles = useMemo(() => matchBreeds(selected), [selected]);
   const pairs = useMemo(() => matchPairs(selected, singles), [selected, singles]);

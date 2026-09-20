@@ -11,7 +11,7 @@ import { DogSprite, SpriteFilters } from './ui/DogSprite';
 import { createFounder } from './engine/dog';
 import { Rng } from './engine/rng';
 import { BREEDS, BREED_BY_KEY } from './engine/breeds';
-import { TAIL_LABEL, legShortening, resolveCoat, resolveColor, resolveSilhouette, resolveTail } from './engine/phenotype';
+import { type EarType, type Silhouette, type TailType, TAIL_LABEL, legShortening, resolveCoat, resolveColor, resolveSilhouette, resolveTail } from './engine/phenotype';
 import { sizeToPounds } from './engine/traits';
 
 const SHOWCASE = [
@@ -22,7 +22,61 @@ const SHOWCASE = [
   'chineseCrested', 'bloodhound', 'boxer', 'dalmatian', 'ausShepherd', 'rottweiler', 'beagle', 'bernese', 'springer', 'cattleDog',
 ];
 
+/** Every body, drawn with every tail and every ear. ?mode=combos[&body=spitz,bull] */
+const ALL_SILHOUETTES: Silhouette[] = [
+  'smooth', 'short', 'silky', 'long', 'doubleThick', 'wire', 'wavyFurnished', 'curly', 'hairless', 'corded',
+  'sighthound', 'tallHound', 'bull', 'heavy', 'jowl', 'egg', 'terrier', 'spitz', 'lowSmooth', 'lowHeavy', 'lowWire',
+  'flatLong', 'wrinkle', 'roughHound', 'silkyHound', 'retriever', 'pointer',
+];
+const ALL_TAILS: TailType[] = ['full', 'whip', 'plume', 'sickle', 'curled', 'screw', 'bobtail'];
+const ALL_EARS: EarType[] = ['drop', 'button', 'semiErect', 'erect'];
+/** A breed whose natural body is this one, so the coat and colour make sense. */
+const REP: Partial<Record<Silhouette, string>> = {
+  smooth: 'beagle', short: 'beagle', silky: 'cocker', long: 'coton', doubleThick: 'golden', wire: 'miniSchnauzer',
+  wavyFurnished: 'havanese', curly: 'poodleStandard', hairless: 'xolo', corded: 'puli', sighthound: 'whippet', tallHound: 'pharaoh',
+  bull: 'bulldog', heavy: 'mastiff', jowl: 'staffie', egg: 'bullTerrier', terrier: 'ratTerrier', spitz: 'shiba', lowSmooth: 'dachshund',
+  lowHeavy: 'basset', lowWire: 'westie', flatLong: 'shihTzu', wrinkle: 'sharPei', roughHound: 'irishWolfhound', silkyHound: 'afghan',
+  retriever: 'labrador', pointer: 'gsp',
+};
+
+function Combos() {
+  const rng = new Rng(77);
+  const params = new URLSearchParams(window.location.search);
+  const only = params.get('body')?.split(',') as Silhouette[] | undefined;
+  const size = Number(params.get('size') ?? 100);
+  const bodies = only && only.length && only[0] ? only : ALL_SILHOUETTES;
+  return (
+    <div className="paper min-h-full p-2">
+      <SpriteFilters />
+      {bodies.map((sil) => {
+        const key = REP[sil] && BREED_BY_KEY[REP[sil]!] ? REP[sil]! : 'beagle';
+        const dog = createFounder(rng, { breedKey: key, sex: 'M', name: sil, currentMonth: 0, ageMonths: 30, wildcards: false });
+        return (
+          <div key={sil} className="mb-3">
+            <div className="text-[12px] font-bold mb-1">{sil} <span className="font-normal text-[var(--text-faint)]">({BREED_BY_KEY[key].name})</span></div>
+            <div className="flex flex-wrap gap-1">
+              {ALL_TAILS.map((tail) => (
+                <div key={tail} className="text-center" style={{ width: size }}>
+                  <DogSprite dog={dog} size={size} force={{ silhouette: sil, tail }} />
+                  <div className="text-[9px] text-[var(--text-faint)]">{tail}</div>
+                </div>
+              ))}
+              {ALL_EARS.map((ears) => (
+                <div key={ears} className="text-center" style={{ width: size }}>
+                  <DogSprite dog={dog} size={size} force={{ silhouette: sil, ears }} />
+                  <div className="text-[9px] text-[var(--text-faint)]">{ears}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Gallery() {
+  if (new URLSearchParams(window.location.search).get('mode') === 'combos') return <Combos />;
   const rng = new Rng(4242);
   // ?breeds=dachshund,corgi narrows the page to a few breeds for comparison.
   const only = new URLSearchParams(window.location.search).get('breeds');
@@ -41,7 +95,7 @@ function Gallery() {
           const lbs = sizeToPounds(dog.observed.size);
           const coat = resolveCoat(dog.genotype, lbs);
           const colour = resolveColor(dog.genotype);
-          const tail = TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind)];
+          const tail = TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind, lbs)];
           const body = resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, lbs, legShortening(dog.genotype));
           return (
             <div key={key} className="card p-1">

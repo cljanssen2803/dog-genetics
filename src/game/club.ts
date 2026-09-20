@@ -374,7 +374,7 @@ function tailFashion(project: Project, rng: Rng): ClubProposal | null {
   const present = new Set<TailType>();
   for (const d of activeDogs(project)) {
     const lbs = sizeToPounds(d.observed.size);
-    present.add(resolveTail(d.genotype, d.observed.tailSet, d.observed.muzzle, resolveCoat(d.genotype, lbs).kind));
+    present.add(resolveTail(d.genotype, d.observed.tailSet, d.observed.muzzle, resolveCoat(d.genotype, lbs).kind, lbs));
   }
   const options = Array.from(present).filter((t) => !current.includes(t));
   if (options.length === 0) return null;

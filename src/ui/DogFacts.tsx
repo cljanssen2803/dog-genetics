@@ -139,7 +139,7 @@ export function describeDog(dog: Dog, project: Project): DogFacts {
     colour: colour.name,
     coat: coat.label,
     ears: EAR_LABEL[resolveEars(dog.observed.earSet)],
-    tail: TAIL_BLURB[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind)],
+    tail: TAIL_BLURB[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind, lbs)],
     eyes: colour.eyeName,
     nose: colour.noseName,
     build: buildFull,

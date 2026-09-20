@@ -268,7 +268,7 @@ function lookOf(dog: Dog) {
   const coat = resolveCoat(dog.genotype, lbs);
   const colour = resolveColor(dog.genotype);
   const ears = resolveEars(dog.observed.earSet);
-  const tail = resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind);
+  const tail = resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind, lbs);
   return { lbs, coat, colour, ears: EAR_LABEL[ears], tail: TAIL_BLURB[tail], carries: hiddenCarriers(dog.genotype).map((c) => c.label) };
 }
 

@@ -276,7 +276,7 @@ export function DogDetailSheet({
                 }
               />
             )}
-            <StatRow label="Ears and tail" value={`${EAR_LABEL[resolveEars(dog.observed.earSet)]}, ${TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind)].toLowerCase()}`} />
+            <StatRow label="Ears and tail" value={`${EAR_LABEL[resolveEars(dog.observed.earSet)]}, ${TAIL_LABEL[resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind, sizeToPounds(dog.observed.size))].toLowerCase()}`} />
             <StatRow label="Own inbreeding" value={`${(dog.coi * 100).toFixed(1)}% — ${coi.label.toLowerCase()}`} tone={coi.tone === 'bad' ? 'bad' : coi.tone === 'warn' ? 'warn' : 'good'} />
             {dog.littersProduced > 0 && (
               <StatRow label="Litters produced" value={`${dog.littersProduced} (${dog.offspringIds.length} puppies)`} />

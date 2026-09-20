@@ -304,7 +304,7 @@ export function scoreDog(
   }
 
   if (standard.tailGoal && standard.tailGoal.priority > 0) {
-    const tail = resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind);
+    const tail = resolveTail(dog.genotype, dog.observed.tailSet, dog.observed.muzzle, coat.kind, weightLbs);
     const hit = standard.tailGoal.types.includes(tail);
     const weight = PRIORITY_WEIGHT[standard.tailGoal.priority];
     breakdown.push({
