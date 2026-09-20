@@ -44,6 +44,7 @@ import { DogPortrait } from './DogPortrait';
 import { Button, Card, Chip, Explain, Section, Sheet, StatRow, TraitBar } from './components';
 import { useGame } from './GameContext';
 import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, copyText, describeDog, dogDescription } from './DogFacts';
+import { useUi } from './UiContext';
 import {
   PLACEMENT_LABEL,
   ancestorInfluenceFor,
@@ -111,13 +112,12 @@ export function DogCard({
 export function DogDetailSheet({
   dog,
   onClose,
-  onShowPedigree,
 }: {
   dog: Dog | null;
   onClose: () => void;
-  onShowPedigree?: (dog: Dog) => void;
 }) {
   const { project, refresh, say, nerdMode } = useGame();
+  const ui = useUi();
   const [tab, setTab] = useState<'overview' | 'story' | 'health' | 'genes' | 'decide'>('overview');
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState('');
@@ -171,23 +171,43 @@ export function DogDetailSheet({
         <DogPortrait dog={dog} size={200} />
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <Button
-          small
-          tone="secondary"
-          full
+      {/* What you can DO with this dog, before what you can read about it. */}
+      {ui && dog.status === 'kennel' && (
+        <div className="flex gap-2 mb-4">
+          <Button
+            small
+            full
+            disabled={!eligibility.eligible}
+            onClick={() => {
+              onClose();
+              ui.breedFrom(dog.id);
+            }}
+          >
+            Breed
+          </Button>
+          {!project.sandbox && (
+            <Button small full tone="accent" onClick={() => { onClose(); ui.showDog(dog.id); }}>
+              Show
+            </Button>
+          )}
+          <Button small full tone="secondary" onClick={() => setTab('decide')}>
+            Place
+          </Button>
+        </div>
+      )}
+
+      <div className="text-right -mt-2 mb-2">
+        <button
           onClick={async () => {
             const text = dogDescription(dog, project, nerdMode);
             const ok = await copyText(text);
-            if (ok) say(`${dog.name}'s description copied. Paste it into any image generator.`);
-            else setExportText(text); // show it instead, so nothing is ever lost
+            if (ok) say(`${dog.name}'s description copied.`);
+            else setExportText(text);
           }}
+          className="text-[11.5px] text-[var(--text-faint)] underline"
         >
           Copy description{nerdMode ? ' + genotype' : ''}
-        </Button>
-        <Button small tone="secondary" onClick={() => setExportText(dogDescription(dog, project, nerdMode))}>
-          View
-        </Button>
+        </button>
       </div>
 
       {exportText !== null && (
@@ -322,9 +342,9 @@ export function DogDetailSheet({
                 <StatRow label="Sire" value={sire?.name ?? 'Unknown'} />
                 <StatRow label="Dam" value={dam?.name ?? 'Unknown'} />
               </div>
-              {onShowPedigree && (
-                <Button tone="secondary" full small className="mt-2" onClick={() => onShowPedigree(dog)}>
-                  View full pedigree
+              {ui && (
+                <Button tone="secondary" full small className="mt-2" onClick={() => { onClose(); ui.familyOf(dog.id); }}>
+                  See the family tree
                 </Button>
               )}
             </Section>
@@ -474,7 +494,7 @@ export function DogDetailSheet({
             </p>
           </div>
 
-          <Section title="Retention">
+          {age < 12 && <Section title="Retention">
             <div className="grid grid-cols-2 gap-2">
               {(
                 [
@@ -497,7 +517,7 @@ export function DogDetailSheet({
                 </Button>
               ))}
             </div>
-          </Section>
+          </Section>}
 
           <Section title="Place in a pet home" subtitle="This removes the dog from your kennel permanently.">
             <div className="card p-3">

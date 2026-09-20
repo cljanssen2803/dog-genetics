@@ -23,10 +23,13 @@ export function LitterRevealSheet({
   litterIds,
   onDone,
   onGoPuppies,
+  moreToCome = false,
 }: {
   litterIds: string[];
   onDone: () => void;
   onGoPuppies?: () => void;
+  /** True when the month's other news follows this sheet. */
+  moreToCome?: boolean;
 }) {
   const { project } = useGame();
   const [index, setIndex] = useState(0);
@@ -82,7 +85,7 @@ export function LitterRevealSheet({
             </>
           ) : (
             <Button full onClick={next} tone={allAwake ? 'primary' : 'secondary'}>
-              {last ? 'Continue' : 'Next litter'}
+              {last ? (moreToCome ? 'Next: what else happened' : 'Continue') : 'Next litter'}
             </Button>
           )}
         </div>

@@ -11,7 +11,7 @@ import type { Dog } from '../../engine/dog';
 import { activeDogs, reputationTier } from '../../game/project';
 import { CLASS_LABEL, type ShowResult, canShow, runShow, titleFor } from '../../game/shows';
 
-export function ShowSheet({ onClose }: { onClose: () => void }) {
+export function ShowSheet({ onClose, focusDogId }: { onClose: () => void; focusDogId?: string }) {
   const { project, refresh, say } = useGame();
   const [result, setResult] = useState<ShowResult | null>(null);
 
@@ -19,7 +19,7 @@ export function ShowSheet({ onClose }: { onClose: () => void }) {
 
   const candidates = activeDogs(project)
     .map((dog) => ({ dog, eligibility: canShow(project, dog) }))
-    .sort((a, b) => Number(b.eligibility.ok) - Number(a.eligibility.ok) || a.dog.name.localeCompare(b.dog.name));
+    .sort((a, b) => Number(b.dog.id === focusDogId) - Number(a.dog.id === focusDogId) || Number(b.eligibility.ok) - Number(a.eligibility.ok) || a.dog.name.localeCompare(b.dog.name));
 
   const enter = (dog: Dog) => {
     const outcome = runShow(project, dog.id);

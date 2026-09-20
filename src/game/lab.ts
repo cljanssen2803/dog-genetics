@@ -517,9 +517,101 @@ const colourFeatures: LabFeature[] = [
       s.colorGoal = { text: 'tan points', priority: 2 };
     },
   },
+  {
+    key: 'colFawn',
+    group: 'colour',
+    label: 'Fawn or sable',
+    exclusive: 'colour',
+    gene: 'The sable version of ASIP (ay) is the top of the A series: fawn hair with dark tips. It shows only when nothing sits on top of it — no dominant black, and normal pigment (E) rather than recessive red.',
+    recipe: 'The commonest colour in dogs. Pugs, Boxers, Great Danes and most Spitz types are fawn or sable; cross away from dominant-black breeds and it appears in a generation.',
+    odds: (b) => (1 - atLeastOne(b, 'locusK', 'KB')) * (1 - homo(b, 'locusE', 'e')) * atLeastOne(b, 'locusA', 'ay'),
+    carrierOdds: (b) => atLeastOne(b, 'locusA', 'ay'),
+    apply: (d) => {
+      setPair(d, 'locusK', 'ky');
+      setPair(d, 'locusE', 'E');
+      setPair(d, 'locusA', 'ay');
+      setPair(d, 'locusD', 'D');
+    },
+    goal: (s) => {
+      s.colorGoal = { text: 'fawn sable', priority: 2 };
+    },
+  },
+  {
+    key: 'colBlueFawn',
+    group: 'colour',
+    label: 'Blue fawn (dilute sable)',
+    exclusive: 'colour',
+    gene: 'Sable (ay) with two copies of dilute (d): the dark tipping goes slate and the nose goes grey, over a silvery fawn.',
+    recipe: 'Both parents must carry dilute, and neither may be dominant black. Weimaraner and Great Dane lines carry dilute; Whippets and Greyhounds show blue fawn often.',
+    odds: (b) => (1 - atLeastOne(b, 'locusK', 'KB')) * (1 - homo(b, 'locusE', 'e')) * atLeastOne(b, 'locusA', 'ay') * homo(b, 'locusD', 'd'),
+    carrierOdds: (b) => carrier(b, 'locusD', 'd'),
+    apply: (d) => {
+      setPair(d, 'locusK', 'ky');
+      setPair(d, 'locusE', 'E');
+      setPair(d, 'locusA', 'ay');
+      setPair(d, 'locusD', 'd');
+    },
+    goal: (s) => {
+      s.colorGoal = { text: 'blue fawn', priority: 2 };
+    },
+  },
+  {
+    key: 'colWolfSable',
+    group: 'colour',
+    label: 'Wolf sable',
+    exclusive: 'colour',
+    gene: 'The wild-type ASIP (aw): each hair banded light and dark, giving the grey-brown of a wolf or a Keeshond, with pale undersides.',
+    recipe: 'Keeshonds, Elkhounds and German Shepherd lines carry it. It sits below fawn in the A series, so both parents need to pass it on, and no dominant black on top.',
+    odds: (b) => (1 - atLeastOne(b, 'locusK', 'KB')) * (1 - homo(b, 'locusE', 'e')) * clamp01(homo(b, 'locusA', 'aw') + 2 * freq(b, 'locusA', 'aw') * (freq(b, 'locusA', 'at') + freq(b, 'locusA', 'a'))),
+    carrierOdds: (b) => atLeastOne(b, 'locusA', 'aw'),
+    apply: (d) => {
+      setPair(d, 'locusK', 'ky');
+      setPair(d, 'locusE', 'E');
+      setPair(d, 'locusA', 'aw');
+    },
+    goal: (s) => {
+      s.colorGoal = { text: 'wolf sable', priority: 2 };
+    },
+  },
+  {
+    key: 'colCocoa',
+    group: 'colour',
+    label: 'Cocoa (French Bulldog brown)',
+    exclusive: 'colour',
+    gene: 'HPS3 (co) is a second, separate brown gene: two copies turn black pigment a deep cocoa even in a dog that is B/B at the ordinary brown locus.',
+    recipe: 'Almost only in French Bulldog lines. Both parents must carry it; hunt for a carrier.',
+    odds: (b) => showsDarkPigment(b) * homo(b, 'cocoa', 'co'),
+    carrierOdds: (b) => carrier(b, 'cocoa', 'co'),
+    apply: (d) => {
+      setPair(d, 'locusK', 'KB');
+      setPair(d, 'locusE', 'E');
+      setPair(d, 'cocoa', 'co');
+    },
+    goal: (s) => {
+      s.colorGoal = { text: 'cocoa', priority: 2 };
+    },
+  },
 ];
 
 const markingFeatures: LabFeature[] = [
+  {
+    key: 'mask',
+    group: 'markings',
+    label: 'Dark mask',
+    conflicts: [{ key: 'colRed', why: 'a mask needs dark pigment to show; recessive red switches it off' }, { key: 'colCream', why: 'a mask needs dark pigment to show' }, { key: 'colBlack', why: 'a mask on a black dog is invisible' }],
+    gene: 'The melanistic-mask version of MC1R (Em) is dominant and sits at the top of the E series: one copy puts dark pigment over the muzzle and around the eyes, on any fawn, sable or brindle dog.',
+    recipe: 'One masked parent gives a mask to about half the litter. Pugs, Boxers, Mastiffs, Great Danes and Belgian Shepherds are fixed for it.',
+    odds: (b) => atLeastOne(b, 'locusE', 'Em') * (1 - atLeastOne(b, 'locusK', 'KB')),
+    carrierOdds: (b) => atLeastOne(b, 'locusE', 'Em'),
+    apply: (d) => {
+      setPair(d, 'locusE', 'Em', 'E');
+      if (d.genotype.locusK[0] === 'KB') setPair(d, 'locusK', 'ky');
+      if (d.genotype.locusA[0] === 'a') setPair(d, 'locusA', 'ay');
+    },
+    goal: (s) => {
+      s.colorGoal = { text: `${s.colorGoal?.text ? s.colorGoal.text + ' with a ' : ''}mask`, priority: 2 };
+    },
+  },
   {
     key: 'merle',
     group: 'markings',

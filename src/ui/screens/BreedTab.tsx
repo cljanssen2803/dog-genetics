@@ -6,14 +6,13 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, Chip, Empty, Explain, Pips, Section, Segmented, Sheet, StatRow } from '../components';
+import { Button, Card, Chip, Empty, Intro, Pips, Section, Sheet, StatRow } from '../components';
 import { DogPortrait } from '../DogPortrait';
 import { useGame } from '../GameContext';
 import { type Dog, ageMonths, breedingEligibility } from '../../engine/dog';
 import { scoreDog } from '../../engine/standard';
 import { resolveColor } from '../../engine/phenotype';
 import { loadIndex, loadProject } from '../../game/storage';
-import { type PolyTrait, TRAITS } from '../../engine/traits';
 import {
   type OutsideSearch,
   activeDogs,
@@ -27,8 +26,9 @@ import { type MatchVerdict, type PairingPreview, previewPairing, rankMates } fro
 import { goalGaps, populationWarnings } from '../../game/analytics';
 import { type GenerationPlan, planGeneration } from '../../game/assist';
 import { BreedPicker } from './NewProject';
+import { BREED_BY_KEY } from '../../engine/breeds';
+import { CARRIER_OPTIONS } from '../../engine/twists';
 import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, describeDog } from '../DogFacts';
-import { BEHAVIOR_TRAITS } from '../../engine/traits';
 import { quirkOdds, quirkText } from '../../engine/quirks';
 
 const VERDICT_TONE: Record<MatchVerdict, 'good' | 'neutral' | 'info' | 'warn' | 'bad'> = {
@@ -39,7 +39,7 @@ const VERDICT_TONE: Record<MatchVerdict, 'good' | 'neutral' | 'info' | 'warn' | 
   'Do not breed': 'bad',
 };
 
-export type BreedIntent = 'plan' | 'outside' | { outside: { locus: string; allele: string } } | null;
+export type BreedIntent = 'plan' | 'outside' | { outside: { locus: string; allele: string } } | { parent: string } | null;
 
 export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onIntentUsed?: () => void }) {
   const { project, refresh, say } = useGame();
@@ -53,10 +53,11 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
   useEffect(() => {
     if (intent === 'plan') setPlanOpen(true);
     if (intent === 'outside') setOutsideOpen(true);
-    if (intent && typeof intent === 'object') {
+    if (intent && typeof intent === 'object' && 'outside' in intent) {
       setOutsideCarrying(intent.outside);
       setOutsideOpen(true);
     }
+    if (intent && typeof intent === 'object' && 'parent' in intent) setParentId(intent.parent);
     if (intent) onIntentUsed?.();
   }, [intent, onIntentUsed]);
 
@@ -119,21 +120,22 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
       {!parent ? (
         <>
           {eligible.length > 0 && !project.sandbox && (
-            <Card className="mb-4 border-[var(--brand)]">
-              <div className="display text-[15px] mb-1">Let the game plan this season</div>
-              <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">
-                It works out the best mate for every female you have, keeps the sires spread out, and
-                shows you why. You accept the ones you like.
-              </p>
+            <div className="mb-4">
+              <Intro id="breed-plan">
+                <p>
+                  <strong>Plan my pairings</strong> works out the best mate for every female, keeps the
+                  sires spread out, and shows you why. You accept the ones you like — or pick by hand below.
+                </p>
+              </Intro>
               <Button full onClick={() => setPlanOpen(true)}>
                 Plan my pairings
               </Button>
-            </Card>
+            </div>
           )}
 
           <Section
             title="Choose a parent"
-            subtitle="Pick the dog you want to build this litter around."
+            subtitle="Tap a dog to see its possible mates."
           >
             {eligible.length === 0 ? (
               <Empty>
@@ -151,18 +153,6 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
           <Button full tone="secondary" onClick={() => setOutsideOpen(true)}>
             Find an outside dog
           </Button>
-
-          <Explain title="When should I bring in an outside dog?">
-            <p>
-              Every dog you breed inside your own kennel makes the next generation slightly more
-              related. That is fine for a while — it is how a population becomes consistent — but
-              past a point it costs you fertility, litter size and lifespan.
-            </p>
-            <p>
-              Bring in fresh blood when your average inbreeding climbs above about 8%, when you are
-              down to two family lines, or when one dog's name starts appearing on every pedigree.
-            </p>
-          </Explain>
         </>
       ) : (
         <>
@@ -211,10 +201,15 @@ export function BreedTab({ intent, onIntentUsed }: { intent?: BreedIntent; onInt
       )}
 
       <OutsideSheet open={outsideOpen} onClose={() => setOutsideOpen(false)} presetCarrying={outsideCarrying} />
-      <PlanSheet open={planOpen} onClose={() => setPlanOpen(false)} onPreview={(p) => setPreview(p)} />
-      {/* Last, so a preview opened from the plan sits on top of it. */}
+      <PlanSheet open={planOpen && !preview} onClose={() => setPlanOpen(false)} onPreview={(p) => setPreview(p)} />
+      {/* A preview opened from the plan replaces it; × brings the plan back. */}
       {preview && (
-        <PairingSheet preview={preview} onClose={() => setPreview(null)} onBreed={() => doBreed(preview)} />
+        <PairingSheet
+          preview={preview}
+          onClose={() => setPreview(null)}
+          onBack={planOpen ? () => setPreview(null) : undefined}
+          onBreed={() => doBreed(preview)}
+        />
       )}
     </div>
   );
@@ -313,26 +308,31 @@ function PairingSheet({
   preview,
   onClose,
   onBreed,
+  onBack,
 }: {
   preview: PairingPreview;
   onClose: () => void;
   onBreed: () => void;
+  /** Set when the preview was opened from the plan: closing goes back there. */
+  onBack?: () => void;
 }) {
   const [showWhy, setShowWhy] = useState(false);
+  const [more, setMore] = useState(false);
   const { project } = useGame();
   const sandbox = !!project.sandbox;
+  const worstDisease = preview.diseases.reduce((w, d) => Math.max(w, d.affected), 0);
 
   return (
     <Sheet
       open
-      onClose={onClose}
+      onClose={onBack ?? onClose}
       title={`${preview.dam.name} × ${preview.sire.name}`}
-      subtitle={preview.verdict}
+      subtitle={onBack ? `${preview.verdict} · × goes back to the plan` : preview.verdict}
       footer={
         <div className="flex gap-2">
           {!sandbox && (
             <Button tone="secondary" onClick={() => setShowWhy((v) => !v)} className="flex-none">
-              {showWhy ? 'Hide' : 'Why this match?'}
+              {showWhy ? 'Hide' : 'Why?'}
             </Button>
           )}
           <Button full onClick={onBreed} tone={preview.verdict === 'Do not breed' ? 'danger' : 'primary'}>
@@ -346,8 +346,18 @@ function PairingSheet({
         <DogPortrait dog={preview.sire} size={110} />
       </div>
 
-      <div className="card p-3 mb-4">
+      <div className="card p-3 mb-3">
         <p className="text-[13px] leading-relaxed">{preview.verdictReason}</p>
+      </div>
+
+      {/* The three numbers the decision needs, as chips. Everything else is below the fold. */}
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        <Chip tone={preview.coiTone === 'bad' ? 'bad' : preview.coiTone === 'warn' ? 'warn' : 'good'}>inbreeding {(preview.coi * 100).toFixed(1)}%</Chip>
+        <Chip tone={worstDisease > 0 ? 'bad' : preview.diseases.length ? 'warn' : 'good'}>
+          {worstDisease > 0 ? `${Math.round(worstDisease * 100)}% affected` : preview.diseases.length ? 'carriers only' : 'no disease risk'}
+        </Chip>
+        <Chip tone="neutral">~{preview.expectedLitterSize.toFixed(0)} puppies</Chip>
+        {!sandbox && <Chip tone="neutral">avg {Math.round(preview.meanScore)} · {preview.meanGoalsHit.toFixed(1)}/{preview.goalsTotal} goals</Chip>}
       </div>
 
       {preview.sample.length > 0 && (
@@ -372,6 +382,13 @@ function PairingSheet({
         </div>
       )}
 
+      {!more && (
+        <Button full tone="secondary" onClick={() => setMore(true)}>
+          More details
+        </Button>
+      )}
+
+      {more && (<>
       <Section title="Genetic diversity">
         <div className="card p-3">
           <StatRow
@@ -491,6 +508,7 @@ function PairingSheet({
           </div>
         </Section>
       )}
+      </>)}
     </Sheet>
   );
 }
@@ -628,29 +646,6 @@ function PlanSheet({ open, onClose, onPreview }: { open: boolean; onClose: () =>
 // Outside dogs
 // ---------------------------------------------------------------------------
 
-/** Hidden genes a specialist breeder can be asked for. */
-const CARRIER_OPTIONS: { locus: string; allele: string; label: string }[] = [
-  { locus: 'locusE', allele: 'e', label: 'recessive red / yellow' },
-  { locus: 'locusB', allele: 'b', label: 'chocolate' },
-  { locus: 'locusD', allele: 'd', label: 'dilute (blue)' },
-  { locus: 'cocoa', allele: 'co', label: 'cocoa' },
-  { locus: 'intensity', allele: 'i', label: 'cream' },
-  { locus: 'locusK', allele: 'kbr', label: 'brindle' },
-  { locus: 'locusA', allele: 'at', label: 'tan points' },
-  { locus: 'locusS', allele: 'sp', label: 'piebald' },
-  { locus: 'merle', allele: 'M', label: 'merle' },
-  { locus: 'ticking', allele: 'T', label: 'ticking' },
-  { locus: 'blueEyes', allele: 'Be', label: 'blue eyes' },
-  { locus: 'coatLength', allele: 'l', label: 'long coat' },
-  { locus: 'curl', allele: 'Cu', label: 'curl' },
-  { locus: 'furnishings', allele: 'F', label: 'furnishings' },
-  { locus: 'shedding', allele: 'sh', label: 'low shedding' },
-  { locus: 'undercoat', allele: 'U', label: 'undercoat' },
-  { locus: 'hairlessRec', allele: 'hr', label: 'hairless' },
-  { locus: 'chondro', allele: 'Cd', label: 'short legs' },
-  { locus: 'bobtail', allele: 'Bt', label: 'bobtail' },
-];
-
 function OutsideSheet({
   open,
   onClose,
@@ -661,9 +656,22 @@ function OutsideSheet({
   presetCarrying?: { locus: string; allele: string } | null;
 }) {
   const { project, refresh, say } = useGame();
-  const [mode, setMode] = useState<'breed' | 'traits' | 'random' | 'mine'>('breed');
-  const [breedKey, setBreedKey] = useState(project.founderBreeds?.[0] ?? 'miniSchnauzer');
+  // Step one asks one question — what do you need? — and step two shows dogs.
+  type Mode = 'same' | 'choose' | 'random' | 'mine';
+  const [mode, setMode] = useState<Mode | null>(null);
+  const [breedKey, setBreedKey] = useState(project.founderBreeds?.[0] ?? 'labrador');
+  const [carrying, setCarrying] = useState<{ locus: string; allele: string } | null>(presetCarrying ?? null);
+  useEffect(() => {
+    if (presetCarrying) {
+      setCarrying(presetCarrying);
+      setMode('same');
+    }
+  }, [presetCarrying]);
+  const [results, setResults] = useState<Candidate[]>([]);
   const [mine, setMine] = useState<{ kennel: string; dog: Dog }[] | 'loading' | null>(null);
+  const gaps = useMemo(() => goalGaps(project).slice(0, 3), [project, project.month]);
+  const founders = (project.founderBreeds ?? []).filter((k) => BREED_BY_KEY[k]);
+
   // The player's other saved projects, read from the phone when asked for.
   const loadMine = () => {
     if (mine !== null) return;
@@ -685,23 +693,10 @@ function OutsideSheet({
       setMine(found);
     })();
   };
-  const [carrying, setCarrying] = useState<{ locus: string; allele: string } | null>(presetCarrying ?? null);
-  useEffect(() => {
-    if (presetCarrying) setCarrying(presetCarrying);
-  }, [presetCarrying]);
-  const [needs, setNeeds] = useState<Partial<Record<PolyTrait, 'high' | 'low'>>>({});
-  const [results, setResults] = useState<Candidate[]>([]);
-  const gaps = useMemo(() => goalGaps(project).slice(0, 3), [project, project.month]);
 
   if (!open) return null;
 
-  const runSearch = () => {
-    const search: OutsideSearch =
-      mode === 'breed'
-        ? { kind: 'breed', breedKey, carrying: carrying ?? undefined }
-        : mode === 'traits'
-          ? { kind: 'traits', needs }
-          : { kind: 'random' };
+  const runSearch = (search: OutsideSearch) => {
     const found = searchOutsideDogs(project, search, 5);
     // Judge every candidate by the best litter it could give you with what you
     // already own, then put the most useful one first.
@@ -712,6 +707,14 @@ function OutsideSheet({
     refresh();
   };
 
+  const choose = (m: Mode, key?: string) => {
+    setMode(m);
+    setResults([]);
+    if (m === 'same') runSearch({ kind: 'breed', breedKey: key ?? breedKey, carrying: carrying ?? undefined });
+    if (m === 'random') runSearch({ kind: 'random' });
+    if (m === 'mine') loadMine();
+  };
+
   const adopt = (dog: Dog) => {
     say(adoptOutsideDog(project, dog));
     setResults((r) => r.filter((c) => c.dog.id !== dog.id));
@@ -719,135 +722,106 @@ function OutsideSheet({
   };
 
   const full = kennelCount(project) >= project.kennelCapacity;
+  const carryLabel = carrying ? CARRIER_OPTIONS.find((o) => o.locus === carrying.locus && o.allele === carrying.allele)?.label : null;
+
+  const carrierPicker = (
+    <label className="block card p-3 mb-3">
+      <span className="text-[12px] font-semibold block mb-1">Must carry a hidden gene</span>
+      <select
+        value={carrying ? `${carrying.locus}:${carrying.allele}` : ''}
+        onChange={(e) => {
+          const v = e.target.value;
+          const o = CARRIER_OPTIONS.find((x) => `${x.locus}:${x.allele}` === v);
+          setCarrying(o ? { locus: o.locus, allele: o.allele } : null);
+        }}
+        className="w-full rounded-xl border border-[var(--line)] bg-[var(--card)] px-2 py-2 text-[13px]"
+      >
+        <option value="">No — any dog of the breed</option>
+        {CARRIER_OPTIONS.map((o) => (
+          <option key={`${o.locus}:${o.allele}`} value={`${o.locus}:${o.allele}`}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <span className="block text-[11px] text-[var(--text-faint)] mt-1">How a Dudley Newfoundland or a merle Poodle starts: one carrier, then patience.</span>
+    </label>
+  );
 
   return (
-    <Sheet open onClose={onClose} title="Find an outside dog" subtitle="Fresh blood, with strings attached">
-      <Explain title="What is an outcross, and why would I want one?">
-        <p>
-          An outcross is a dog from outside your programme. It resets relatedness — a puppy from an
-          unrelated dog has zero inbreeding — which buys back fertility, litter size and lifespan.
-        </p>
-        <p>
-          The catch is that outside dogs are not built to your standard. Every one of them brings
-          something you want and something you do not. That trade is the decision.
-        </p>
-      </Explain>
-
-      <Segmented
-        value={mode}
-        onChange={(m) => {
-          setMode(m);
-          if (m === 'mine') loadMine();
-        }}
-        options={[
-          { value: 'breed', label: 'By breed' },
-          { value: 'traits', label: 'By traits' },
-          { value: 'random', label: 'Random' },
-          { value: 'mine', label: 'My kennels' },
-        ]}
-      />
-
-      <div className="mt-3 mb-3">
-        {mode === 'breed' && (
-          <>
-            <BreedPicker value={breedKey} onChange={setBreedKey} />
-            <Card className="mt-2">
-              <div className="text-[13px] font-semibold mb-1">Must carry a hidden gene</div>
-              <p className="text-[12px] text-[var(--text-soft)] leading-relaxed mb-2">
-                Ask a specialist breeder for a dog of this breed that carries one copy of a gene
-                the breed does not usually show. That is how a Dudley Newfoundland or a merle
-                Poodle begins: one carrier, then patience.
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {CARRIER_OPTIONS.map((o) => {
-                  const on = carrying?.locus === o.locus && carrying?.allele === o.allele;
-                  return (
-                    <button
-                      key={`${o.locus}:${o.allele}`}
-                      onClick={() => setCarrying(on ? null : { locus: o.locus, allele: o.allele })}
-                      className={`rounded-full border px-2.5 py-1 text-[11.5px] font-semibold ${
-                        on
-                          ? 'bg-[var(--brand)] text-white border-transparent'
-                          : 'bg-[var(--bg-2)] border-[var(--line)] text-[var(--text-soft)]'
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
-          </>
-        )}
-
-        {mode === 'traits' && (
-          <Card>
-            <p className="text-[12.5px] text-[var(--text-soft)] mb-3 leading-relaxed">
-              Tell the search what your population is missing. It will look for breeds that tend to
-              have it.
+    <Sheet
+      open
+      onClose={mode ? () => { setMode(null); setResults([]); } : onClose}
+      title={mode === null ? 'Find an outside dog' : mode === 'mine' ? 'From my other kennels' : mode === 'random' ? 'A dog from anywhere' : `${BREED_BY_KEY[breedKey]?.name ?? 'Outside'} dogs`}
+      subtitle={mode === null ? 'What does your kennel need?' : '‹ tap the × to choose differently'}
+    >
+      {mode === null && (
+        <>
+          <Intro id="outcross">
+            <p>
+              An outside dog resets relatedness — its puppies start at zero inbreeding — which buys
+              back fertility, litter size and lifespan. The catch: it is not built to your standard.
+              That trade is the decision.
             </p>
-            {BEHAVIOR_TRAITS.map((trait) => (
-              <div key={trait} className="flex items-center gap-2 py-1.5 border-b border-[var(--line)] last:border-0">
-                <span className="flex-1 text-[12.5px]">{TRAITS[trait].label}</span>
-                {(['low', 'high'] as const).map((dir) => (
-                  <button
-                    key={dir}
-                    onClick={() =>
-                      setNeeds((n) => {
-                        const next = { ...n };
-                        if (next[trait] === dir) delete next[trait];
-                        else next[trait] = dir;
-                        return next;
-                      })
-                    }
-                    className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${
-                      needs[trait] === dir
-                        ? 'bg-[var(--brand)] text-white border-transparent'
-                        : 'bg-[var(--bg-2)] border-[var(--line)] text-[var(--text-faint)]'
-                    }`}
-                  >
-                    {dir === 'low' ? 'less' : 'more'}
-                  </button>
-                ))}
-              </div>
-            ))}
-          </Card>
-        )}
+          </Intro>
+          {founders.slice(0, 3).map((k) => (
+            <BigChoice
+              key={k}
+              icon="🐕"
+              label={`Another ${BREED_BY_KEY[k].name}`}
+              hint="More of what you started with"
+              onClick={() => { setBreedKey(k); choose('same', k); }}
+            />
+          ))}
+          <BigChoice icon="📚" label="A breed I choose" hint="Any of the 124 breeds" onClick={() => setMode('choose')} />
+          <BigChoice icon="🎲" label="Surprise me" hint="A village dog of no fixed breed — unrelated to everything you own" onClick={() => choose('random')} />
+          <BigChoice icon="🏡" label="From my other kennels" hint="A grown dog from another of your projects" onClick={() => choose('mine')} />
+          {carrierPicker}
+        </>
+      )}
 
-        {mode === 'random' && (
-          <Card>
-            <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">
-              A dog from the general population, with no particular breed behind it. Completely
-              unrelated to everything you own, usually healthier than a purebred, and almost never
-              what your standard asks for.
-            </p>
-          </Card>
-        )}
+      {mode === 'choose' && (
+        <>
+          <BreedPicker value={breedKey} onChange={setBreedKey} />
+          <div className="mt-3">{carrierPicker}</div>
+          <Button full onClick={() => choose('same', breedKey)}>
+            Find {BREED_BY_KEY[breedKey]?.name ?? 'this breed'} dogs
+          </Button>
+        </>
+      )}
 
-        {mode === 'mine' && (
-          <Card>
-            <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">
-              A dog from one of your <strong>other projects</strong>. The Poodle you perfected over
-              there can be the outcross you need here. The dog comes over as a copy — it stays in
-              its own kennel too — with its genes intact and its pedigree left behind, so here it
-              counts as unrelated.
-            </p>
-          </Card>
-        )}
-      </div>
-
-      {mode !== 'mine' && (
-        <Button full onClick={runSearch} className="mb-4">
-          Search
-        </Button>
+      {(mode === 'same' || mode === 'random') && (
+        <>
+          {carryLabel && <Chip tone="info" className="mb-3">must carry {carryLabel}</Chip>}
+          {full && (
+            <div className="card p-3 mb-3 border-rust/40 text-[12.5px] text-[var(--text-soft)]">
+              Your kennel is full ({project.kennelCapacity} dogs). Place a dog first.
+            </div>
+          )}
+          {results.length > 0 && gaps.length > 0 && !project.sandbox && (
+            <div className="text-[11.5px] text-[var(--text-faint)] mb-2 px-1">
+              Your kennel most needs: {gaps.map((g) => g.text).join(' · ')}. Sorted by the best litter each could give you.
+            </div>
+          )}
+          {results.map((c, i) => (
+            <OutsideCard key={c.dog.id} dog={c.dog} best={c.best} rank={i + 1} onAdopt={() => adopt(c.dog)} disabled={full} />
+          ))}
+          <Button full tone="secondary" className="mt-2" onClick={() => choose(mode, breedKey)}>
+            Show me different dogs
+          </Button>
+        </>
       )}
 
       {mode === 'mine' && (
         <div className="mb-4">
+          {full && (
+            <div className="card p-3 mb-3 border-rust/40 text-[12.5px] text-[var(--text-soft)]">
+              Your kennel is full ({project.kennelCapacity} dogs). Place a dog first.
+            </div>
+          )}
           {mine === 'loading' || mine === null ? (
             <Empty>Looking through your other kennels…</Empty>
           ) : mine.length === 0 ? (
-            <Empty>No grown dogs in your other projects yet. Start another breed, raise a few adults, and they will appear here.</Empty>
+            <Empty>No grown dogs in your other projects yet.</Empty>
           ) : (
             mine
               .slice()
@@ -868,37 +842,21 @@ function OutsideSheet({
           )}
         </div>
       )}
-
-      {full && (
-        <div className="card p-3 mb-3 border-rust/40 text-[12.5px] text-[var(--text-soft)]">
-          Your kennel is full ({project.kennelCapacity} dogs). Place a dog in a pet home before
-          bringing anyone new in.
-        </div>
-      )}
-
-      {results.length > 0 && gaps.length > 0 && (
-        <div className="card p-3 mb-3">
-          <div className="text-[12px] font-semibold mb-1">What your population most needs</div>
-          <div className="text-[12.5px] text-[var(--text-soft)] leading-relaxed">
-            {gaps.map((g) => g.text).join(' · ')}
-          </div>
-          <div className="text-[11px] text-[var(--text-faint)] mt-1">
-            Candidates are sorted by the best litter they could give you with the dogs you already have.
-          </div>
-        </div>
-      )}
-
-      {results.map((c, i) => (
-        <OutsideCard
-          key={c.dog.id}
-          dog={c.dog}
-          best={c.best}
-          rank={i + 1}
-          onAdopt={() => adopt(c.dog)}
-          disabled={full}
-        />
-      ))}
     </Sheet>
+  );
+}
+
+/** One big answer to "what does your kennel need?" */
+function BigChoice({ icon, label, hint, onClick }: { icon: string; label: string; hint: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="card p-3 w-full text-left flex items-center gap-3 mb-2">
+      <span className="text-[24px] leading-none">{icon}</span>
+      <span className="flex-1 min-w-0">
+        <span className="block display text-[15px]">{label}</span>
+        <span className="block text-[11.5px] text-[var(--text-faint)] leading-snug">{hint}</span>
+      </span>
+      <span className="text-[var(--text-faint)]">›</span>
+    </button>
   );
 }
 

@@ -7,7 +7,8 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Button, Card, Chip, Empty, Explain, Section, Segmented, Sheet, StatRow } from '../components';
+import { Button, Card, Chip, Empty, Explain, Intro, Section, Segmented, Sheet, StatRow } from '../components';
+import { UiContext, type UiActions } from '../UiContext';
 import { useGame } from '../GameContext';
 import { DogCard, DogDetailSheet } from '../dogs';
 import { type BreedIntent, BreedTab } from './BreedTab';
@@ -46,29 +47,29 @@ import { LitterRevealSheet } from './LitterReveal';
 import { ClubSheet } from './ClubSheet';
 import { type ClubProposal, afterGenerationClosed, pendingProposal } from '../../game/club';
 
-type Tab = 'project' | 'kennel' | 'breed' | 'puppies' | 'pedigree' | 'analytics';
+type Tab = 'today' | 'kennel' | 'breed' | 'puppies';
 
 const TABS: { key: Tab; label: string; icon: string }[] = [
-  { key: 'project', label: 'Project', icon: '🏡' },
+  { key: 'today', label: 'Today', icon: '🏡' },
   { key: 'kennel', label: 'Kennel', icon: '🐕' },
   { key: 'breed', label: 'Breed', icon: '💞' },
   { key: 'puppies', label: 'Puppies', icon: '🐾' },
-  { key: 'pedigree', label: 'Family', icon: '🌳' },
-  { key: 'analytics', label: 'Trends', icon: '📈' },
 ];
 
 export function Game({ onExit }: { onExit: () => void }) {
   const { project, refresh, say, nerdMode, setNerdMode } = useGame();
-  const [tab, setTab] = useState<Tab>('project');
+  const [tab, setTab] = useState<Tab>('today');
   const [timeReport, setTimeReport] = useState<MonthReport[] | null>(null);
   /** True when the litters in the time report were already shown in the reveal. */
   const [birthsRevealed, setBirthsRevealed] = useState(false);
   const [genReport, setGenReport] = useState<GenerationReport | null>(null);
   const [pedigreeFocus, setPedigreeFocus] = useState<Dog | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [familyOpen, setFamilyOpen] = useState(false);
+  const [trendsOpen, setTrendsOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(!project.tutorialSeen);
   const [editorState, setEditorState] = useState<EditorState | null>(null);
-  const [showsOpen, setShowsOpen] = useState(false);
+  const [showsFor, setShowsFor] = useState<string | null | undefined>(undefined);
   const [expertOpen, setExpertOpen] = useState(false);
   const [breedBookOpen, setBreedBookOpen] = useState(false);
 
@@ -123,16 +124,36 @@ export function Game({ onExit }: { onExit: () => void }) {
     const { proposal, vindication } = afterGenerationClosed(project);
     if (vindication) say(vindication);
     if (proposal) setClubQueued(proposal);
+    setMoreOpen(false);
     setGenReport(report);
     refresh();
   };
 
-  const showPedigree = (dog: Dog) => {
-    setPedigreeFocus(dog);
-    setTab('pedigree');
+  const goTab = (t: Tab, intent?: BreedIntent) => {
+    if (intent) setBreedIntent(intent);
+    setTab(t);
   };
 
+  // What a dog's sheet can ask for. Closing the sheet is the caller's job;
+  // these just move the shell.
+  const ui: UiActions = useMemo(
+    () => ({
+      breedFrom: (dogId) => {
+        setBreedIntent({ parent: dogId });
+        setTab('breed');
+      },
+      showDog: (dogId) => setShowsFor(dogId),
+      familyOf: (dogId) => {
+        setPedigreeFocus(project.dogs[dogId] ?? null);
+        setFamilyOpen(true);
+      },
+      openMore: () => setMoreOpen(true),
+    }),
+    [project],
+  );
+
   return (
+    <UiContext.Provider value={ui}>
     <div className="paper min-h-full flex flex-col">
       {/* ---------------------------------------------------------- header */}
       <header className="flex-none safe-top text-white" style={{ background: 'linear-gradient(160deg, #5cc3ff 0%, #2f9be6 60%, #2589cf 100%)' }}>
@@ -151,11 +172,11 @@ export function Game({ onExit }: { onExit: () => void }) {
             </div>
           </div>
           <button
-            onClick={() => setSettingsOpen(true)}
-            className="w-8 h-8 rounded-full bg-white/25 text-[15px] leading-none"
-            aria-label="Settings"
+            onClick={() => setMoreOpen(true)}
+            className="h-8 px-3 rounded-full bg-white/25 text-[12px] font-bold leading-none"
+            aria-label="More"
           >
-            ⚙
+            More
           </button>
         </div>
       </header>
@@ -163,27 +184,19 @@ export function Game({ onExit }: { onExit: () => void }) {
       {/* --------------------------------------------------------- content */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-lg mx-auto">
-          {tab === 'project' && (
-            <ProjectTab
-              onGoTab={(t, intent) => {
-                if (intent) setBreedIntent(intent);
-                setTab(t);
-              }}
+          {tab === 'today' && (
+            <TodayTab
+              onGoTab={goTab}
               onCloseGeneration={closeGeneration}
               onAdvance={advance}
               onAdvanceToEvent={advanceToEvent}
-              onEditStandard={() => setEditorState(editorStateFrom(project.standard))}
-              onShows={() => setShowsOpen(true)}
-              onExpert={() => setExpertOpen(true)}
-              onBreedBook={() => setBreedBookOpen(true)}
               onClub={(p) => setClubNotice(p)}
+              onMore={() => setMoreOpen(true)}
             />
           )}
-          {tab === 'kennel' && <KennelTab onShowPedigree={showPedigree} />}
+          {tab === 'kennel' && <KennelTab />}
           {tab === 'breed' && <BreedTab intent={breedIntent} onIntentUsed={() => setBreedIntent(null)} />}
-          {tab === 'puppies' && <PuppiesTab onShowPedigree={showPedigree} />}
-          {tab === 'pedigree' && <PedigreeTab focusDog={pedigreeFocus} onFocus={setPedigreeFocus} />}
-          {tab === 'analytics' && <AnalyticsTab />}
+          {tab === 'puppies' && <PuppiesTab />}
         </div>
       </main>
 
@@ -202,7 +215,7 @@ export function Game({ onExit }: { onExit: () => void }) {
               <span className="text-[10px] font-bold">{t.label}</span>
             </button>
           ))}
-          {/* Time lives here now, next to the tabs, instead of floating over the page. */}
+          {/* Time: the one control that moves the calendar. */}
           <button
             onClick={advanceToEvent}
             className="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-2xl bg-rust text-white btn-3d [--btn-shadow:#d5651c]"
@@ -215,6 +228,35 @@ export function Game({ onExit }: { onExit: () => void }) {
       </nav>
 
       {/* ---------------------------------------------------------- sheets */}
+      {moreOpen && (
+        <MoreSheet
+          onClose={() => setMoreOpen(false)}
+          onBreedBook={() => { setMoreOpen(false); setBreedBookOpen(true); }}
+          onFamily={() => { setMoreOpen(false); setPedigreeFocus(null); setFamilyOpen(true); }}
+          onTrends={() => { setMoreOpen(false); setTrendsOpen(true); }}
+          onShows={() => { setMoreOpen(false); setShowsFor(null); }}
+          onExpert={() => { setMoreOpen(false); setExpertOpen(true); }}
+          onCloseGeneration={closeGeneration}
+          onEditStandard={() => { setMoreOpen(false); setEditorState(editorStateFrom(project.standard)); }}
+          onClub={(p) => { setMoreOpen(false); setClubNotice(p); }}
+          onTutorial={() => { setMoreOpen(false); setTutorialOpen(true); }}
+          onAdvance={(m) => { setMoreOpen(false); advance(m); }}
+          nerdMode={nerdMode}
+          setNerdMode={setNerdMode}
+        />
+      )}
+
+      {familyOpen && (
+        <Sheet open onClose={() => setFamilyOpen(false)} title="Family tree" subtitle="Where your gene pool actually comes from">
+          <PedigreeTab focusDog={pedigreeFocus} onFocus={setPedigreeFocus} />
+        </Sheet>
+      )}
+      {trendsOpen && (
+        <Sheet open onClose={() => setTrendsOpen(false)} title="Trends" subtitle="How the kennel is changing, generation by generation">
+          <AnalyticsTab />
+        </Sheet>
+      )}
+
       {editorState && (
         <Sheet
           open
@@ -246,17 +288,10 @@ export function Game({ onExit }: { onExit: () => void }) {
             </div>
           }
         >
-          <div className="card p-3 mb-4">
-            <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">
-              Real breeders refine what they are aiming at as they learn what is achievable. Changing
-              your standard rescores every dog you own — a dog that looked mediocre may suddenly be
-              exactly right, and vice versa. Nothing else about your project is affected.
-            </p>
-            <p className="text-[12px] text-[var(--text-faint)] leading-relaxed mt-2">
-              Goals you do not touch keep their exact original settings, so opening this and closing
-              it again changes nothing.
-            </p>
-          </div>
+          <Intro id="revise-standard">
+            Changing your standard rescores every dog you own — a dog that looked mediocre may
+            suddenly be exactly right, and vice versa. Goals you do not touch keep their settings.
+          </Intro>
 
           <StandardFields
             state={editorState}
@@ -267,7 +302,7 @@ export function Game({ onExit }: { onExit: () => void }) {
         </Sheet>
       )}
 
-      {showsOpen && <ShowSheet onClose={() => setShowsOpen(false)} />}
+      {showsFor !== undefined && <ShowSheet onClose={() => setShowsFor(undefined)} focusDogId={showsFor ?? undefined} />}
       {expertOpen && <ExpertSheet onClose={() => setExpertOpen(false)} />}
 
       {reveal && (
@@ -275,6 +310,7 @@ export function Game({ onExit }: { onExit: () => void }) {
           litterIds={reveal}
           onDone={() => setReveal(null)}
           onGoPuppies={() => setTab('puppies')}
+          moreToCome={!!timeReport || !!milestones}
         />
       )}
       {!reveal && timeReport && <TimeSheet reports={timeReport} birthsRevealed={birthsRevealed} onClose={() => setTimeReport(null)} />}
@@ -294,106 +330,42 @@ export function Game({ onExit }: { onExit: () => void }) {
       )}
       {clubNotice && <ClubSheet proposal={clubNotice} onClose={() => setClubNotice(null)} />}
 
-      <Sheet open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Settings">
-        <Card className="mb-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1">
-              <div className="text-[13px] font-semibold">Genetics Nerd Mode</div>
-              <p className="text-[12px] text-[var(--text-faint)] leading-snug">
-                Adds a Genes tab to every dog showing raw genotype notation, hidden breeding values
-                and the project's random seed. The game is completely playable without it.
-              </p>
-            </div>
-            <button
-              onClick={() => setNerdMode(!nerdMode)}
-              className={`flex-none w-12 h-7 rounded-full transition-colors ${nerdMode ? 'bg-[var(--brand)]' : 'bg-[var(--line)]'}`}
-            >
-              <span
-                className={`block w-5 h-5 bg-white rounded-full transition-transform ${nerdMode ? 'translate-x-6' : 'translate-x-1'}`}
-              />
-            </button>
-          </div>
-        </Card>
-
-        <Card className="mb-3">
-          <div className="text-[13px] font-semibold mb-1">Kennel capacity</div>
-          <p className="text-[12px] text-[var(--text-faint)] mb-2 leading-snug">
-            Limited space is what forces real choices. Raising this makes the game easier.
-          </p>
-          <div className="flex items-center gap-3">
-            <input
-              type="range"
-              min={6}
-              max={28}
-              value={project.kennelCapacity}
-              onChange={(e) => {
-                project.kennelCapacity = Number(e.target.value);
-                refresh();
-              }}
-              className="flex-1"
-            />
-            <span className="text-[14px] font-semibold tabular-nums w-8 text-right">
-              {project.kennelCapacity}
-            </span>
-          </div>
-        </Card>
-
-        <Button
-          full
-          tone="secondary"
-          onClick={() => {
-            setSettingsOpen(false);
-            setTutorialOpen(true);
-          }}
-        >
-          Replay the tutorial
-        </Button>
-      </Sheet>
-
       {tutorialOpen && (
         <Tutorial
           onClose={() => {
             project.tutorialSeen = true;
             setTutorialOpen(false);
-            say('You can replay this any time from the settings menu.');
             refresh();
           }}
           onGoTo={(t) => setTab(t as Tab)}
         />
       )}
     </div>
+    </UiContext.Provider>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Project tab
+// Today
 // ---------------------------------------------------------------------------
 
-function ProjectTab({
+function TodayTab({
   onGoTab,
   onCloseGeneration,
   onAdvance,
   onAdvanceToEvent,
-  onEditStandard,
-  onShows,
-  onExpert,
-  onBreedBook,
   onClub,
+  onMore,
 }: {
   onGoTab: (tab: Tab, intent?: BreedIntent) => void;
   onCloseGeneration: () => void;
   onAdvance: (months: number) => void;
   onAdvanceToEvent: () => void;
-  onEditStandard: () => void;
-  onShows: () => void;
-  onExpert: () => void;
-  onBreedBook: () => void;
   onClub: (proposal: ClubProposal) => void;
+  onMore: () => void;
 }) {
   const { project, refresh, say } = useGame();
   const sandbox = !!project.sandbox;
-  const difficulty = useMemo(() => assessDifficulty(project.standard), [project.standard]);
-  const standing = reputationTier(project.reputation ?? 0);
   const step = useMemo(() => nextStep(project), [project, project.month, project.rngCursor, project.pregnancies.length]);
   const doStep = () => {
     const a = step.action;
@@ -415,38 +387,67 @@ function ProjectTab({
       } else onGoTab('breed', 'plan');
     }
   };
-  const titled = activeDogs(project).filter((d) => d.titles && d.titles.length > 0);
   const heart = project.heartDogId ? project.dogs[project.heartDogId] : undefined;
 
-  const traitGoals = Object.entries(project.standard.traitGoals).filter(
-    ([, g]) => g && g.priority > 0,
-  );
-  const derivedGoals = Object.entries(project.standard.derivedGoals).filter(
-    ([, g]) => g && g.priority > 0,
-  );
+  // What is going on right now, as a few short lines.
+  const dogs = activeDogs(project);
+  const babies = dogs.filter((d) => d.litterId && !d.retention && ageMonths(d, project.month) < 2);
+  const undecided = dogs.filter((d) => d.litterId && ((!d.retention && ageMonths(d, project.month) >= 2) || (d.retention === 'wait' && ageMonths(d, project.month) >= 4)));
+  const due = project.pregnancies.length ? Math.max(1, Math.min(...project.pregnancies.map((p) => p.dueMonth - project.month))) : 0;
+  const over = kennelCount(project) - project.kennelCapacity;
+  const happening: { icon: string; text: string; tab?: Tab }[] = [];
+  if (project.pregnancies.length > 0) happening.push({ icon: '🤰', text: `${project.pregnancies.length} litter${project.pregnancies.length === 1 ? '' : 's'} on the way — due in ${due} month${due === 1 ? '' : 's'}`, tab: 'breed' });
+  if (babies.length > 0) happening.push({ icon: '🍼', text: `${babies.length} newborn${babies.length === 1 ? '' : 's'} growing — worth judging at eight weeks`, tab: 'puppies' });
+  if (undecided.length > 0) happening.push({ icon: '🐾', text: `${undecided.length} ${undecided.length === 1 ? 'puppy' : 'puppies'} waiting on a decision`, tab: 'puppies' });
+  if (over > 0 && !sandbox) happening.push({ icon: '🏠', text: `${over} over capacity — place someone before breeding`, tab: 'kennel' });
+  const notice = pendingProposal(project);
+  if (notice) happening.push({ icon: '📜', text: `The breed club is waiting on an answer: ${notice.title.toLowerCase()}` });
 
   return (
-    <div className="px-4 pb-40 pt-3">
-      <Card className="mb-4">
-        <div className="display text-[19px] font-semibold mb-1">{sandbox ? project.name : project.standard.name}</div>
-        {project.standard.vision && (
-          <p className="text-[13px] text-[var(--text-soft)] leading-relaxed">{project.standard.vision}</p>
-        )}
-        {sandbox && project.founderBreeds && project.founderBreeds.length > 0 && (
-          <p className="text-[12px] text-[var(--text-faint)] leading-relaxed mt-1">
-            Started from: {project.founderBreeds.map((k) => BREED_BY_KEY[k]?.name ?? k).join(', ')}.
-          </p>
-        )}
-      </Card>
+    <div className="px-4 pb-28 pt-3">
+      {!sandbox && (
+        <Card className="mb-4 border-[var(--brand)]">
+          <div className="text-[11px] font-bold text-[var(--brand)] uppercase tracking-wide mb-0.5">Do this next</div>
+          <div className="display text-[16px] leading-tight mb-1">{step.title}</div>
+          <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">{step.detail}</p>
+          <Button full onClick={doStep}>
+            {step.buttonLabel}
+          </Button>
+        </Card>
+      )}
 
-      {!sandbox && <Card className="mb-4 border-[var(--brand)]" >
-        <div className="text-[11px] font-bold text-[var(--brand)] uppercase tracking-wide mb-0.5">Do this next</div>
-        <div className="display text-[16px] leading-tight mb-1">{step.title}</div>
-        <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">{step.detail}</p>
-        <Button full onClick={doStep}>
-          {step.buttonLabel}
-        </Button>
-      </Card>}
+      {sandbox && (
+        <Card className="mb-4">
+          <div className="display text-[16px] leading-tight mb-1">{project.name}</div>
+          <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed">
+            Free play: nothing is scored and nobody tells you what to do. Breed whoever you like, bring
+            in any breed, and see what turns up.
+            {project.founderBreeds && project.founderBreeds.length > 0
+              ? ` Started from ${project.founderBreeds.map((k) => BREED_BY_KEY[k]?.name ?? k).join(', ')}.`
+              : ''}
+          </p>
+        </Card>
+      )}
+
+      <Section title="Happening now">
+        <Card>
+          {happening.length === 0 ? (
+            <p className="text-[12.5px] text-[var(--text-soft)]">A quiet moment. Breed a pair, or press ⏩ to move time on.</p>
+          ) : (
+            happening.map((h, i) => (
+              <button
+                key={i}
+                onClick={() => h.tab && onGoTab(h.tab)}
+                className="w-full text-left flex items-start gap-2 py-1.5 border-b border-[var(--line)] last:border-0"
+              >
+                <span className="text-[16px] leading-none">{h.icon}</span>
+                <span className="text-[12.5px] leading-snug flex-1">{h.text}</span>
+                {h.tab && <span className="text-[var(--text-faint)]">›</span>}
+              </button>
+            ))
+          )}
+        </Card>
+      </Section>
 
       {heart && (
         <Card className="mb-4 border-rust/50">
@@ -463,164 +464,214 @@ function ProjectTab({
         </Card>
       )}
 
-      <Section title="Your breed" subtitle="The book of everything you have made so far.">
-        <Button full tone="secondary" onClick={onBreedBook}>
-          Open the breed book
-        </Button>
-      </Section>
-
-      {(project.club?.proposals.length ?? 0) > 0 && (
-        <Section title="Breed club" subtitle="Fashions come and go. What you did about them.">
-          <Card>
-            {project.club!.proposals
-              .slice()
-              .reverse()
-              .slice(0, 4)
-              .map((p) => (
-                <button key={p.id} onClick={() => onClub(p)} className="w-full text-left flex items-center gap-2 py-1.5 border-b border-[var(--line)] last:border-0">
-                  <span className="flex-1 text-[13px] leading-snug">{p.title}</span>
-                  <Chip tone={p.status === 'pending' ? 'warn' : p.status === 'followed' ? 'info' : p.vindicated ? 'good' : 'neutral'}>
-                    {p.status === 'pending' ? 'waiting' : p.status === 'followed' ? 'followed' : p.vindicated ? 'proved right' : 'held out'}
-                  </Chip>
-                </button>
-              ))}
-            {pendingProposal(project) && (
-              <p className="text-[11.5px] text-[var(--text-faint)] mt-2">A notice is waiting for your answer.</p>
-            )}
-          </Card>
-        </Section>
+      {!sandbox && (
+        <Card className="mb-4">
+          <div className="text-[13px] font-semibold">{project.standard.name}</div>
+          {project.standard.vision && (
+            <p className="text-[12px] text-[var(--text-soft)] leading-relaxed mt-0.5">{project.standard.vision}</p>
+          )}
+        </Card>
       )}
 
-      <Section title="Time">
-        <Card>
-          <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-3">
-            Nothing happens until time moves. Pregnancies take two months, puppies are worth
-            evaluating from eight weeks, and a dog is not fully grown until two years old.
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <Button small tone="secondary" onClick={() => onAdvance(1)}>
-              +1 month
-            </Button>
-            <Button small tone="secondary" onClick={() => onAdvance(6)}>
-              +6 months
-            </Button>
-            <Button small tone="accent" onClick={onAdvanceToEvent}>
-              Next event
-            </Button>
-          </div>
-        </Card>
-      </Section>
-
-      {!sandbox && <Section title="Stuck? Ask the expert" subtitle="A specific read on what your population needs and which pairing to make.">
-        <Button full tone="accent" onClick={onExpert}>
-          Ask the expert
-        </Button>
-      </Section>}
-
-      <Section
-        title="Generation report"
-        subtitle={sandbox ? 'Close out a generation to see how the kennel has changed.' : 'Close out a generation to see what genuinely changed, and what to aim at next.'}
-      >
-        <Button full tone="primary" onClick={onCloseGeneration}>
-          Close out generation {project.generation}
-        </Button>
-      </Section>
-
-      {sandbox && (
-        <Section title="Free play" subtitle="What this mode is, and is not.">
-          <Card>
-            <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed">
-              There is no standard here, so nothing is scored and nobody tells you what to do next.
-              Breed whoever you like to whoever you like, bring in any breed from the outside-dog
-              search, and see what turns up. The genetics are exactly the same as in a real project.
-            </p>
-          </Card>
-        </Section>
-      )}
-
-      {!sandbox && <Section
-        title="Dog shows"
-        subtitle="Outside judgement of how well your breed is coming together."
-      >
-        <Card>
-          <StatRow label="Kennel standing" value={standing.label} />
-          {(project.reputation ?? 0) > 0 && (
-            <StatRow label="Show points won" value={project.reputation} />
-          )}
-          {titled.length > 0 && (
-            <StatRow label="Titled dogs" value={titled.map((d) => d.name).join(', ')} />
-          )}
-          <p className="text-[12px] text-[var(--text-faint)] leading-relaxed mt-2 mb-2">
-            {standing.bonus > 0
-              ? 'Your reputation means better dogs are being offered to you when you look for an outcross.'
-              : 'Win at shows to build a reputation. A respected kennel gets better dogs offered to it.'}
-          </p>
-          <Button full small tone="accent" onClick={onShows}>
-            Enter a show
-          </Button>
-        </Card>
-      </Section>}
-
-      {!sandbox && <Section
-        title="Your standard"
-        subtitle="Anything not listed here is on Don't care and is ignored."
-        right={
-          <Button small tone="secondary" onClick={onEditStandard}>
-            Revise
-          </Button>
-        }
-      >
-        <Card>
-          {traitGoals.map(([key, goal]) => {
-            const trait = key as PolyTrait;
-            const def = TRAITS[trait];
-            const target =
-              goal!.mode === 'higher'
-                ? 'as high as possible'
-                : goal!.mode === 'lower'
-                  ? 'as low as possible'
-                  : def.logScale
-                    ? `${goal!.preferredLow}–${goal!.preferredHigh} lb`
-                    : `${goal!.preferredLow}–${goal!.preferredHigh}`;
-            return <StatRow key={key} label={def.label} value={`${target} · ${PRIORITY_LABEL[goal!.priority]}`} />;
-          })}
-          {derivedGoals.map(([key, goal]) => (
-            <StatRow
-              key={key}
-              label={DERIVED_LABEL[key as keyof typeof DERIVED_LABEL]}
-              value={`${
-                goal!.mode === 'higher'
-                  ? 'as high as possible'
-                  : goal!.mode === 'lower'
-                    ? 'as low as possible'
-                    : `${goal!.preferredLow}–${goal!.preferredHigh}`
-              } · ${PRIORITY_LABEL[goal!.priority]}`}
-            />
-          ))}
-          {project.standard.coatGoal && (
-            <StatRow
-              label="Coat type"
-              value={`${project.standard.coatGoal.kinds.join(', ')} · ${PRIORITY_LABEL[project.standard.coatGoal.priority]}`}
-            />
-          )}
-        </Card>
-      </Section>}
-
-      {!sandbox && <DifficultyPanel difficulty={difficulty} />}
+      <Button full tone="secondary" onClick={onMore}>
+        Breed book, shows, expert, standard, trends…
+      </Button>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
+// More: everything that is not part of the turn
+// ---------------------------------------------------------------------------
+
+/** One line in the More sheet. */
+function Row({ icon, label, hint, onClick }: { icon: string; label: string; hint?: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="w-full text-left flex items-center gap-3 py-2.5 border-b border-[var(--line)] last:border-0">
+      <span className="text-[18px] leading-none w-6 text-center">{icon}</span>
+      <span className="flex-1 min-w-0">
+        <span className="block text-[13.5px] font-semibold">{label}</span>
+        {hint && <span className="block text-[11.5px] text-[var(--text-faint)] truncate">{hint}</span>}
+      </span>
+      <span className="text-[var(--text-faint)]">›</span>
+    </button>
+  );
+}
+
+function MoreSheet({
+  onClose,
+  onBreedBook,
+  onFamily,
+  onTrends,
+  onShows,
+  onExpert,
+  onCloseGeneration,
+  onEditStandard,
+  onClub,
+  onTutorial,
+  onAdvance,
+  nerdMode,
+  setNerdMode,
+}: {
+  onClose: () => void;
+  onBreedBook: () => void;
+  onFamily: () => void;
+  onTrends: () => void;
+  onShows: () => void;
+  onExpert: () => void;
+  onCloseGeneration: () => void;
+  onEditStandard: () => void;
+  onClub: (p: ClubProposal) => void;
+  onTutorial: () => void;
+  onAdvance: (months: number) => void;
+  nerdMode: boolean;
+  setNerdMode: (on: boolean) => void;
+}) {
+  const { project, refresh } = useGame();
+  const sandbox = !!project.sandbox;
+  const standing = reputationTier(project.reputation ?? 0);
+  const difficulty = useMemo(() => assessDifficulty(project.standard), [project.standard]);
+  const titled = activeDogs(project).filter((d) => d.titles && d.titles.length > 0);
+  const traitGoals = Object.entries(project.standard.traitGoals).filter(([, g]) => g && g.priority > 0);
+  const derivedGoals = Object.entries(project.standard.derivedGoals).filter(([, g]) => g && g.priority > 0);
+
+  return (
+    <Sheet open onClose={onClose} title="More" subtitle={project.name}>
+      <Card className="mb-4">
+        <Row icon="📖" label="Breed book" hint="Everything you have made so far" onClick={onBreedBook} />
+        <Row icon="🌳" label="Family tree" hint="Pedigrees and who the gene pool comes from" onClick={onFamily} />
+        <Row icon="📈" label="Trends" hint="Generation by generation" onClick={onTrends} />
+        {!sandbox && <Row icon="🏆" label="Dog shows" hint={`${standing.label}${project.reputation ? ` · ${project.reputation} points` : ''}${titled.length ? ` · ${titled.length} titled` : ''}`} onClick={onShows} />}
+        {!sandbox && <Row icon="🧑‍🏫" label="Ask the expert" hint="A read on what the kennel needs" onClick={onExpert} />}
+      </Card>
+
+      <Section title="Generation" subtitle={sandbox ? 'Close out a generation to see how the kennel has changed.' : 'Close a chapter to see what changed and what to aim at next.'}>
+        <Button full onClick={onCloseGeneration}>
+          Close out generation {project.generation}
+        </Button>
+        <div className="grid grid-cols-3 gap-2 mt-2">
+          <Button small tone="secondary" onClick={() => onAdvance(1)}>+1 month</Button>
+          <Button small tone="secondary" onClick={() => onAdvance(6)}>+6 months</Button>
+          <Button small tone="secondary" onClick={() => onAdvance(12)}>+1 year</Button>
+        </div>
+      </Section>
+
+      {(project.club?.proposals.length ?? 0) > 0 && (
+        <Section title="Breed club" subtitle="Fashions come and go. What you did about them.">
+          <Card>
+            {project.club!.proposals.slice().reverse().slice(0, 4).map((p) => (
+              <button key={p.id} onClick={() => onClub(p)} className="w-full text-left flex items-center gap-2 py-1.5 border-b border-[var(--line)] last:border-0">
+                <span className="flex-1 text-[13px] leading-snug">{p.title}</span>
+                <Chip tone={p.status === 'pending' ? 'warn' : p.status === 'followed' ? 'info' : p.vindicated ? 'good' : 'neutral'}>
+                  {p.status === 'pending' ? 'waiting' : p.status === 'followed' ? 'followed' : p.vindicated ? 'proved right' : 'held out'}
+                </Chip>
+              </button>
+            ))}
+          </Card>
+        </Section>
+      )}
+
+      {!sandbox && (
+        <Section
+          title="Your standard"
+          subtitle="Anything not listed is on Don't care."
+          right={
+            <Button small tone="secondary" onClick={onEditStandard}>
+              Revise
+            </Button>
+          }
+        >
+          <Card>
+            {traitGoals.map(([key, goal]) => {
+              const trait = key as PolyTrait;
+              const def = TRAITS[trait];
+              const target =
+                goal!.mode === 'higher'
+                  ? 'as high as possible'
+                  : goal!.mode === 'lower'
+                    ? 'as low as possible'
+                    : def.logScale
+                      ? `${goal!.preferredLow}–${goal!.preferredHigh} lb`
+                      : `${goal!.preferredLow}–${goal!.preferredHigh}`;
+              return <StatRow key={key} label={def.label} value={`${target} · ${PRIORITY_LABEL[goal!.priority]}`} />;
+            })}
+            {derivedGoals.map(([key, goal]) => (
+              <StatRow
+                key={key}
+                label={DERIVED_LABEL[key as keyof typeof DERIVED_LABEL]}
+                value={`${
+                  goal!.mode === 'higher' ? 'as high as possible' : goal!.mode === 'lower' ? 'as low as possible' : `${goal!.preferredLow}–${goal!.preferredHigh}`
+                } · ${PRIORITY_LABEL[goal!.priority]}`}
+              />
+            ))}
+            {project.standard.coatGoal && (
+              <StatRow label="Coat type" value={`${project.standard.coatGoal.kinds.join(', ')} · ${PRIORITY_LABEL[project.standard.coatGoal.priority]}`} />
+            )}
+            {project.standard.colorGoal && project.standard.colorGoal.priority > 0 && (
+              <StatRow label="Colour" value={`${project.standard.colorGoal.text} · ${PRIORITY_LABEL[project.standard.colorGoal.priority]}`} />
+            )}
+          </Card>
+          <div className="mt-3">
+            <DifficultyPanel difficulty={difficulty} />
+          </div>
+        </Section>
+      )}
+
+      <Section title="Settings">
+        <Card className="mb-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1">
+              <div className="text-[13px] font-semibold">Genetics Nerd Mode</div>
+              <p className="text-[12px] text-[var(--text-faint)] leading-snug">Adds a Genes tab to every dog with the raw genotype.</p>
+            </div>
+            <button
+              onClick={() => setNerdMode(!nerdMode)}
+              className={`flex-none w-12 h-7 rounded-full transition-colors ${nerdMode ? 'bg-[var(--brand)]' : 'bg-[var(--line)]'}`}
+              aria-label="Toggle nerd mode"
+            >
+              <span className={`block w-5 h-5 bg-white rounded-full transition-transform ${nerdMode ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+        </Card>
+        {!sandbox && (
+          <Card className="mb-3">
+            <div className="text-[13px] font-semibold mb-1">Kennel capacity</div>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min={6}
+                max={28}
+                value={project.kennelCapacity}
+                onChange={(e) => {
+                  project.kennelCapacity = Number(e.target.value);
+                  refresh();
+                }}
+                className="flex-1"
+              />
+              <span className="text-[14px] font-semibold tabular-nums w-8 text-right">{project.kennelCapacity}</span>
+            </div>
+          </Card>
+        )}
+        <Button full tone="secondary" onClick={onTutorial}>
+          Replay the tutorial
+        </Button>
+      </Section>
+    </Sheet>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // Kennel tab
 // ---------------------------------------------------------------------------
 
-function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
+function KennelTab() {
   const { project } = useGame();
   const [open, setOpen] = useState<Dog | null>(null);
   const [filter, setFilter] = useState<'all' | 'F' | 'M' | 'young'>('all');
   const [sort, setSort] = useState<'score' | 'age' | 'name'>(project.sandbox ? 'age' : 'score');
   const [gene, setGene] = useState<string | null>(null);
+  const [geneOpen, setGeneOpen] = useState(false);
 
   /**
    * Which interesting genes actually exist in this kennel, so the filter only
@@ -666,34 +717,44 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
 
   return (
     <div className="px-4 pb-28 pt-3">
-      <div className="mb-3">
-        <Segmented
-          value={filter}
-          onChange={setFilter}
-          options={[
-            { value: 'all', label: 'All' },
-            { value: 'F', label: 'Females' },
-            { value: 'M', label: 'Males' },
-            { value: 'young', label: 'Young' },
-          ]}
-        />
-      </div>
-      <div className="mb-4">
-        <Segmented
+      <div className="mb-3 flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          <Segmented
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: 'F', label: '♀' },
+              { value: 'M', label: '♂' },
+              { value: 'young', label: 'Young' },
+            ]}
+          />
+        </div>
+        <select
           value={sort}
-          onChange={setSort}
-          options={[
-            ...(project.sandbox ? [] : [{ value: 'score' as const, label: 'By score' }]),
-            { value: 'age', label: 'By age' },
-            { value: 'name', label: 'By name' },
-          ]}
-        />
+          onChange={(e) => setSort(e.target.value as typeof sort)}
+          className="flex-none rounded-xl border border-[var(--line)] bg-[var(--card)] px-2 py-2 text-[12px] font-semibold"
+          aria-label="Sort"
+        >
+          {!project.sandbox && <option value="score">Score</option>}
+          <option value="age">Age</option>
+          <option value="name">Name</option>
+        </select>
+        {geneOptions.length > 0 && (
+          <button
+            onClick={() => setGeneOpen((v) => !v)}
+            className={`flex-none rounded-xl border px-2.5 py-2 text-[12px] font-semibold ${gene ? 'bg-[var(--brand)] text-white border-transparent' : 'bg-[var(--card)] border-[var(--line)]'}`}
+            aria-label="Filter by gene"
+          >
+            🧬{gene ? ' 1' : ''}
+          </button>
+        )}
       </div>
 
-      {geneOptions.length > 0 && (
+      {geneOptions.length > 0 && geneOpen && (
         <div className="mb-4">
           <div className="text-[12px] text-[var(--text-faint)] mb-1.5 px-1">
-            Find dogs carrying a gene
+            Show dogs carrying…
           </div>
           <div className="scroll-x flex gap-1.5 pb-1">
             <button
@@ -740,7 +801,7 @@ function KennelTab({ onShowPedigree }: { onShowPedigree: (dog: Dog) => void }) {
         </Explain>
       )}
 
-      <DogDetailSheet dog={open} onClose={() => setOpen(null)} onShowPedigree={onShowPedigree} />
+      <DogDetailSheet dog={open} onClose={() => setOpen(null)} />
     </div>
   );
 }

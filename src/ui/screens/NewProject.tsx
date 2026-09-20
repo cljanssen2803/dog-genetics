@@ -20,6 +20,7 @@ import {
   purebredStandard,
 } from '../../engine/standard';
 import { BREEDS, BREED_GROUPS, breedFamily } from '../../engine/breeds';
+import { COLOUR_TWISTS } from '../../engine/twists';
 import type { CoatKind } from '../../engine/phenotype';
 import { createProject } from '../../game/project';
 import { saveProject } from '../../game/storage';
@@ -74,19 +75,16 @@ export function NewProject({
           ‹ Back
         </button>
 
-        <h1 className="display text-[26px] font-semibold leading-tight mb-1">
+        <h1 className="display text-[26px] font-semibold leading-tight mb-5">
           What are you trying to create?
         </h1>
-        <p className="text-[13px] text-[var(--text-soft)] mb-6 leading-relaxed">
-          Pick a ready-made project to learn the game, or define your own dog from scratch.
-        </p>
 
         <Section title="Just play">
           <PresetCard
             title="Free play"
             tagline="No standard, no scores, no advice"
-            body="Pick any breeds you like — as many as you want — and get a pair of each. Then breed whoever to whoever and see what comes out. A big kennel, nothing judged, the same genetics underneath."
-            bullets={['Any breeds', 'Room for 60 dogs', 'Nothing to meet']}
+            body="Any breeds, a pair of each, nothing judged. See what comes out."
+            bullets={[]}
             onStart={() => setMode('sandbox')}
             action="Choose breeds"
           />
@@ -96,15 +94,15 @@ export function NewProject({
           <PresetCard
             title="Hearthdog"
             tagline="Medium family companion"
-            body="A calm, steady, sociable dog that sheds very little and lives a long time. The gentlest introduction: the goals mostly agree with each other."
-            bullets={['30–50 lb', 'Very low shedding', 'Rock-solid temperament', 'Long lived']}
+            body="A calm, low-shedding family dog. The gentlest start."
+            bullets={['30–50 lb', 'Low shedding', 'Steady temperament']}
             onStart={() => start('Hearthdog', structuredClone(HEARTHDOG))}
           />
           <PresetCard
             title="Mousie"
             tagline="Tiny cold-weather vermin hunter"
-            body="A small, dense-coated companion for an older owner that is calm indoors but genuinely effective on mice. Much harder: drive and calmness fight each other."
-            bullets={['10–18 lb', 'Dense winter coat', 'Strong prey drive', 'Calm in the house']}
+            body="A tiny mouser that is calm indoors. Harder: drive and calm pull against each other."
+            bullets={['10–18 lb', 'Dense coat', 'Prey drive + calm']}
             onStart={() => start('Mousie', structuredClone(MOUSIE))}
           />
         </Section>
@@ -113,7 +111,7 @@ export function NewProject({
           <PresetCard
             title="The Lab"
             tagline="Start from the features, not the breeds"
-            body="Tick what you want — size, coat, colour, ears, tail, temperament — and watch the dog appear. The Lab tells you which breeds carry the genes and explains each one, then starts the project for you."
+            body="Tick the features, watch the dog appear, see which breeds carry the genes."
             bullets={[]}
             onStart={onLab}
             action="Open the Lab"
@@ -121,7 +119,7 @@ export function NewProject({
           <PresetCard
             title="Custom breed"
             tagline="Define every goal yourself"
-            body="Choose the size, coat, temperament and looks you want, and how much each one matters. The game will tell you honestly how hard your combination is."
+            body="Set every goal and how much it matters."
             bullets={[]}
             onStart={() => setMode('custom')}
             action="Open the builder"
@@ -129,7 +127,7 @@ export function NewProject({
           <PresetCard
             title="Purebred with a twist"
             tagline="One real breed, one colour it never comes in"
-            body="A Dudley Newfoundland. A merle Poodle. A brindle Labrador. Start with a true-to-type population of the breed, then hunt down a carrier of the gene and breed the look in without losing the breed."
+            body="A Dudley Newfoundland, a merle Poodle: a real breed plus a colour it never comes in."
             bullets={[]}
             onStart={() => setMode('purebred')}
             action="Choose a breed"
@@ -137,7 +135,7 @@ export function NewProject({
           <PresetCard
             title="Designer cross"
             tagline="Two real breeds, one new dog"
-            body="Pick a breed for the body and a breed for the coat — a Great Dane in a Standard Poodle's coat, say — and see whether you can actually stabilise it. Genetically the most chaotic way to play."
+            body="A Great Dane in a Poodle's coat. Can you make it breed true?"
             bullets={[]}
             onStart={() => setMode('designer')}
             action="Choose breeds"
@@ -350,19 +348,8 @@ function DesignerBuilder({
 // ---------------------------------------------------------------------------
 
 /** Colours and markings a breed can be asked to carry that it normally does not. */
-const TWISTS: { key: string; label: string; colourText: string; blurb: string }[] = [
-  { key: 'dudley', label: 'Dudley', colourText: 'dudley', blurb: 'Yellow or red coat over chocolate pigment: liver-pink nose, amber eyes. Two recessives (e/e and b/b).' },
-  { key: 'chocolate', label: 'Chocolate', colourText: 'chocolate', blurb: 'Brown pigment everywhere. Recessive: both parents must carry it.' },
-  { key: 'blue', label: 'Blue', colourText: 'blue', blurb: 'Dilute black. Recessive.' },
-  { key: 'lilac', label: 'Lilac', colourText: 'lilac', blurb: 'Chocolate and dilute together. Two recessives, one in sixteen from double carriers.' },
-  { key: 'red', label: 'Red', colourText: 'red', blurb: 'Recessive red: all dark pigment switched off in the coat.' },
-  { key: 'cream', label: 'Cream', colourText: 'cream', blurb: 'Recessive red faded to cream by the intensity gene. Two recessives.' },
-  { key: 'brindle', label: 'Brindle', colourText: 'brindle', blurb: 'Dominant over plain, hidden under dominant black. One carrier is enough to start.' },
-  { key: 'merle', label: 'Merle', colourText: 'merle', blurb: 'Dominant. One copy only, ever — never breed merle to merle.' },
-  { key: 'tan', label: 'Black and tan', colourText: 'tan', blurb: 'Tan points. Recessive to fawn, hidden under dominant black.' },
-  { key: 'piebald', label: 'Piebald', colourText: 'white', blurb: 'Large white patches. Two copies for the full patchwork.' },
-  { key: 'harlequin', label: 'Harlequin', colourText: 'harlequin', blurb: 'Merle plus the harlequin modifier. Needs both, and never two harlequin copies.' },
-];
+/** Colours and markings a purebred can be given: the shared list. */
+const TWISTS = COLOUR_TWISTS.map((t) => ({ key: t.key, label: t.label, colourText: t.colourText ?? t.label.toLowerCase(), blurb: t.blurb }));
 
 function PurebredBuilder({
   onBack,

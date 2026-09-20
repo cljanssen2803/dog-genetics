@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react';
-import { Button, Card, Chip, Empty, Explain } from '../components';
+import { Button, Card, Chip, Empty, Intro } from '../components';
 import { DogPortrait } from '../DogPortrait';
 import { useGame } from '../GameContext';
 import { DogCard, DogDetailSheet } from '../dogs';
@@ -21,7 +21,7 @@ import { scoreDog } from '../../engine/standard';
 import { type Litter, kennelCount, placeDog, puppiesOf, setRetention } from '../../game/project';
 import { type PuppyAdvice, triageLitter } from '../../game/assist';
 
-export function PuppiesTab({ onShowPedigree }: { onShowPedigree?: (dog: Dog) => void }) {
+export function PuppiesTab() {
   const { project } = useGame();
   const [open, setOpen] = useState<Dog | null>(null);
   const [expanded, setExpanded] = useState<string | null>(project.litters[0]?.id ?? null);
@@ -39,28 +39,21 @@ export function PuppiesTab({ onShowPedigree }: { onShowPedigree?: (dog: Dog) => 
 
   return (
     <div className="px-4 pb-28 pt-3">
-      <Explain title="Why are the puppy numbers so vague?">
+      <Intro id="puppies">
         <p>
-          Because they genuinely are. A DNA test can tell you a puppy's coat and its disease genes
-          exactly, on the day it is born. It cannot tell you how calm it will be at three years old,
-          how big it will finish, or how long it will live.
+          A DNA test tells you a puppy's coat and disease genes on day one. Nothing can tell you its
+          adult temperament or final size — so young puppies show a <strong>range</strong> that
+          narrows as they grow. Keeping one early is a gamble; waiting costs kennel space.
         </p>
-        <p>
-          So young puppies show a <strong>range</strong> and a confidence level. As they grow the
-          range narrows. Keeping a puppy on a wide range is a gamble; waiting costs you kennel space.
-        </p>
-      </Explain>
+      </Intro>
 
-      <div className="card p-3 mb-4">
-        <div className="text-[13px]">
-          Kennel: <strong>{kennelCount(project)}</strong> of {project.kennelCapacity} spaces used.
-        </div>
-        {kennelCount(project) >= project.kennelCapacity && (
-          <p className="text-[12px] text-rust mt-1">
-            You are at capacity. Place some puppies in pet homes to make room.
+      {kennelCount(project) >= project.kennelCapacity && !project.sandbox && (
+        <div className="card p-3 mb-4 border-rust/40">
+          <p className="text-[12.5px] text-rust">
+            Kennel full ({kennelCount(project)} of {project.kennelCapacity}). Place some puppies in pet homes to make room.
           </p>
-        )}
-      </div>
+        </div>
+      )}
 
       {project.litters.map((litter) => (
         <LitterBlock
@@ -72,7 +65,7 @@ export function PuppiesTab({ onShowPedigree }: { onShowPedigree?: (dog: Dog) => 
         />
       ))}
 
-      <DogDetailSheet dog={open} onClose={() => setOpen(null)} onShowPedigree={onShowPedigree} />
+      <DogDetailSheet dog={open} onClose={() => setOpen(null)} />
     </div>
   );
 }

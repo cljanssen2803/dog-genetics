@@ -18,6 +18,7 @@ import type { Sex } from '../engine/names';
 import { Rng, makeSeed } from '../engine/rng';
 import { orderPair } from '../engine/loci';
 import { BREED_BY_KEY } from '../engine/breeds';
+import { TWISTS, type Twist } from '../engine/twists';
 
 const KEY = 'dogGenetics.playground';
 
@@ -70,41 +71,12 @@ function commit(pg: Playground, rng: Rng) {
 // Colour twists: make a fresh dog actually SHOW a colour
 // ---------------------------------------------------------------------------
 
-export interface PlayTwist {
-  key: string;
-  label: string;
-  blurb: string;
-  /** Genes set on the dog. Two codes for both copies, one code for a single (dominant) copy. */
-  set: { locus: string; alleles: [string] | [string, string] }[];
-}
-
-export const PLAY_TWISTS: PlayTwist[] = [
-  { key: 'chocolate', label: 'Chocolate', blurb: 'Brown pigment everywhere (b/b).', set: [{ locus: 'locusB', alleles: ['b', 'b'] }] },
-  { key: 'blue', label: 'Blue', blurb: 'Dilute black (d/d).', set: [{ locus: 'locusD', alleles: ['d', 'd'] }] },
-  { key: 'lilac', label: 'Lilac', blurb: 'Chocolate and dilute together.', set: [{ locus: 'locusB', alleles: ['b', 'b'] }, { locus: 'locusD', alleles: ['d', 'd'] }] },
-  { key: 'red', label: 'Red / yellow', blurb: 'Recessive red (e/e): no dark hair at all.', set: [{ locus: 'locusE', alleles: ['e', 'e'] }] },
-  { key: 'cream', label: 'Cream', blurb: 'Recessive red faded to cream.', set: [{ locus: 'locusE', alleles: ['e', 'e'] }, { locus: 'intensity', alleles: ['i', 'i'] }] },
-  { key: 'dudley', label: 'Dudley', blurb: 'Red or yellow over chocolate: pink nose.', set: [{ locus: 'locusE', alleles: ['e', 'e'] }, { locus: 'locusB', alleles: ['b', 'b'] }] },
-  { key: 'black', label: 'Solid black', blurb: 'Dominant black (K^B) over normal pigment.', set: [{ locus: 'locusK', alleles: ['KB', 'KB'] }, { locus: 'locusE', alleles: ['E', 'E'] }] },
-  { key: 'brindle', label: 'Brindle', blurb: 'Stripes over sable (k^br, a^y).', set: [{ locus: 'locusK', alleles: ['kbr', 'kbr'] }, { locus: 'locusA', alleles: ['ay', 'ay'] }, { locus: 'locusE', alleles: ['E', 'E'] }] },
-  { key: 'tan', label: 'Black and tan', blurb: 'Tan points (a^t/a^t) with nothing covering them.', set: [{ locus: 'locusA', alleles: ['at', 'at'] }, { locus: 'locusK', alleles: ['ky', 'ky'] }, { locus: 'locusE', alleles: ['E', 'E'] }] },
-  { key: 'sable', label: 'Sable / fawn', blurb: 'Fawn with dark tipping (a^y).', set: [{ locus: 'locusA', alleles: ['ay', 'ay'] }, { locus: 'locusK', alleles: ['ky', 'ky'] }, { locus: 'locusE', alleles: ['E', 'E'] }] },
-  { key: 'mask', label: 'Dark mask', blurb: 'A black mask (E^m) on whatever colour the dog is.', set: [{ locus: 'locusE', alleles: ['Em'] }] },
-  { key: 'merle', label: 'Merle', blurb: 'One copy of merle. Never cross two merles.', set: [{ locus: 'merle', alleles: ['M'] }] },
-  { key: 'harlequin', label: 'Harlequin', blurb: 'Merle plus the harlequin modifier.', set: [{ locus: 'merle', alleles: ['M'] }, { locus: 'harlequin', alleles: ['H'] }] },
-  { key: 'piebald', label: 'Piebald', blurb: 'Big white patches (s^p/s^p).', set: [{ locus: 'locusS', alleles: ['sp', 'sp'] }] },
-  { key: 'ticked', label: 'Ticked / roan', blurb: 'Flecks of colour in the white.', set: [{ locus: 'ticking', alleles: ['T'] }, { locus: 'locusS', alleles: ['sp', 'sp'] }] },
-  { key: 'blueEyes', label: 'Blue eyes', blurb: 'The blue-eye gene, one copy.', set: [{ locus: 'blueEyes', alleles: ['Be'] }] },
-  { key: 'longCoat', label: 'Long coat', blurb: 'Two copies of long hair.', set: [{ locus: 'coatLength', alleles: ['l', 'l'] }] },
-  { key: 'curly', label: 'Curly', blurb: 'Two copies of curl on a long coat.', set: [{ locus: 'curl', alleles: ['Cu', 'Cu'] }, { locus: 'coatLength', alleles: ['l', 'l'] }] },
-  { key: 'wire', label: 'Wiry with beard', blurb: 'Furnishings on a short coat.', set: [{ locus: 'furnishings', alleles: ['F', 'F'] }, { locus: 'coatLength', alleles: ['L', 'L'] }, { locus: 'curl', alleles: ['cu', 'cu'] }] },
-  { key: 'hairless', label: 'Hairless', blurb: 'One copy of dominant hairless.', set: [{ locus: 'hairlessDom', alleles: ['Hd'] }] },
-  { key: 'bobtail', label: 'Bobtail', blurb: 'Natural bobtail, one copy.', set: [{ locus: 'bobtail', alleles: ['Bt'] }] },
-  { key: 'shortLegs', label: 'Short legs', blurb: 'The dachshund gene, two copies.', set: [{ locus: 'chondro', alleles: ['Cd', 'Cd'] }] },
-];
+/** The shared catalogue, under the name this file has always used. */
+export type PlayTwist = Twist;
+export const PLAY_TWISTS: PlayTwist[] = TWISTS;
 
 function applyTwist(dog: Dog, twist: PlayTwist, rng: Rng) {
-  for (const s of twist.set) {
+  for (const s of twist.show) {
     const pair = dog.genotype[s.locus];
     if (!pair) continue;
     if (s.alleles.length === 2) {

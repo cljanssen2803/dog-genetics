@@ -4,7 +4,7 @@
  * every tap target is comfortably big enough for a thumb.
  */
 
-import { type ReactNode, useEffect } from 'react';
+import { useState, type ReactNode, useEffect } from 'react';
 
 // ---------------------------------------------------------------------------
 // Buttons
@@ -438,6 +438,48 @@ export function Segmented<T extends string>({
 }
 
 /** A labelled explanation the player can open when they want more detail. */
+/**
+ * Copy that matters the first time and clutters every time after. Shown in
+ * full on the first visit (per device), then folded to a small "?" that
+ * brings it back. `id` should be unique per piece of text.
+ */
+export function Intro({ id, children }: { id: string; children: ReactNode }) {
+  const key = `dg.intro.${id}`;
+  const [seen, setSeen] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(key) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [open, setOpen] = useState(false);
+  const dismiss = () => {
+    try {
+      localStorage.setItem(key, '1');
+    } catch {
+      // nothing to do: it will simply show again next time
+    }
+    setSeen(true);
+    setOpen(false);
+  };
+  if (seen && !open) {
+    return (
+      <button onClick={() => setOpen(true)} className="text-[11.5px] text-[var(--text-faint)] mb-3 inline-flex items-center gap-1" aria-label="Explain this">
+        <span className="inline-flex w-4 h-4 rounded-full border border-[var(--line)] items-center justify-center text-[10px] font-bold">?</span>
+        What is this?
+      </button>
+    );
+  }
+  return (
+    <div className="card p-3 mb-3">
+      <div className="text-[12.5px] leading-relaxed text-[var(--text-soft)] space-y-2">{children}</div>
+      <button onClick={dismiss} className="text-[11.5px] font-semibold text-[var(--brand)] mt-2">
+        Got it
+      </button>
+    </div>
+  );
+}
+
 export function Explain({ title, children }: { title: string; children: ReactNode }) {
   return (
     <details className="card p-3 mb-3">

@@ -18,58 +18,26 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    title: 'You are building a breed, not a dog',
+    title: 'The card tells you what to do',
     body: [
-      'One brilliant individual proves nothing. The goal is a whole population that reliably produces the kind of dog you defined — healthy, consistent, and with enough genetic variety left to keep going.',
-      'That usually takes eight to fifteen generations. Each generation is a handful of decisions, not a grind.',
+      'The Today screen has one card: Do this next. It reads your kennel and says what the sensible move is — breed, wait, sort a litter, bring in a dog. You can always ignore it.',
+      'You are building a breed, not a dog: a whole population that reliably produces what you described. That takes ten or so generations, a handful of decisions each.',
     ],
   },
   {
-    title: 'Your foundation dogs are deliberately imperfect',
+    title: 'Breed, wait, sort — that is the loop',
     body: [
-      'Look at the Kennel tab. These dogs get you partway to your goal and each brings problems with them — that is the point. If they were already perfect there would be nothing to do.',
-      'Every dog has a score against your standard. A score of 40 is not a bad dog; it is a starting point.',
-    ],
-    goTo: 'kennel',
-    goToLabel: 'Show me the kennel',
-  },
-  {
-    title: 'Pick a parent, then compare mates',
-    body: [
-      'On the Breed tab you choose one dog, and the game ranks every possible partner for it.',
-      'Before you commit, the pairing preview quietly simulates thirty litters from that pair and tells you what actually came out: how many puppies would meet your standard, what would improve, what would get worse, and whether any puppies would be born with an inherited disease.',
-      'Tap "Why this match?" for the full reasoning in plain English.',
+      'Breed: pick a parent and a mate (or let the plan pick). Wait: press ⏩ and the puppies arrive. Sort: keep the ones that move you forward, place the rest in good homes.',
+      'Every dog shows how many of your goals it hits (the little dots). Watch those climb.',
     ],
     goTo: 'breed',
-    goToLabel: 'Show me the breeding screen',
+    goToLabel: 'Show me the Breed tab',
   },
   {
-    title: 'Watch the inbreeding number',
+    title: 'Two things can go wrong',
     body: [
-      'COI — the inbreeding coefficient — is the most useful number on the screen. 0% means the parents share no ancestors. 25% means they are effectively full siblings.',
-      'A little inbreeding makes a population consistent. Too much quietly destroys fertility, litter size and lifespan, and brings hidden diseases to the surface. Keep an eye on the average across your whole kennel, not just on individual pairings.',
-    ],
-  },
-  {
-    title: 'Puppies are a gamble on purpose',
-    body: [
-      'A DNA test tells you a puppy\'s coat and disease genes exactly, on day one. Nothing can tell you its adult temperament, its final size, or how long it will live.',
-      'So young puppies show ranges rather than numbers, and those ranges narrow as they grow. Keeping a puppy on a wide range is a bet. Waiting to find out costs you kennel space you may need.',
-    ],
-  },
-  {
-    title: 'Space forces the real choices',
-    body: [
-      'You have twelve kennel spaces. A good litter will contain the best temperament puppy, the best coat puppy, and the puppy that brings the most genetic diversity — and they will not be the same puppy.',
-      'Everyone you do not keep goes to a pet home. Match them to the right kind of home and they will do well.',
-    ],
-  },
-  {
-    title: 'Then move time forward',
-    body: [
-      'Nothing happens until you advance the calendar. Pregnancies take two months. Dogs mature at two years, and they age, retire and eventually die.',
-      'At the end of each generation, close it out for a report on what genuinely changed — and a suggestion for what your population needs next.',
-      'That question is the whole game: what does my population need now, and which pairing gets me there without creating a different problem?',
+      'Space: the kennel is small on purpose, so keeping a puppy means letting someone go.',
+      'Inbreeding: every dog bred inside the kennel makes the next generation more related. When the number creeps up, bring in an outside dog. Everything else is detail.',
     ],
   },
 ];
