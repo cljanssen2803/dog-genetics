@@ -26,7 +26,7 @@ const SHOWCASE = [
 const ALL_SILHOUETTES: Silhouette[] = [
   'smooth', 'short', 'silky', 'long', 'doubleThick', 'wire', 'wavyFurnished', 'curly', 'hairless', 'corded',
   'sighthound', 'tallHound', 'bull', 'heavy', 'jowl', 'egg', 'terrier', 'spitz', 'lowSmooth', 'lowHeavy', 'lowWire',
-  'flatLong', 'wrinkle', 'roughHound', 'silkyHound', 'retriever', 'pointer', 'shepherd', 'softWavy', 'hound', 'bully', 'spaniel', 'plush', 'mountain', 'basset',
+  'flatLong', 'wrinkle', 'roughHound', 'silkyHound', 'retriever', 'pointer', 'shepherd', 'softWavy', 'hound', 'bully', 'spaniel', 'plush', 'mountain', 'basset', 'greyhound',
 ];
 const ALL_TAILS: TailType[] = ['full', 'whip', 'plume', 'sickle', 'curled', 'screw', 'bobtail'];
 const ALL_EARS: EarType[] = ['drop', 'button', 'semiErect', 'erect'];
@@ -37,7 +37,7 @@ const REP: Partial<Record<Silhouette, string>> = {
   bull: 'bulldog', heavy: 'mastiff', jowl: 'staffie', egg: 'bullTerrier', terrier: 'ratTerrier', spitz: 'shiba', lowSmooth: 'dachshund',
   lowHeavy: 'basset', lowWire: 'westie', flatLong: 'shihTzu', wrinkle: 'sharPei', roughHound: 'irishWolfhound', silkyHound: 'afghan',
   retriever: 'labrador', pointer: 'gsp', shepherd: 'gsd', softWavy: 'wheaten', hound: 'bloodhound',
-  bully: 'boxer', spaniel: 'cocker', plush: 'golden', mountain: 'newfoundland', basset: 'basset',
+  bully: 'boxer', spaniel: 'cocker', plush: 'golden', mountain: 'newfoundland', basset: 'basset', greyhound: 'greyhound',
 };
 
 function Combos() {

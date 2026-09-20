@@ -564,7 +564,7 @@ export const TAIL_BLURB: Record<TailType, string> = {
  * flat-faced bull type. A thick double coat with pricked ears and a tail over
  * the back is a Spitz, and gets its own too.
  */
-export type Silhouette = CoatKind | 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer' | 'shepherd' | 'softWavy' | 'hound' | 'bully' | 'spaniel' | 'plush' | 'mountain' | 'basset';
+export type Silhouette = CoatKind | 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer' | 'shepherd' | 'softWavy' | 'hound' | 'bully' | 'spaniel' | 'plush' | 'mountain' | 'basset' | 'greyhound';
 
 export function resolveSilhouette(
   coat: CoatProfile,
@@ -608,7 +608,10 @@ export function resolveSilhouette(
   // Pricked ears on a plush coat: a Spitz if the coat is properly fluffy or
   // the tail curls up over the back; otherwise a shepherd or heeler — the
   // same coat on a leaner, longer frame with the tail carried low.
-  if (plain && coat.undercoat && earSet > 68) return coat.kind === 'doubleThick' || tailSet >= 62 || sizeLbs < 22 ? 'spitz' : 'shepherd';
+  // A German Shepherd is a plush, heavy-set herder: it keeps the fluffy
+  // Spitz frame (narrowed and lengthened by the renderer). Malinois, Cattle
+  // Dogs and Kelpies are lighter and short-coated: the sleek shepherd frame.
+  if (plain && coat.undercoat && earSet > 68) return coat.kind === 'doubleThick' || tailSet >= 62 || sizeLbs < 22 || (sizeLbs >= 55 && substance >= 48) ? 'spitz' : 'shepherd';
   if (coat.kind === 'smooth' || coat.kind === 'short') {
     // The bull body: a flat face, or a heavy dog with a short broad muzzle
     // (the bull-and-terrier breeds). The heavy body: heavy with a real muzzle.
@@ -620,7 +623,7 @@ export function resolveSilhouette(
     // Bulldog's frame and screw tail.
     // A flat face on a lean, athletic dog is a Boxer or a Boston: the
     // bull-and-terrier frame, not the Bulldog's.
-    if (muzzle <= 30 && substance < 72 && sizeLbs >= 18 && sizeLbs <= 90) return 'bully';
+    if (muzzle <= 30 && substance < 72 && sizeLbs >= 32 && sizeLbs <= 90) return 'bully';
     if (muzzle <= 30 || (substance > 76 && muzzle < 36)) return sizeLbs > 90 ? 'jowl' : 'bull';
     // The Bull Terrier: heavy, long-headed, pricked ears, no undercoat.
     if (substance > 70 && muzzle >= 44 && earSet > 80 && !coat.undercoat) return 'egg';
@@ -637,6 +640,8 @@ export function resolveSilhouette(
     // A giant smooth dog with a long head — a Great Dane — is a sighthound
     // frame scaled up, and the build factor widens it to suit.
     if (sizeLbs > 95 && muzzle > 45 && substance < 78 && !coat.undercoat) return 'tallHound';
+    // The Greyhound and Pharaoh: a tall, whip-thin sighthound under a hundred pounds.
+    if (substance < 46 && muzzle > 60 && !coat.undercoat && sizeLbs > 50) return 'greyhound';
     // The athletic pointing and scenting dogs: lean, deep-chested, long-headed.
     if (!coat.undercoat && substance >= 36 && substance < 74 && muzzle > 66 && sizeLbs >= 35 && earSet < 58) return 'pointer';
     // The true sighthounds: lighter still.
