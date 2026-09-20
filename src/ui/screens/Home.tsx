@@ -6,9 +6,10 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { FlaskConical, Palette } from 'lucide-react';
+import { BookImage, FlaskConical, Palette } from 'lucide-react';
 import { Wordmark } from '../Wordmark';
 import { Button, Card, Chip, Empty, Section, Sheet } from '../components';
+import { BreedGallerySheet } from './BreedGallery';
 import {
   type ProjectSummary,
   deleteProject,
@@ -33,6 +34,7 @@ export function Home({
 }) {
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
   const [backupOpen, setBackupOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   const reload = () => {
     void loadIndex().then(setProjects);
@@ -126,6 +128,19 @@ export function Home({
           </div>
         </Card>
 
+        <Card onClick={() => setGalleryOpen(true)} className="mb-3">
+          <div className="flex items-center gap-3">
+            <BookImage size={26} strokeWidth={1.8} className="text-[var(--brand)]" />
+            <div className="flex-1">
+              <div className="display font-semibold text-[16px]">Breed gallery</div>
+              <div className="text-[12px] text-[var(--text-faint)] leading-snug">
+                Every breed in the bank, drawn as it comes. Just to look through.
+              </div>
+            </div>
+            <span className="text-[var(--text-faint)] text-[20px]">›</span>
+          </div>
+        </Card>
+
         <Button full tone="secondary" onClick={() => setBackupOpen(true)}>
           Backup and restore
         </Button>
@@ -135,6 +150,7 @@ export function Home({
         </p>
       </div>
 
+      {galleryOpen && <BreedGallerySheet onClose={() => setGalleryOpen(false)} />}
       <BackupSheet
         open={backupOpen}
         onClose={() => {

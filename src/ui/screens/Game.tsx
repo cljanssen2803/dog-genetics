@@ -9,7 +9,7 @@
 import { useMemo, useState } from 'react';
 import { Button, Card, Chip, Empty, Explain, Intro, Section, Segmented, Sheet, StatRow } from '../components';
 import { UiContext, type UiActions } from '../UiContext';
-import { Baby, BookOpen, ChevronLeft, Dna, ChevronRight, Dog as DogIcon, FastForward, GraduationCap, Heart, Home, type LucideIcon, Milk, MoreHorizontal, Network, PawPrint, Scroll, TrendingUp, Trophy } from 'lucide-react';
+import { Baby, BookImage, BookOpen, ChevronLeft, Dna, ChevronRight, Dog as DogIcon, FastForward, GraduationCap, Heart, Home, type LucideIcon, Milk, MoreHorizontal, Network, PawPrint, Scroll, TrendingUp, Trophy } from 'lucide-react';
 import { useGame } from '../GameContext';
 import { DogCard, DogDetailSheet } from '../dogs';
 import { type BreedIntent, BreedTab } from './BreedTab';
@@ -46,6 +46,7 @@ import { reputationTier } from '../../game/project';
 import { BREED_BY_KEY } from '../../engine/breeds';
 import { LitterRevealSheet } from './LitterReveal';
 import { ClubSheet } from './ClubSheet';
+import { BreedGallerySheet } from './BreedGallery';
 import { type ClubProposal, afterGenerationClosed, pendingProposal } from '../../game/club';
 
 type Tab = 'today' | 'kennel' | 'breed' | 'puppies';
@@ -73,6 +74,7 @@ export function Game({ onExit }: { onExit: () => void }) {
   const [showsFor, setShowsFor] = useState<string | null | undefined>(undefined);
   const [expertOpen, setExpertOpen] = useState(false);
   const [breedBookOpen, setBreedBookOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   const [milestones, setMilestones] = useState<Milestone[] | null>(null);
   const [breedIntent, setBreedIntent] = useState<BreedIntent>(null);
@@ -236,6 +238,7 @@ export function Game({ onExit }: { onExit: () => void }) {
         <MoreSheet
           onClose={() => setMoreOpen(false)}
           onBreedBook={() => { setMoreOpen(false); setBreedBookOpen(true); }}
+          onGallery={() => { setMoreOpen(false); setGalleryOpen(true); }}
           onFamily={() => { setMoreOpen(false); setPedigreeFocus(null); setFamilyOpen(true); }}
           onTrends={() => { setMoreOpen(false); setTrendsOpen(true); }}
           onShows={() => { setMoreOpen(false); setShowsFor(null); }}
@@ -320,6 +323,7 @@ export function Game({ onExit }: { onExit: () => void }) {
       {!reveal && timeReport && <TimeSheet reports={timeReport} birthsRevealed={birthsRevealed} onClose={() => setTimeReport(null)} />}
       {!reveal && !timeReport && milestones && <MilestoneSheet milestones={milestones} onClose={() => setMilestones(null)} />}
       {breedBookOpen && <BreedBookSheet onClose={() => setBreedBookOpen(false)} />}
+      {galleryOpen && <BreedGallerySheet onClose={() => setGalleryOpen(false)} />}
       {genReport && (
         <GenerationReportSheet
           report={genReport}
@@ -506,6 +510,7 @@ function Row({ icon: Icon, label, hint, onClick }: { icon: LucideIcon; label: st
 function MoreSheet({
   onClose,
   onBreedBook,
+  onGallery,
   onFamily,
   onTrends,
   onShows,
@@ -520,6 +525,7 @@ function MoreSheet({
 }: {
   onClose: () => void;
   onBreedBook: () => void;
+  onGallery: () => void;
   onFamily: () => void;
   onTrends: () => void;
   onShows: () => void;
@@ -544,6 +550,7 @@ function MoreSheet({
     <Sheet open onClose={onClose} title="More" subtitle={project.name}>
       <Card className="mb-4">
         <Row icon={BookOpen} label="Breed book" hint="Everything you have made so far" onClick={onBreedBook} />
+        <Row icon={BookImage} label="Breed gallery" hint="Every breed in the bank, just to look" onClick={onGallery} />
         <Row icon={Network} label="Family tree" hint="Pedigrees and who the gene pool comes from" onClick={onFamily} />
         <Row icon={TrendingUp} label="Trends" hint="Generation by generation" onClick={onTrends} />
         {!sandbox && <Row icon={Trophy} label="Dog shows" hint={`${standing.label}${project.reputation ? ` · ${project.reputation} points` : ''}${titled.length ? ` · ${titled.length} titled` : ''}`} onClick={onShows} />}
