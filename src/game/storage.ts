@@ -18,7 +18,7 @@ import { ensureIds } from './project';
 import { Rng, hashString } from '../engine/rng';
 import { QUIRKS } from '../engine/quirks';
 import { LOCI } from '../engine/loci';
-import { BREED_BY_KEY, DEFAULT_ALLELES } from '../engine/breeds';
+import { BREED_BY_KEY, type BreedProfile, CUSTOM_GROUP, DEFAULT_ALLELES, registerBreed, unregisterBreed } from '../engine/breeds';
 
 const INDEX_KEY = 'dogGenetics.projectIndex';
 const PROJECT_KEY = (id: string) => `dogGenetics.project.${id}`;
@@ -65,6 +65,36 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
   } catch {
     // A failed settings write is not worth interrupting the game for.
   }
+}
+
+// ---------------------------------------------------------------------------
+// Player-made breeds
+// ---------------------------------------------------------------------------
+
+const CUSTOM_BREEDS_KEY = 'dg.customBreeds';
+
+/** Read the player's own breeds and put them into the bank. Called once at boot. */
+export async function loadCustomBreeds(): Promise<BreedProfile[]> {
+  try {
+    const stored = (await get<BreedProfile[]>(CUSTOM_BREEDS_KEY)) ?? [];
+    // Older saves named the group differently; the bank has one name for it.
+    for (const breed of stored) registerBreed({ ...breed, group: CUSTOM_GROUP });
+    return stored;
+  } catch {
+    return [];
+  }
+}
+
+export async function addCustomBreed(breed: BreedProfile): Promise<void> {
+  registerBreed(breed);
+  const stored = ((await get<BreedProfile[]>(CUSTOM_BREEDS_KEY)) ?? []).filter((b) => b.key !== breed.key);
+  await set(CUSTOM_BREEDS_KEY, [...stored, breed]);
+}
+
+export async function removeCustomBreed(key: string): Promise<void> {
+  unregisterBreed(key);
+  const stored = (await get<BreedProfile[]>(CUSTOM_BREEDS_KEY)) ?? [];
+  await set(CUSTOM_BREEDS_KEY, stored.filter((b) => b.key !== key));
 }
 
 // ---------------------------------------------------------------------------
@@ -204,6 +234,8 @@ export interface BackupFile {
   version: number;
   exportedAt: string;
   projects: Project[];
+  /** The player's own breeds, so a restore brings them back too. */
+  customBreeds?: BreedProfile[];
 }
 
 /** Bundle every project into one downloadable file. */
@@ -219,6 +251,7 @@ export async function exportAll(): Promise<BackupFile> {
     version: SAVE_FORMAT_VERSION,
     exportedAt: new Date().toISOString(),
     projects,
+    customBreeds: (await get<BreedProfile[]>(CUSTOM_BREEDS_KEY)) ?? [],
   };
 }
 
@@ -285,6 +318,10 @@ export async function importBackup(raw: string): Promise<ImportResult> {
     await saveProject(migrate(project));
     if (existed) result.replaced += 1;
     else result.added += 1;
+  }
+
+  for (const breed of backup.customBreeds ?? []) {
+    if (breed?.key && breed.name && breed.custom) await addCustomBreed(breed);
   }
 
   return result;

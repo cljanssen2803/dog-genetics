@@ -13,7 +13,7 @@ import { Game } from './ui/screens/Game';
 import { Lab } from './ui/screens/Lab';
 import { Playground } from './ui/screens/Playground';
 import type { Project } from './game/project';
-import { loadProject, loadSettings, saveSettings } from './game/storage';
+import { loadCustomBreeds, loadProject, loadSettings, saveSettings } from './game/storage';
 
 type Route = { name: 'home' } | { name: 'new' } | { name: 'lab' } | { name: 'playground' } | { name: 'game'; project: Project };
 
@@ -26,6 +26,8 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      // The player's own breeds must be in the bank before any project opens.
+      await loadCustomBreeds();
       const settings = await loadSettings();
       if (settings.lastProjectId) {
         const project = await loadProject(settings.lastProjectId);

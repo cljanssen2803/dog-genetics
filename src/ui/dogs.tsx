@@ -45,6 +45,8 @@ import { Button, Card, Chip, Explain, Section, Sheet, StatRow, TraitBar } from '
 import { useGame } from './GameContext';
 import { FactChips, FactLine, LookLine, NameLine, TemperamentLine, copyText, describeDog, dogDescription } from './DogFacts';
 import { useUi } from './UiContext';
+import { FoundBreedSheet } from './screens/BreedGallery';
+import { Sparkles } from 'lucide-react';
 import {
   PLACEMENT_LABEL,
   ancestorInfluenceFor,
@@ -122,6 +124,7 @@ export function DogDetailSheet({
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState('');
   const [exportText, setExportText] = useState<string | null>(null);
+  const [founding, setFounding] = useState(false);
 
   if (!dog) return null;
 
@@ -194,6 +197,27 @@ export function DogDetailSheet({
             Place
           </Button>
         </div>
+      )}
+
+      {/* A dog that came out right can found a breed of its own. In a
+          sandbox there is no standard, so any grown dog can. */}
+      {(score.meetsStandard || project.sandbox) && age >= 12 && (
+        <Button full tone="secondary" small className="mb-3" onClick={() => setFounding(true)}>
+          <Sparkles size={14} className="inline mr-1 -mt-0.5" />
+          Found a breed on {dog.name}
+        </Button>
+      )}
+      {founding && (
+        <FoundBreedSheet
+          dog={dog}
+          projectName={project.name}
+          generation={project.generation}
+          onClose={() => setFounding(false)}
+          onFounded={(breed) => {
+            setFounding(false);
+            say(`${breed.name} is in the breed bank. Find it in the breed gallery.`);
+          }}
+        />
       )}
 
       <div className="text-right -mt-2 mb-2">

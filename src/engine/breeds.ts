@@ -36,6 +36,13 @@ export interface BreedProfile {
   /** How common each broken disease copy is in this breed. */
   diseases?: Record<string, number>;
   blurb: string;
+  /** Set on a breed the player founded themselves, from a dog of their own. */
+  custom?: {
+    createdAt: string;
+    projectName: string;
+    dogName: string;
+    generation: number;
+  };
 }
 
 /**
@@ -1603,6 +1610,28 @@ export function breedFamily(breed: BreedProfile): string {
 }
 
 export const BREED_GROUPS = Array.from(new Set(BREEDS.map(breedFamily))).sort();
+
+/** The group every player-made breed sits in. */
+export const CUSTOM_GROUP = 'Made by you';
+
+/**
+ * Player-made breeds join the bank at runtime, so every breed picker, the
+ * outside-dog search and the Lab see them exactly like the built-in ones.
+ */
+export function registerBreed(breed: BreedProfile): void {
+  unregisterBreed(breed.key);
+  BREEDS.push(breed);
+  BREED_BY_KEY[breed.key] = breed;
+  const family = breedFamily(breed);
+  if (!BREED_GROUPS.includes(family)) BREED_GROUPS.push(family);
+}
+
+export function unregisterBreed(key: string): void {
+  const at = BREEDS.findIndex((b) => b.key === key);
+  if (at >= 0) BREEDS.splice(at, 1);
+  delete BREED_BY_KEY[key];
+  if (!BREEDS.some((b) => b.custom) && BREED_GROUPS.includes(CUSTOM_GROUP)) BREED_GROUPS.splice(BREED_GROUPS.indexOf(CUSTOM_GROUP), 1);
+}
 
 /**
  * Occasionally the outside world hands you something nobody knew was there.
