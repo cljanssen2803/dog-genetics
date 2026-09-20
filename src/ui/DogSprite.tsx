@@ -82,6 +82,9 @@ const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }
   silkyHound: { eye: [85.0, 15.4], nose: [93.4, 20.8] },
   retriever: { eye: [83.5, 17.3], nose: [92.0, 22.2] },
   pointer: { eye: [84.6, 15.9], nose: [93.0, 19.5] },
+  shepherd: { eye: [79.7, 14.7], nose: [88.6, 19.2] },
+  softWavy: { eye: [79.0, 26.1], nose: [88.0, 33.1] },
+  hound: { eye: [80.7, 17.1], nose: [88.8, 22.8] },
   corded: { eye: [82.7, 18.7], nose: [90.7, 23.1] },
   smooth: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
   short: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
@@ -100,7 +103,7 @@ const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }
  * stretched the right way. When a file arrives, add it to HAVE below and the
  * sprite starts using it.
  */
-type BuildSilhouette = 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer';
+type BuildSilhouette = 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer' | 'shepherd' | 'softWavy' | 'hound';
 const SILHOUETTE_SRC: Record<BuildSilhouette, { file: string; fallback: CoatKind }> = {
   sighthound: { file: 'body-sighthound.png', fallback: 'smooth' },
   bull: { file: 'body-bull.png', fallback: 'smooth' },
@@ -119,8 +122,11 @@ const SILHOUETTE_SRC: Record<BuildSilhouette, { file: string; fallback: CoatKind
   silkyHound: { file: 'body-silkyhound.png', fallback: 'silky' },
   retriever: { file: 'body-retriever.png', fallback: 'smooth' },
   pointer: { file: 'body-pointer.png', fallback: 'smooth' },
+  shepherd: { file: 'body-shepherd.png', fallback: 'smooth' },
+  softWavy: { file: 'body-softwavy.png', fallback: 'wavyFurnished' },
+  hound: { file: 'body-hound.png', fallback: 'smooth' },
 };
-const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'tallHound', 'bull', 'heavy', 'jowl', 'egg', 'terrier', 'spitz', 'lowSmooth', 'lowHeavy', 'lowWire', 'flatLong', 'wrinkle', 'roughHound', 'silkyHound', 'retriever', 'pointer'];
+const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'tallHound', 'bull', 'heavy', 'jowl', 'egg', 'terrier', 'spitz', 'lowSmooth', 'lowHeavy', 'lowWire', 'flatLong', 'wrinkle', 'roughHound', 'silkyHound', 'retriever', 'pointer', 'shepherd', 'softWavy', 'hound'];
 
 /**
  * Where the ears and tail attach on each body, as percentages of the canvas.
@@ -153,6 +159,9 @@ const RIG: Partial<Record<Silhouette, { ear: [number, number]; tail: [number, nu
   retriever: { ear: [77, 14.5], tail: [28.1, 46.3] },
   pointer: { ear: [78.5, 13], tail: [26.8, 44.5] },
   corded: { ear: [77, 16], tail: [28.1, 46.7] },
+  shepherd: { ear: [75.1, 14.7], tail: [28.5, 45.1] },
+  softWavy: { ear: [77.8, 24], tail: [26.2, 55] },
+  hound: { ear: [74.9, 15.9], tail: [26.2, 44.5] },
 };
 
 const TAIL_SRC: Record<TailType, string> = {
@@ -171,6 +180,9 @@ const TAIL_SRC: Record<TailType, string> = {
  * stand-ins below are used.
  */
 const HAVE = new Set<string>([
+  'body-shepherd.png',
+  'body-softwavy.png',
+  'body-hound.png',
   'body-sighthound.png',
   'body-bull.png',
   'body-heavy.png',
@@ -540,6 +552,9 @@ const BODY_BOX: Record<string, [number, number, number, number]> = {
   'body-egg.png': [18.8, 12.9, 90.3, 87.8],
   'body-jowl.png': [16.2, 12.3, 93.8, 91.0],
   'body-lowwire.png': [20.6, 27.4, 89.4, 88.0],
+  'body-shepherd.png': [18.4, 8.7, 90.2, 87.3],
+  'body-softwavy.png': [18.4, 18.0, 90.2, 87.3],
+  'body-hound.png': [18.4, 9.9, 90.2, 87.3],
   'body-tallhound.png': [17.0, 6.6, 95.4, 87.8],
   'body-wrinkle.png': [19.2, 17.9, 91.0, 88.6],
   'body-roughhound.png': [20.3, 11.8, 92.7, 87.8],
@@ -688,7 +703,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
 
   // Which body. The coat, unless the build or head is distinctive enough to
   // deserve its own silhouette. Without the artwork, stretch the fallback.
-  const silhouette = force?.silhouette ?? resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight, shortLegs);
+  const silhouette = force?.silhouette ?? resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight, shortLegs, dog.observed.tailSet);
   let bodySrc = BODY_SRC[coat.kind];
   let standinStretch = '';
   let rig: { ear: [number, number]; tail: [number, number] } | undefined;
@@ -715,7 +730,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // Cavalier). Plush-coated retrievers and the bull types keep short ears.
   const longEared =
     ears === 'drop' && !coat.undercoat && !coat.hairless && silhouette !== 'sighthound' && silhouette !== 'bull';
-  const houndEars = longEared && (coat.kind === 'smooth' || coat.kind === 'short') && dog.observed.muzzle > 55;
+  const houndEars = longEared && (coat.kind === 'smooth' || coat.kind === 'short') && (dog.observed.muzzle > 55 || silhouette === 'hound');
   const spanielEars = longEared && !houndEars && (coat.kind === 'silky' || coat.kind === 'long' || silhouette === 'flatLong');
   // Big bat ears on the small flat-faced and low dogs; rose ears folded back
   // on sighthounds and Bulldogs; short neat drops on the plush-coated retrievers.
@@ -735,7 +750,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // plush-coated shepherd type carries a furry one: the plume, hanging.
   const smoothKind = coat.kind === 'smooth' || coat.kind === 'short' || coat.kind === 'hairless';
   let tailSrc = TAIL_SRC[tailKey];
-  if ((tail === 'full' || tail === 'whip') && silhouette === 'spitz') {
+  if ((tail === 'full' || tail === 'whip') && (silhouette === 'spitz' || silhouette === 'shepherd')) {
     tailKey = 'plume';
     tailFit = { ...TAIL_FIT.plume, rotate: tail === 'whip' ? 74 : 62, scale: 0.6 };
     tailSrc = TAIL_SRC.plume;

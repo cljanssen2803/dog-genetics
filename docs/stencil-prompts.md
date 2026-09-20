@@ -250,3 +250,16 @@ Kerry Blue, Lagotto. Today they use the Poodle's curly body.
 > rectangular muzzle. NO ears and NO tail — those are separate pieces. No
 > background, no scenery, no ground shadow, no text. Children's picture-book
 > style, warm and appealing, not photorealistic.
+
+### DELIVERED 2026-09-20
+
+Installed from the Sprite Kit folder: `body-shepherd.png` (the lean smooth
+prick-eared herding frame — GSD, Malinois, Cattle Dog, Kelpie, Dutch
+Shepherd; Spitz types with a curled or sickle tail keep the Spitz body),
+`body-softwavy.png` (Wheaten, Kerry Blue, Bearded Collie — wavy or long
+furnished coats from 22 to 75 lb) and `body-hound.png` (the loose-skinned
+scenthound, a bonus — Bloodhound and any big heavy long-muzzled drop-eared
+smooth dog). Not yet used from the same batch: two lean smooth bodies very
+like the shepherd one, the feathered leg pieces, the feathered ear/leg set,
+and four fluffy tails. Still wanted: the low wire body (prompt 12) and the
+bull-and-terrier body (prompt 13) — neither arrived in this batch.

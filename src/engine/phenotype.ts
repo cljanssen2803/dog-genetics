@@ -564,7 +564,7 @@ export const TAIL_BLURB: Record<TailType, string> = {
  * flat-faced bull type. A thick double coat with pricked ears and a tail over
  * the back is a Spitz, and gets its own too.
  */
-export type Silhouette = CoatKind | 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer';
+export type Silhouette = CoatKind | 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer' | 'shepherd' | 'softWavy' | 'hound';
 
 export function resolveSilhouette(
   coat: CoatProfile,
@@ -573,6 +573,7 @@ export function resolveSilhouette(
   earSet: number,
   sizeLbs: number,
   shortLegs = 0,
+  tailSet = 50,
 ): Silhouette {
   const plain = coat.kind === 'smooth' || coat.kind === 'short' || coat.kind === 'doubleThick';
   // Short-legged smooth dogs have their own bodies: a Dachshund frame and a
@@ -590,9 +591,15 @@ export function resolveSilhouette(
   // A flat face under a long coat is a Pekingese — a toy. A big dog with a
   // short muzzle is a Saint Bernard, and keeps its big-dog body.
   if (muzzle < 30 && sizeLbs < 35 && (coat.kind === 'long' || coat.kind === 'silky' || coat.kind === 'doubleThick')) return 'flatLong';
+  // The soft-coated, bearded, medium dogs: Wheaten, Kerry Blue, Bearded
+  // Collie. A shaggy wave rather than Poodle curls or a Spaniel's silk.
+  if ((coat.kind === 'wavyFurnished' || coat.kind === 'long') && sizeLbs >= 22 && sizeLbs < 75) return 'softWavy';
   // Thresholds are loose on purpose: a dog's visible build wanders a good
   // twenty points either side of its breed's average.
-  if (plain && coat.undercoat && earSet > 68) return 'spitz';
+  // Pricked ears on a plush coat: a Spitz if the coat is properly fluffy or
+  // the tail curls up over the back; otherwise a shepherd or heeler — the
+  // same coat on a leaner, longer frame with the tail carried low.
+  if (plain && coat.undercoat && earSet > 68) return coat.kind === 'doubleThick' || tailSet >= 62 ? 'spitz' : 'shepherd';
   if (coat.kind === 'smooth' || coat.kind === 'short') {
     // The bull body: a flat face, or a heavy dog with a short broad muzzle
     // (the bull-and-terrier breeds). The heavy body: heavy with a real muzzle.
@@ -607,6 +614,8 @@ export function resolveSilhouette(
     if (substance > 70 && muzzle >= 44 && earSet > 80 && !coat.undercoat) return 'egg';
     // The bull-and-terrier build: thick-set with a short broad muzzle.
     if (substance > 62 && muzzle < 40 && sizeLbs >= 28 && !coat.undercoat) return 'jowl';
+    // The big loose-skinned scenthound: a Bloodhound.
+    if (substance > 78 && muzzle > 60 && earSet < 25 && sizeLbs >= 75 && !coat.undercoat) return 'hound';
     // The plush-coated retriever frame: a Labrador, a Chessie. Before the
     // heavy body, or a thick-set Chessie is drawn as a Mastiff.
     if (coat.undercoat && substance >= 50 && muzzle > (substance >= 90 ? 60 : 50) && sizeLbs >= 40 && sizeLbs < 100) return 'retriever';
