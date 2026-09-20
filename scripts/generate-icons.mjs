@@ -79,7 +79,7 @@ function encodePng(width, height, rgba) {
 const BACKGROUND_TOP = [102, 117, 232]; // periwinkle
 const BACKGROUND_BOTTOM = [75, 79, 175]; // indigo
 const PAW = [242, 194, 48]; // gold
-const ACCENT = [0, 166, 166]; // teal
+const ACCENT = [138, 151, 240]; // light periwinkle
 
 function mix(a, b, t) {
   return [

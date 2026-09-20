@@ -55,7 +55,7 @@
   /* accent (Time, secondary actions); the deep one is for text */
   --color-rust: #f2c230;
   --color-rust-deep: #a3770a;
-  --color-clay: #0a7c7c;
+  --color-clay: #4b4faf;
   /* bad / danger */
   --color-berry: #e0503f;
   /* info */
@@ -93,7 +93,9 @@
 }
 
 [data-world='kennel'] { --world: var(--color-peri); --world-soft: #e8ebfc; }
-[data-world='breed'] { --world: var(--color-teal); --world-soft: #d8f1f0; }
+/* Breed sits between Today's indigo and the Kennel's periwinkle: a lighter
+   periwinkle. Teal is kept for small accents only. */
+[data-world='breed'] { --world: #8a97f0; --world-soft: #eceefd; }
 [data-world='puppies'] { --world: var(--color-gold); --world-soft: #fdf2cc; --on-world: var(--color-ink); }
 [data-world='play'] { --world: var(--color-coral); --world-soft: #fde3dd; }
 
@@ -114,7 +116,7 @@
     --on-world: #f6f1e8;
   }
   [data-world='kennel'] { --world: #4552b8; --world-soft: #2d3052; }
-  [data-world='breed'] { --world: #0b7676; --world-soft: #1f3d3d; }
+  [data-world='breed'] { --world: #5563cc; --world-soft: #30335a; }
   [data-world='puppies'] { --world: #b5891a; --world-soft: #443a1e; --on-world: #1c1d2e; }
   [data-world='play'] { --world: #c04d3f; --world-soft: #46302c; }
 }

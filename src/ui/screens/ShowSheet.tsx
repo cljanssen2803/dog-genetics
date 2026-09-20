@@ -226,7 +226,7 @@ function ResultView({
 
 /** A short, soft shower of paper for a first place. */
 function Confetti({ seed }: { seed: number }) {
-  const colours = ['#4b4faf', '#00a6a6', '#f2c230', '#f26b5b', '#6675e8', '#8b8cab'];
+  const colours = ['#4b4faf', '#6675e8', '#f2c230', '#f26b5b', '#00a6a6', '#8b8cab'];
   const pieces = Array.from({ length: 26 }, (_, i) => {
     const t = (seed * 31 + i * 17) % 100;
     return {

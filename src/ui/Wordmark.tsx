@@ -22,7 +22,7 @@ export function Wordmark({ width = 300 }: { width?: number }) {
         <circle cx={5.5} cy={-2.5} r={2.3} fill="#2c2d5a" />
         {/* tails */}
         <path d="M-9 20 L-5 42 L-1 36 L3 42 L7 20 Z" fill="#6675e8" stroke="#2c2d5a" strokeWidth={2} strokeLinejoin="round" />
-        <path d="M-1 22 L3 44 L7 38 L11 44 L15 22 Z" fill="#00a6a6" stroke="#2c2d5a" strokeWidth={2} strokeLinejoin="round" transform="translate(-6 0)" />
+        <path d="M-1 22 L3 44 L7 38 L11 44 L15 22 Z" fill="#4b4faf" stroke="#2c2d5a" strokeWidth={2} strokeLinejoin="round" transform="translate(-6 0)" />
       </g>
       {/* Words */}
       <text

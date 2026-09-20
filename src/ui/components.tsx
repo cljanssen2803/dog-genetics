@@ -215,7 +215,7 @@ export function Chip({
 
 /** The score, as a show rosette. Gold for a top dog, then red, blue, green, plain. */
 export function Rosette({ score, size = 44, className = '' }: { score: number; size?: number; className?: string }) {
-  const colour = score >= 85 ? '#f2c230' : score >= 70 ? '#f26b5b' : score >= 55 ? '#00a6a6' : score >= 40 ? '#6675e8' : '#e8e0cf';
+  const colour = score >= 85 ? '#f2c230' : score >= 70 ? '#f26b5b' : score >= 55 ? '#6675e8' : score >= 40 ? '#b7bdf5' : '#e8e0cf';
   const ink = 'var(--ink)';
   return (
     <svg viewBox="0 0 48 48" width={size} height={size} className={`flex-none ${className}`} role="img" aria-label={`Score ${score}`}>

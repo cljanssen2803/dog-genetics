@@ -43,7 +43,7 @@ export function Home({
   useEffect(reload, []);
 
   return (
-    <div className="paper min-h-full" data-world="breed">
+    <div className="paper min-h-full" data-world="kennel">
       <div className="safe-top" style={{ background: 'var(--world)' }} />
       <header className="border-b-[3px] border-[var(--ink)] text-[var(--on-world)]" style={{ background: 'var(--world)' }}>
         <div className="max-w-lg mx-auto px-4 pt-5 pb-6">
