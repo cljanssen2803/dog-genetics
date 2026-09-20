@@ -564,7 +564,7 @@ export const TAIL_BLURB: Record<TailType, string> = {
  * flat-faced bull type. A thick double coat with pricked ears and a tail over
  * the back is a Spitz, and gets its own too.
  */
-export type Silhouette = CoatKind | 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer' | 'shepherd' | 'softWavy' | 'hound';
+export type Silhouette = CoatKind | 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer' | 'shepherd' | 'softWavy' | 'hound' | 'bully' | 'spaniel' | 'plush' | 'mountain' | 'basset';
 
 export function resolveSilhouette(
   coat: CoatProfile,
@@ -579,15 +579,24 @@ export function resolveSilhouette(
   // Short-legged smooth dogs have their own bodies: a Dachshund frame and a
   // heavier Basset/Corgi one. A flat face under a long coat is a Pekingese.
   if (shortLegs > 0 && (coat.kind === 'smooth' || coat.kind === 'short')) {
-    return substance > 60 ? 'lowHeavy' : 'lowSmooth';
+    // A heavy low dog with drop ears is a Basset; with pricked ears, a Corgi.
+    if (substance > 60) return earSet < 40 ? 'basset' : 'lowHeavy';
+    return 'lowSmooth';
   }
-  if (shortLegs > 0 && coat.kind === 'wire') return 'lowWire';
+  // Short legs under a wire or long furnished coat: Westie, Cairn, Scottie.
+  if (shortLegs > 0 && (coat.kind === 'wire' || coat.kind === 'long')) return 'lowWire';
   // The tall rough-coated hounds (Wolfhound, Deerhound) and the feathered
   // sighthounds (Saluki, Borzoi, Afghan). A Wolfhound's coat comes out as
   // "long and furnished" as often as "wire", so both count; the heavy-set
   // Giant Schnauzer and Bouvier keep their own bodies.
   if ((coat.kind === 'wire' || coat.kind === 'long') && sizeLbs > 60 && muzzle > 55 && substance < 70) return 'roughHound';
   if (coat.kind === 'silky' && substance < 40 && muzzle > 75) return 'silkyHound';
+  // The spaniels: a silky coat on a compact, moderate-muzzled dog.
+  if (coat.kind === 'silky' && sizeLbs >= 15 && sizeLbs < 55 && muzzle < 75 && muzzle >= 30) return 'spaniel';
+  // The fluffy double coats by size: giants on the mountain-dog frame, the
+  // Golden's build on the plush one, collies and small dogs on the lean one.
+  if (coat.kind === 'doubleThick' && sizeLbs >= 95) return 'mountain';
+  if (coat.kind === 'doubleThick' && sizeLbs >= 45 && substance >= 45 && earSet < 68) return 'plush';
   // A flat face under a long coat is a Pekingese — a toy. A big dog with a
   // short muzzle is a Saint Bernard, and keeps its big-dog body.
   if (muzzle < 30 && sizeLbs < 35 && (coat.kind === 'long' || coat.kind === 'silky' || coat.kind === 'doubleThick')) return 'flatLong';
@@ -609,11 +618,15 @@ export function resolveSilhouette(
     // The flat face. On a giant it is a mastiff's head (Bullmastiff, Cane
     // Corso, Saint Bernard), which the jowl body carries better than the
     // Bulldog's frame and screw tail.
+    // A flat face on a lean, athletic dog is a Boxer or a Boston: the
+    // bull-and-terrier frame, not the Bulldog's.
+    if (muzzle <= 30 && substance < 72 && sizeLbs >= 18 && sizeLbs <= 90) return 'bully';
     if (muzzle <= 30 || (substance > 76 && muzzle < 36)) return sizeLbs > 90 ? 'jowl' : 'bull';
     // The Bull Terrier: heavy, long-headed, pricked ears, no undercoat.
     if (substance > 70 && muzzle >= 44 && earSet > 80 && !coat.undercoat) return 'egg';
-    // The bull-and-terrier build: thick-set with a short broad muzzle.
-    if (substance > 62 && muzzle < 40 && sizeLbs >= 28 && !coat.undercoat) return 'jowl';
+    // The bull-and-terrier build: thick-set with a short broad muzzle
+    // (Staffie, AmStaff, Boxer with a longer face).
+    if (substance > 55 && muzzle < 48 && sizeLbs >= 25 && sizeLbs <= 90 && !coat.undercoat) return 'bully';
     // The big loose-skinned scenthound: a Bloodhound.
     if (substance > 78 && muzzle > 60 && earSet < 25 && sizeLbs >= 75 && !coat.undercoat) return 'hound';
     // The plush-coated retriever frame: a Labrador, a Chessie. Before the

@@ -263,3 +263,21 @@ smooth dog). Not yet used from the same batch: two lean smooth bodies very
 like the shepherd one, the feathered leg pieces, the feathered ear/leg set,
 and four fluffy tails. Still wanted: the low wire body (prompt 12) and the
 bull-and-terrier body (prompt 13) — neither arrived in this batch.
+
+### DELIVERED 2026-09-20 (afternoon batch, 36 files reviewed)
+
+Installed new: low wire (Westie/Cairn/Scottie/wire Dachshund — the redo),
+bull-and-terrier (Boxer, Boston, AmStaff, Staffie), spaniel (Cocker,
+Springer, Cavalier), plush (Golden, Bernese), mountain (Newfoundland,
+Pyrenees, Leonberger), basset (drop-eared low heavy dogs); tails: fox brush
+(Spitz/shepherd hanging), fluffy curl (coated Spitz), bushy sabre (plush and
+mountain), fluffy bobtail; ears: new erect, new hound, new button, and the
+folded retriever ear (mirrored from the kit file, which was drawn from the
+other side).
+Replaced with better drawings: Bulldog, mastiff jowl, Poodle, terrier,
+Labrador, Wolfhound, Borzoi/silky hound, tall hound.
+Moved to Sprite Kit/_superseded: the five near-identical lean smooth dogs,
+the two-tails-in-one file, the ear-and-legs composite, the muzzle piece, and
+the originals of every replaced body.
+Not used yet: feathered legs, the wide feathered flag, the feathered spaniel
+ear variant.

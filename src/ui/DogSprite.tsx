@@ -66,25 +66,30 @@ const EAR_SRC: Record<EarType, string> = {
  */
 const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }> = {
   sighthound: { eye: [82.0, 17.8], nose: [90.9, 23.4] },
-  bull: { eye: [86.5, 26.0], nose: [91.5, 29.7] },
+  bull: { eye: [82.0, 28.0], nose: [88.5, 30.6] },
   heavy: { eye: [83.3, 23.4], nose: [91.1, 27.6] },
   spitz: { eye: [81.5, 21.3], nose: [89.5, 25.0] },
   lowSmooth: { eye: [82.8, 28.0], nose: [90.9, 32.6] },
   lowHeavy: { eye: [82.9, 28.0], nose: [91.2, 32.7] },
   flatLong: { eye: [84.5, 23.6], nose: [89.5, 24.5] },
-  terrier: { eye: [79.7, 23.6], nose: [86.6, 27.6] },
+  terrier: { eye: [79.8, 18.0], nose: [88.7, 22.3] },
   egg: { eye: [80.4, 19.8], nose: [88.9, 27.0] },
-  jowl: { eye: [83.9, 23.2], nose: [92.3, 25.7] },
-  lowWire: { eye: [77, 36], nose: [86, 44] },
-  tallHound: { eye: [84.6, 12.5], nose: [94.0, 17.4] },
+  jowl: { eye: [81.7, 22.4], nose: [89.1, 25.4] },
+  lowWire: { eye: [78.7, 28.0], nose: [88.5, 34.6] },
+  tallHound: { eye: [80.0, 17.1], nose: [88.8, 21.7] },
   wrinkle: { eye: [83.4, 26.4], nose: [89.1, 28.8] },
-  roughHound: { eye: [82.3, 17.4], nose: [91.7, 24.0] },
-  silkyHound: { eye: [85.0, 15.4], nose: [93.4, 20.8] },
-  retriever: { eye: [83.5, 17.3], nose: [92.0, 22.2] },
+  roughHound: { eye: [77.4, 13.5], nose: [87.3, 19.4] },
+  silkyHound: { eye: [79.8, 16.6], nose: [88.6, 22.0] },
+  retriever: { eye: [79.9, 28.4], nose: [88.8, 33.0] },
   pointer: { eye: [84.6, 15.9], nose: [93.0, 19.5] },
   shepherd: { eye: [79.7, 14.7], nose: [88.6, 19.2] },
   softWavy: { eye: [79.0, 26.1], nose: [88.0, 33.1] },
   hound: { eye: [80.7, 17.1], nose: [88.8, 22.8] },
+  bully: { eye: [79.8, 21.4], nose: [88.6, 26.6] },
+  spaniel: { eye: [79.5, 23.8], nose: [88.5, 29.7] },
+  plush: { eye: [79.9, 20.0], nose: [88.5, 25.6] },
+  mountain: { eye: [80.7, 18.1], nose: [88.9, 20.7] },
+  basset: { eye: [79.6, 31.1], nose: [88.7, 37.6] },
   corded: { eye: [82.7, 18.7], nose: [90.7, 23.1] },
   smooth: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
   short: { eye: [80.6, 21.9], nose: [88.0, 24.6] },
@@ -93,7 +98,7 @@ const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }
   doubleThick: { eye: [81.6, 22.4], nose: [89.1, 24.9] },
   wire: { eye: [81.8, 19.6], nose: [91.0, 24.7] },
   wavyFurnished: { eye: [82.1, 21.7], nose: [90.1, 25.0] },
-  curly: { eye: [83.0, 21.9], nose: [90.7, 24.6] },
+  curly: { eye: [79.3, 15.9], nose: [88.7, 21.1] },
   hairless: { eye: [81.3, 22.5], nose: [88.6, 25.0] },
 };
 
@@ -103,7 +108,7 @@ const FACE: Record<Silhouette, { eye: [number, number]; nose: [number, number] }
  * stretched the right way. When a file arrives, add it to HAVE below and the
  * sprite starts using it.
  */
-type BuildSilhouette = 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer' | 'shepherd' | 'softWavy' | 'hound';
+type BuildSilhouette = 'sighthound' | 'tallHound' | 'bull' | 'heavy' | 'jowl' | 'egg' | 'terrier' | 'spitz' | 'lowSmooth' | 'lowHeavy' | 'lowWire' | 'flatLong' | 'wrinkle' | 'roughHound' | 'silkyHound' | 'retriever' | 'pointer' | 'shepherd' | 'softWavy' | 'hound' | 'bully' | 'spaniel' | 'plush' | 'mountain' | 'basset';
 const SILHOUETTE_SRC: Record<BuildSilhouette, { file: string; fallback: CoatKind }> = {
   sighthound: { file: 'body-sighthound.png', fallback: 'smooth' },
   bull: { file: 'body-bull.png', fallback: 'smooth' },
@@ -125,8 +130,13 @@ const SILHOUETTE_SRC: Record<BuildSilhouette, { file: string; fallback: CoatKind
   shepherd: { file: 'body-shepherd.png', fallback: 'smooth' },
   softWavy: { file: 'body-softwavy.png', fallback: 'wavyFurnished' },
   hound: { file: 'body-hound.png', fallback: 'smooth' },
+  bully: { file: 'body-bully.png', fallback: 'smooth' },
+  spaniel: { file: 'body-spaniel.png', fallback: 'silky' },
+  plush: { file: 'body-plush.png', fallback: 'doubleThick' },
+  mountain: { file: 'body-mountain.png', fallback: 'doubleThick' },
+  basset: { file: 'body-basset.png', fallback: 'smooth' },
 };
-const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'tallHound', 'bull', 'heavy', 'jowl', 'egg', 'terrier', 'spitz', 'lowSmooth', 'lowHeavy', 'lowWire', 'flatLong', 'wrinkle', 'roughHound', 'silkyHound', 'retriever', 'pointer', 'shepherd', 'softWavy', 'hound'];
+const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'tallHound', 'bull', 'heavy', 'jowl', 'egg', 'terrier', 'spitz', 'lowSmooth', 'lowHeavy', 'lowWire', 'flatLong', 'wrinkle', 'roughHound', 'silkyHound', 'retriever', 'pointer', 'shepherd', 'softWavy', 'hound', 'bully', 'spaniel', 'plush', 'mountain', 'basset'];
 
 /**
  * Where the ears and tail attach on each body, as percentages of the canvas.
@@ -142,25 +152,31 @@ const BUILD_SILHOUETTES: BuildSilhouette[] = ['sighthound', 'tallHound', 'bull',
  */
 const RIG: Partial<Record<Silhouette, { ear: [number, number]; tail: [number, number] }>> = {
   sighthound: { ear: [76.5, 18.5], tail: [28.6, 48.9] },
-  bull: { ear: [79.5, 24], tail: [28.8, 51.5] },
+  bull: { ear: [75.6, 25.2], tail: [28.9, 46.9] },
   heavy: { ear: [76.5, 21], tail: [30.3, 48.9] },
   spitz: { ear: [75, 19], tail: [30.0, 46.0] },
   lowSmooth: { ear: [78, 27], tail: [25.5, 60.7] },
   lowHeavy: { ear: [77, 26], tail: [21.9, 57.2] },
   flatLong: { ear: [78.5, 20.5], tail: [25.9, 49.5] },
-  terrier: { ear: [75, 23], tail: [32.6, 52.6] },
+  terrier: { ear: [74.7, 15.2], tail: [28.0, 44.3] },
   egg: { ear: [75, 18.5], tail: [27.8, 48.4] },
-  jowl: { ear: [77, 18], tail: [26.2, 46.7] },
-  lowWire: { ear: [78, 32], tail: [25.7, 62.0] },
-  tallHound: { ear: [79.5, 12.5], tail: [27.3, 44.7] },
+  jowl: { ear: [77.2, 21.7], tail: [28.6, 47.6] },
+  lowWire: { ear: [77.5, 25.5], tail: [26.2, 56.3] },
+  tallHound: { ear: [76.5, 17.0], tail: [28.2, 48.4] },
   wrinkle: { ear: [76, 24], tail: [27.5, 49.8] },
-  roughHound: { ear: [77, 18], tail: [29.6, 48.0] },
-  silkyHound: { ear: [79, 15], tail: [27.8, 46.3] },
-  retriever: { ear: [77, 14.5], tail: [28.1, 46.3] },
+  roughHound: { ear: [73.1, 14.1], tail: [32.2, 44.5] },
+  silkyHound: { ear: [73.6, 15.6], tail: [28.9, 44.5] },
+  retriever: { ear: [75.6, 27.9], tail: [25.5, 55.6] },
   pointer: { ear: [78.5, 13], tail: [26.8, 44.5] },
   corded: { ear: [77, 16], tail: [28.1, 46.7] },
   shepherd: { ear: [75.1, 14.7], tail: [28.5, 45.1] },
   softWavy: { ear: [77.8, 24], tail: [26.2, 55] },
+  bully: { ear: [74.2, 20.7], tail: [28.1, 47.1] },
+  spaniel: { ear: [73.9, 22.9], tail: [27.4, 51.0] },
+  plush: { ear: [75.4, 19.6], tail: [26.8, 45.2] },
+  mountain: { ear: [74.6, 15.4], tail: [28.2, 42.5] },
+  basset: { ear: [74.4, 31.4], tail: [24.2, 61.8] },
+  curly: { ear: [74.9, 15.0], tail: [28.5, 46.5] },
   hound: { ear: [74.9, 15.9], tail: [26.2, 44.5] },
 };
 
@@ -180,6 +196,17 @@ const TAIL_SRC: Record<TailType, string> = {
  * stand-ins below are used.
  */
 const HAVE = new Set<string>([
+  'body-lowwire.png',
+  'body-bully.png',
+  'body-spaniel.png',
+  'body-plush.png',
+  'body-mountain.png',
+  'body-basset.png',
+  'tail-brush.png',
+  'tail-curlfluff.png',
+  'tail-bushy.png',
+  'tail-bobfluff.png',
+  'ear-fold.png',
   'body-shepherd.png',
   'body-softwavy.png',
   'body-hound.png',
@@ -200,8 +227,6 @@ const HAVE = new Set<string>([
   'body-terrier.png',
   'body-egg.png',
   'body-jowl.png',
-  // 'body-lowwire.png' — the file exists but is a flat silhouette with the
-  // tail and ear drawn in; until it is redrawn the wire body stands in.
 
   'ear-bat.png',
   'ear-rose.png',
@@ -270,7 +295,7 @@ interface Fit {
 /** The Chow's rounded bear ear: its base is bottom-left of the artwork. */
 const ROUND_EAR_FIT: Fit = { anchor: [72, 41], target: [74.5, 19], scale: 0.42 };
 /** The long hound ear: hangs from its top edge, past the jaw. */
-const HOUND_EAR_FIT: Fit = { anchor: [70, 29], target: [75.5, 17], scale: 0.5 };
+const HOUND_EAR_FIT: Fit = { anchor: [61.2, 6.3], target: [75.5, 17], scale: 0.31 };
 /** The feathered spaniel ear, for the silky-coated drop-eared breeds. */
 const SPANIEL_EAR_FIT: Fit = { anchor: [80, 18], target: [75.5, 17], scale: 0.45 };
 /** The big rounded bat ear: French Bulldog, Corgi, Chihuahua. Base bottom-left. */
@@ -278,12 +303,13 @@ const BAT_EAR_FIT: Fit = { anchor: [45, 83], target: [74.5, 19], scale: 0.3 };
 /** The small rose ear folded back: sighthounds and Bulldogs. */
 const ROSE_EAR_FIT: Fit = { anchor: [75, 37], target: [75, 17], scale: 0.6 };
 /** The short neat drop ear of a retriever. Hangs from its top edge. */
-const SHORT_DROP_FIT: Fit = { anchor: [76, 31], target: [75.5, 16.5], scale: 0.55 };
+/** The folded-over drop ear of a retriever (ear-fold.png). Hangs from its top. */
+const SHORT_DROP_FIT: Fit = { anchor: [53, 22.5], target: [75.5, 16.5], scale: 0.25 };
 
 const EAR_FIT: Record<EarType, Fit> = {
-  erect: { anchor: [65.8, 77.2], target: [74.5, 19], scale: 0.27 },
+  erect: { anchor: [55.1, 91.7], target: [74.5, 19], scale: 0.206 },
   semiErect: { anchor: [57.6, 72.7], target: [74.5, 19], scale: 0.25 },
-  button: { anchor: [77.8, 31.5], target: [75, 16], scale: 0.52 },
+  button: { anchor: [50.1, 28], target: [75, 16], scale: 0.19 },
   drop: { anchor: [73.8, 30.6], target: [75.5, 16], scale: 0.52 },
 };
 
@@ -306,6 +332,14 @@ const TAIL_FIT: Record<TailType, Fit> = {
 
 /** Extra tail pieces chosen by coat rather than by carriage. */
 const OTTER_TAIL_FIT: Fit = { anchor: [72, 54], target: [27.5, 47.5], scale: 0.5, rotate: 12 };
+/** The fox brush, hanging: Spitz and shepherd types with a low tail. Root at its top. */
+const BRUSH_TAIL_FIT: Fit = { anchor: [61.9, 14.7], target: [27.5, 46.5], scale: 0.52 };
+/** A bushy sabre for plush-coated dogs (Golden, Newfoundland). Root at its right end. */
+const BUSHY_TAIL_FIT: Fit = { anchor: [84, 49], target: [27.5, 47.5], scale: 0.42, rotate: 14 };
+/** The fluffy curl over the back of a coated Spitz. Root at its bottom. */
+const CURLFLUFF_TAIL_FIT: Fit = { anchor: [47.8, 82], target: [28, 46], scale: 0.47 };
+/** A tuft of a bobtail on a coated dog. Root at its base. */
+const BOBFLUFF_TAIL_FIT: Fit = { anchor: [80, 58], target: [27.5, 45.5], scale: 0.5 };
 const FLAG_TAIL_FIT: Fit = { anchor: [81, 42], target: [27.5, 46.5], scale: 0.5, rotate: -12 };
 const SABRE_TAIL_FIT: Fit = { anchor: [62, 42], target: [27.5, 47.5], scale: 0.55 };
 
@@ -536,8 +570,8 @@ function Face({
  * forward, and its tan points and blaze have to move with it.
  */
 const BODY_BOX: Record<string, [number, number, number, number]> = {
-  'body-bull.png': [18.9, 18.4, 93.8, 91.9],
-  'body-curly.png': [19.3, 12.2, 92.3, 89.5],
+  'body-bull.png': [18.4, 19.2, 90.2, 87.3],
+  'body-curly.png': [18.4, 9.0, 90.2, 87.3],
   'body-double.png': [19.5, 13.4, 90.6, 91.5],
   'body-hairless.png': [20.2, 10.5, 90.1, 88.4],
   'body-heavy.png': [20.3, 15.1, 92.8, 90.1],
@@ -551,18 +585,23 @@ const BODY_BOX: Record<string, [number, number, number, number]> = {
   'body-lowheavy.png': [17.1, 20.1, 92.7, 87.5],
   'body-lowsmooth.png': [19.2, 21.0, 92.4, 87.1],
   'body-flatlong.png': [16.9, 14.7, 91.0, 87.5],
-  'body-terrier.png': [24.7, 17.1, 88.0, 86.9],
+  'body-terrier.png': [18.4, 9.2, 90.2, 87.3],
   'body-egg.png': [18.8, 12.9, 90.3, 87.8],
-  'body-jowl.png': [16.2, 12.3, 93.8, 91.0],
-  'body-lowwire.png': [20.6, 27.4, 89.4, 88.0],
+  'body-jowl.png': [18.4, 15.7, 90.2, 87.3],
+  'body-lowwire.png': [18.4, 19.5, 90.2, 87.3],
+  'body-bully.png': [18.4, 14.7, 90.2, 87.3],
+  'body-spaniel.png': [18.4, 16.9, 90.2, 87.3],
+  'body-plush.png': [18.4, 13.6, 90.2, 87.3],
+  'body-mountain.png': [18.4, 9.4, 90.2, 87.3],
+  'body-basset.png': [18.4, 25.4, 90.2, 87.3],
   'body-shepherd.png': [18.4, 8.7, 90.2, 87.3],
   'body-softwavy.png': [18.4, 18.0, 90.2, 87.3],
   'body-hound.png': [18.4, 9.9, 90.2, 87.3],
-  'body-tallhound.png': [17.0, 6.6, 95.4, 87.8],
+  'body-tallhound.png': [18.4, 11.0, 90.2, 87.3],
   'body-wrinkle.png': [19.2, 17.9, 91.0, 88.6],
-  'body-roughhound.png': [20.3, 11.8, 92.7, 87.8],
-  'body-silkyhound.png': [17.8, 9.0, 94.9, 87.8],
-  'body-retriever.png': [18.9, 8.8, 93.5, 87.8],
+  'body-roughhound.png': [20.2, 8.1, 88.5, 87.3],
+  'body-silkyhound.png': [18.4, 9.6, 90.2, 87.3],
+  'body-retriever.png': [18.4, 21.9, 90.2, 87.3],
   'body-pointer.png': [16.7, 7.2, 94.5, 87.8],
   'body-corded.png': [18.2, 9.9, 92.3, 87.8],
 };
@@ -712,7 +751,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   const silhouette = force?.silhouette ?? resolveSilhouette(coat, dog.observed.substance, dog.observed.muzzle, dog.observed.earSet, weight, shortLegs, dog.observed.tailSet);
   let bodySrc = BODY_SRC[coat.kind];
   let standinStretch = '';
-  let rig: { ear: [number, number]; tail: [number, number] } | undefined;
+  let rig: { ear: [number, number]; tail: [number, number] } | undefined = RIG[coat.kind];
   let face = FACE[coat.kind];
   if ((BUILD_SILHOUETTES as string[]).includes(silhouette)) {
     const want = SILHOUETTE_SRC[silhouette as BuildSilhouette];
@@ -756,10 +795,20 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // plush-coated shepherd type carries a furry one: the plume, hanging.
   const smoothKind = coat.kind === 'smooth' || coat.kind === 'short' || coat.kind === 'hairless';
   let tailSrc = TAIL_SRC[tailKey];
+  const fluffy = coat.kind === 'doubleThick' || silhouette === 'plush' || silhouette === 'mountain' || silhouette === 'spitz';
   if ((tail === 'full' || tail === 'whip') && (silhouette === 'spitz' || silhouette === 'shepherd')) {
-    tailKey = 'plume';
-    tailFit = { ...TAIL_FIT.plume, rotate: tail === 'whip' ? 74 : 62, scale: 0.6 };
-    tailSrc = TAIL_SRC.plume;
+    // The fox brush, hanging; a whip is the same brush held a little lower.
+    tailSrc = 'tail-brush.png';
+    tailFit = { ...BRUSH_TAIL_FIT, rotate: tail === 'whip' ? 8 : 0 };
+  } else if (tail === 'curled' && (fluffy || coat.kind === 'long' || coat.kind === 'silky')) {
+    tailSrc = 'tail-curlfluff.png';
+    tailFit = CURLFLUFF_TAIL_FIT;
+  } else if (tail === 'bobtail' && !smoothKind) {
+    tailSrc = 'tail-bobfluff.png';
+    tailFit = BOBFLUFF_TAIL_FIT;
+  } else if ((tail === 'full' || tail === 'plume') && (silhouette === 'plush' || silhouette === 'mountain')) {
+    tailSrc = 'tail-bushy.png';
+    tailFit = BUSHY_TAIL_FIT;
   } else if (tail === 'full' && smoothKind && coat.undercoat) {
     // The thick otter tail of a Labrador.
     tailSrc = 'tail-otter.png';
@@ -812,7 +861,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
   // short-legged dogs (a Scottie, a Pekingese) still borrow a normal body.
   // Only when the purpose-made low body is actually in use; a stand-in still
   // needs its legs squashed.
-  const lowBody = rig !== undefined && (silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire' || silhouette === 'flatLong');
+  const lowBody = rig !== undefined && (silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire' || silhouette === 'flatLong' || silhouette === 'basset');
   const legSquash = lowBody ? 1 : shortLegs === 2 ? 0.66 : shortLegs === 1 ? 0.82 : shepherd ? 0.93 : 1;
   const stretch = shepherd ? 1.1 : 1;
 
@@ -826,7 +875,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
 
   // Where a puppy's enlarged head is cut from the body and grown about: the
   // neck, just behind the skull. Low bodies carry their heads lower.
-  const lowHead = silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire';
+  const lowHead = silhouette === 'lowSmooth' || silhouette === 'lowHeavy' || silhouette === 'lowWire' || silhouette === 'basset';
   // Feathered, not hard-cut, so the enlarged copy fades into the body at
   // the neck and chest instead of leaving a step.
   const chest = lowHead ? 70 : silhouette === 'tallHound' || silhouette === 'sighthound' ? 46 : 54;
@@ -849,7 +898,7 @@ function describe(dog: Dog, drawLbs?: number, force?: SpriteOverride) {
             : roseEars
               ? 'ear-rose.png'
               : shortDrop
-                ? 'ear-shortdrop.png'
+                ? 'ear-fold.png'
                 : EAR_SRC[ears],
     tailSrc,
     tailStandin: standin?.transform,
