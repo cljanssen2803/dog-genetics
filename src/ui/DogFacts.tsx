@@ -37,7 +37,7 @@ import {
 import { LOCI, genopairSymbol } from '../engine/loci';
 import { GOAL_HIT, scoreDog } from '../engine/standard';
 import type { Project } from '../game/project';
-import { Chip, Pips } from './components';
+import { Chip, Pips, Rosette } from './components';
 import { Crown, Trophy } from 'lucide-react';
 
 export interface DogFacts {
@@ -216,12 +216,13 @@ export function FactChips({
   return (
     <div className="flex flex-wrap gap-1 mt-1.5">
       {!f.scoreless && (
-        <>
-          <Chip tone={f.score >= 70 ? 'good' : f.score >= 45 ? 'neutral' : 'bad'}>
-            {standardName} {f.score}
-          </Chip>
-          <Pips hit={f.goalsHit} total={f.goalsTotal} hits={f.goalPips} className="px-1" />
-        </>
+        <span className="inline-flex items-center gap-2 min-w-0 max-w-full">
+          <Rosette score={f.score} size={40} />
+          <span className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-faint)] truncate">{standardName}</span>
+            <Pips hit={f.goalsHit} total={f.goalsTotal} hits={f.goalPips} size={6} maxWidth={170} />
+          </span>
+        </span>
       )}
       {f.healthAffected.length > 0 && <Chip tone="bad">{f.healthAffected[0]}</Chip>}
       {f.healthAffected.length === 0 && f.healthCarrier.length > 0 && (

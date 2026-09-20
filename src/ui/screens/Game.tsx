@@ -155,16 +155,16 @@ export function Game({ onExit }: { onExit: () => void }) {
 
   return (
     <UiContext.Provider value={ui}>
-    <div className="paper min-h-full flex flex-col">
+    <div className="paper min-h-full flex flex-col" data-world={tab}>
       {/* ---------------------------------------------------------- header */}
-      <header className="flex-none safe-top paper border-b border-[var(--line)]">
+      <header className="flex-none safe-top border-b-[3px] border-[var(--ink)]" style={{ background: 'var(--world)' }}>
         <div className="max-w-lg mx-auto px-4 pt-3 pb-2.5 flex items-center gap-3">
-          <button onClick={onExit} className="text-[var(--text-faint)] -ml-1" aria-label="All projects">
-            <ChevronLeft size={22} />
+          <button onClick={onExit} className="h-9 w-9 -ml-1 rounded-full border-2 border-[var(--ink)] bg-[var(--card)] text-[var(--text)] flex items-center justify-center btn-3d" aria-label="All projects">
+            <ChevronLeft size={20} />
           </button>
           <div className="flex-1 min-w-0">
-            <div className="display text-[20px] truncate leading-tight">{project.name}</div>
-            <div className="text-[11.5px] text-[var(--text-faint)] tabular">
+            <div className="display text-[22px] truncate leading-tight text-white" style={{ textShadow: '2px 2px 0 var(--ink)' }}>{project.name}</div>
+            <div className="inline-block mt-1 rounded-md border-2 border-[var(--ink)] bg-[var(--card)] px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide tabular text-[var(--text)]">
               Year {(project.month / 12).toFixed(1)} · Gen {project.generation} · Kennel{' '}
               {kennelCount(project)}{project.sandbox ? '' : `/${project.kennelCapacity}`}
               {activeDogs(project).length > kennelCount(project)
@@ -174,13 +174,14 @@ export function Game({ onExit }: { onExit: () => void }) {
           </div>
           <button
             onClick={() => setMoreOpen(true)}
-            className="h-9 w-9 rounded-full border border-[var(--line)] bg-[var(--card)] flex items-center justify-center text-[var(--text-soft)]"
+            className="h-9 w-9 rounded-full border-2 border-[var(--ink)] bg-[var(--card)] flex items-center justify-center text-[var(--text)] btn-3d"
             aria-label="More"
           >
             <MoreHorizontal size={20} />
           </button>
         </div>
       </header>
+      <div className="bunting flex-none" aria-hidden="true" />
 
       {/* --------------------------------------------------------- content */}
       <main className="flex-1 overflow-y-auto">
@@ -202,25 +203,26 @@ export function Game({ onExit }: { onExit: () => void }) {
       </main>
 
       {/* ------------------------------------------------------------ tabs */}
-      <nav className="flex-none border-t border-[var(--line)] bg-[var(--card)] safe-bottom">
-        <div className="max-w-lg mx-auto flex px-2 py-1.5 gap-1">
+      <nav className="flex-none border-t-[3px] border-[var(--ink)] bg-[var(--card)] safe-bottom">
+        <div className="max-w-lg mx-auto flex px-2 py-2 gap-1.5">
           {TABS.map((t) => {
             const on = tab === t.key;
             return (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl ${on ? 'text-[var(--brand)]' : 'text-[var(--text-faint)]'}`}
+                className={`flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl border-2 ${on ? 'border-[var(--ink)] text-white btn-3d' : 'border-transparent text-[var(--text-faint)]'}`}
+                style={on ? { background: 'var(--world)', textShadow: '1px 1px 0 var(--ink)' } : undefined}
               >
-                <t.icon size={22} strokeWidth={on ? 2.4 : 1.8} />
-                <span className="text-[10px] font-semibold">{t.label}</span>
+                <t.icon size={22} strokeWidth={on ? 2.6 : 1.8} />
+                <span className="text-[10px] font-bold">{t.label}</span>
               </button>
             );
           })}
           {/* Time: the one control that moves the calendar. */}
           <button
             onClick={advanceToEvent}
-            className="flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl bg-rust text-white btn-3d [--btn-shadow:#d5651c]"
+            className="flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl bg-rust text-white btn-3d border-2 border-[var(--ink)]"
             aria-label="Advance time"
           >
             <FastForward size={22} strokeWidth={2.2} />
@@ -408,14 +410,14 @@ function TodayTab({
   return (
     <div className="px-4 pb-28 pt-3">
       {!sandbox && (
-        <Card className="mb-4 border-[var(--brand)]">
-          <div className="eyebrow text-[var(--brand)] mb-1">Do this next</div>
-          <div className="display text-[16px] leading-tight mb-1">{step.title}</div>
-          <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed mb-2">{step.detail}</p>
+        <div className="card tilt-l mb-6 p-4 relative overflow-visible" style={{ background: 'var(--world-soft)' }}>
+          <span className="absolute -top-3 -left-2 ribbon !text-[12px] !py-0.5 !px-2 !rotate-[-4deg]" style={{ background: 'var(--color-rust)' }}>Do this next</span>
+          <div className="display text-[24px] leading-[1.05] mt-2 mb-2" style={{ fontVariationSettings: "'opsz' 96, 'SOFT' 100" }}>{step.title}</div>
+          <p className="text-[13px] text-[var(--text-soft)] leading-relaxed mb-3">{step.detail}</p>
           <Button full onClick={doStep}>
             {step.buttonLabel}
           </Button>
-        </Card>
+        </div>
       )}
 
       {sandbox && (

@@ -5,6 +5,9 @@
  */
 
 import { useState, type ReactNode, useEffect } from 'react';
+import { Rng } from '../engine/rng';
+import { createFounder } from '../engine/dog';
+import { DogSprite } from './DogSprite';
 import {
   AlertTriangle, Award, BookOpen, Brain, CalendarDays, Dna, Dog, Dumbbell, GraduationCap, Home, Hourglass, Leaf,
   type LucideIcon, Network, PawPrint, Pencil, Pin, Ruler, Scissors, Scroll, Settings, Sparkles, Stethoscope, TrendingUp, Trophy,
@@ -17,11 +20,11 @@ import {
 type ButtonTone = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
 
 const TONE_CLASS: Record<ButtonTone, string> = {
-  primary: 'btn-3d bg-[var(--brand)] text-white border-transparent [--btn-shadow:#1f8a4f]',
-  accent: 'btn-3d bg-rust text-white border-transparent [--btn-shadow:#d5651c]',
-  secondary: 'bg-[var(--card)] text-[var(--text)] border-[var(--line)] active:bg-[var(--bg-2)]',
+  primary: 'btn-3d bg-[var(--brand)] text-white border-[var(--ink)]',
+  accent: 'btn-3d bg-rust text-white border-[var(--ink)]',
+  secondary: 'btn-3d bg-[var(--card)] text-[var(--text)] border-[var(--ink)]',
   ghost: 'bg-transparent text-[var(--text-soft)] border-transparent active:bg-[var(--bg-2)]',
-  danger: 'btn-3d bg-berry text-white border-transparent [--btn-shadow:#c23d60]',
+  danger: 'btn-3d bg-berry text-white border-[var(--ink)]',
 };
 
 export function Button({
@@ -50,7 +53,7 @@ export function Button({
       disabled={disabled}
       className={`${TONE_CLASS[tone]} ${full ? 'w-full' : ''} ${
         small ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-3 text-[15px]'
-      } rounded-xl border font-semibold disabled:opacity-40 disabled:pointer-events-none ${className}`}
+      } rounded-xl border-2 font-bold disabled:opacity-40 disabled:pointer-events-none ${className}`}
     >
       {children}
     </button>
@@ -135,12 +138,14 @@ export function Section({
   const Icon = sectionIcon(title);
   void icon;
   return (
-    <section className="mb-7">
-      <header className="flex items-start justify-between gap-3 mb-2.5 px-1">
-        <div className="flex items-start gap-2 min-w-0">
-          <Icon aria-hidden="true" size={18} strokeWidth={2} className="flex-none mt-[3px] text-[var(--brand)]" />
+    <section className="mb-8">
+      <header className="flex items-start justify-between gap-3 mb-3 px-1">
+        <div className="min-w-0">
+          <h2 className="ribbon">
+            <Icon aria-hidden="true" size={15} strokeWidth={2.4} />
+            <span>{title}</span>
+          </h2>
           <div className="min-w-0">
-            <h2 className="display text-[18px] leading-tight">{title}</h2>
             {subtitle && <p className="text-[12px] text-[var(--text-faint)] mt-0.5 leading-snug">{subtitle}</p>}
           </div>
         </div>
@@ -151,12 +156,31 @@ export function Section({
   );
 }
 
-export function Empty({ children }: { children: ReactNode }) {
+export function Empty({ children, dog = true }: { children: ReactNode; dog?: boolean }) {
   return (
-    <div className="card p-6 text-center text-[13px] text-[var(--text-faint)] leading-relaxed">
+    <div className="card p-5 text-center text-[13px] text-[var(--text-soft)] leading-relaxed">
+      {dog && (
+        <div className="flex justify-center mb-2">
+          <SleepingDog />
+        </div>
+      )}
       {children}
     </div>
   );
+}
+
+/**
+ * A little dozing dog for empty states, drawn from the real sprite art so it
+ * matches everything else. A different breed each time the screen mounts.
+ */
+const NAP_BREEDS = ['beagle', 'corgi', 'pug', 'golden', 'westie', 'dachshund', 'shiba', 'cavalier', 'borderCollie', 'frenchie'];
+export function SleepingDog({ size = 130 }: { size?: number }) {
+  const [dog] = useState(() => {
+    const rng = new Rng(Math.floor(Math.random() * 1e9));
+    const key = NAP_BREEDS[Math.floor(Math.random() * NAP_BREEDS.length)];
+    return createFounder(rng, { breedKey: key, sex: 'F', name: 'nap', currentMonth: 0, ageMonths: 30, wildcards: false });
+  });
+  return <DogSprite dog={dog} size={size} asleep asAge={30} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -173,19 +197,37 @@ export function Chip({
   className?: string;
 }) {
   const tones = {
-    neutral: 'bg-[var(--bg-2)] text-[var(--text-soft)]',
-    good: 'bg-moss/12 text-[#1f7a46]',
-    warn: 'bg-rust/12 text-[#b85a19]',
-    bad: 'bg-berry/12 text-[#b3304f]',
-    info: 'bg-sky/12 text-[#1d6fa8]',
-    rare: 'bg-sun/30 text-[#8a5a0c]',
+    neutral: 'bg-[var(--card)] text-[var(--text-soft)]',
+    good: 'bg-[#bff0d2] text-[#14603a]',
+    warn: 'bg-[#ffe9a8] text-[#6b4e00]',
+    bad: 'bg-[#ffc9d6] text-[#8f1f3f]',
+    info: 'bg-[#c9e6ff] text-[#144e80]',
+    rare: 'bg-sun text-[#5a3a05]',
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap ${tones[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-md border border-[var(--ink)] px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide whitespace-nowrap ${tones[tone]} ${className}`}
     >
       {children}
     </span>
+  );
+}
+
+/** The score, as a show rosette. Gold for a top dog, then red, blue, green, plain. */
+export function Rosette({ score, size = 44, className = '' }: { score: number; size?: number; className?: string }) {
+  const colour = score >= 85 ? '#ffcf4a' : score >= 70 ? '#ff6b8a' : score >= 55 ? '#5fb8ff' : score >= 40 ? '#7fd39a' : '#e6dccb';
+  const ink = 'var(--ink)';
+  return (
+    <svg viewBox="0 0 48 48" width={size} height={size} className={`flex-none ${className}`} role="img" aria-label={`Score ${score}`}>
+      {Array.from({ length: 12 }, (_, i) => (
+        <circle key={i} cx={24 + Math.cos((i / 12) * Math.PI * 2) * 17} cy={24 + Math.sin((i / 12) * Math.PI * 2) * 17} r={6} fill={colour} stroke={ink} strokeWidth={1.6} />
+      ))}
+      <circle cx={24} cy={24} r={16} fill={colour} stroke={ink} strokeWidth={1.8} />
+      <circle cx={24} cy={24} r={12} fill="#fff8e8" stroke={ink} strokeWidth={1.4} />
+      <text x={24} y={28.5} textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontWeight={800} fontSize={score >= 100 ? 11 : 13} fill="#2b2140">
+        {score}
+      </text>
+    </svg>
   );
 }
 
@@ -305,7 +347,7 @@ export function StatRow({
     tone === 'good'
       ? 'text-moss'
       : tone === 'warn'
-        ? 'text-rust'
+        ? 'text-[#8a6a00]'
         : tone === 'bad'
           ? 'text-berry'
           : '';
@@ -359,7 +401,7 @@ export function Sheet({
         onClick={onClose}
         aria-label="Close"
       />
-      <div className="sheet-in relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-t-3xl bg-[var(--bg)] border-t-2 border-[var(--line)] shadow-2xl">
+      <div className="sheet-in relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-t-3xl bg-[var(--bg)] border-[3px] border-b-0 border-[var(--ink)] shadow-2xl">
         <div className="flex-none px-4 pt-3 pb-3 border-b border-[var(--line)]">
           <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line)]" />
           <div className="flex items-start justify-between gap-3">

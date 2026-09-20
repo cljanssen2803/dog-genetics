@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { FlaskConical, Palette } from 'lucide-react';
+import { Wordmark } from '../Wordmark';
 import { Button, Card, Chip, Empty, Section, Sheet } from '../components';
 import {
   type ProjectSummary,
@@ -40,16 +41,19 @@ export function Home({
   useEffect(reload, []);
 
   return (
-    <div className="paper min-h-full">
-      <div className="safe-top" />
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
-        <header className="mb-7">
-          <h1 className="display text-[30px] font-semibold leading-tight">Dog Genetics</h1>
-          <p className="text-[13px] text-[var(--text-soft)] mt-1 leading-relaxed">
+    <div className="paper min-h-full" data-world="breed">
+      <div className="safe-top" style={{ background: 'var(--world)' }} />
+      <header className="border-b-[3px] border-[var(--ink)] text-white" style={{ background: 'var(--world)' }}>
+        <div className="max-w-lg mx-auto px-4 pt-5 pb-6">
+          <Wordmark />
+          <p className="text-[13px] leading-relaxed mt-3 max-w-[30ch]" style={{ textShadow: '1px 1px 0 var(--ink)' }}>
             Design the dog you want. Then spend fifteen generations actually creating it, without
             wrecking the gene pool on the way.
           </p>
-        </header>
+        </div>
+      </header>
+      <div className="bunting" aria-hidden="true" />
+      <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
 
         <Section title="My breeding projects">
           {projects === null ? (

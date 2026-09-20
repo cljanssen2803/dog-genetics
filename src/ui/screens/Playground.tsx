@@ -140,13 +140,13 @@ export function Playground({
   };
 
   return (
-    <div className="paper min-h-full">
+    <div className="paper min-h-full" data-world="play">
       <div className="safe-top" />
       <div className="max-w-lg mx-auto px-4 pt-4 pb-36">
         <button onClick={onBack} className="text-[13px] text-[var(--text-faint)] mb-4">
           ‹ Home
         </button>
-        <h1 className="display text-[26px] font-semibold leading-tight mb-1">The Playground</h1>
+        <h1 className="display text-[30px] leading-tight mb-1" style={{ fontVariationSettings: "'opsz' 96, 'SOFT' 100" }}>The Playground</h1>
         <p className="text-[13px] text-[var(--text-soft)] mb-5 leading-relaxed">
           Make any dog. Cross any two. See the puppies. Keep the ones you like and cross them again.
           Nothing is scored and nothing takes time.

@@ -18,15 +18,17 @@
 }
 
 /**
- * THEME
+ * THEME — a county dog show.
  *
- * A bright storybook on warm cream paper: meadow green, summer sky, a
- * tangerine for anything that needs a tap, honey-gold for anything rare.
- * Chunky rounded shapes with a flat "paper cut-out" shadow. Everything has a
- * light and a night version.
+ * Rosettes, stickers and bunting: bright fills, an ink outline on anything
+ * you can touch, a hard offset shadow, and polka-dot paper. Each tab has its
+ * own colour world (set by `data-world` on the game shell): meadow green for
+ * Today, sky blue for the Kennel, berry for Breed, honey for Puppies, lilac
+ * for the Playground and the Lab. Loud on purpose; consistent so it reads as
+ * a style rather than a mess.
  *
  * The colour NAMES are historical (forest, rust, clay...) because the whole
- * interface refers to them; the values are the new look.
+ * interface refers to them; the values are the look.
  */
 @theme {
   --color-paper: #fff8e8;
@@ -38,12 +40,15 @@
   --color-forest: #2fb36a;
   --color-forest-2: #23985a;
   --color-moss: #3fa860;
-  --color-rust: #ff8a3d;
-  --color-rust-deep: #e46f24;
-  --color-clay: #d9961e;
+  /* "rust" and "clay" are the old names for the accent pair; the values are
+     now violet and plum. No orange anywhere. */
+  --color-rust: #7a5af5;
+  --color-rust-deep: #6247d6;
+  --color-clay: #a34a9a;
   --color-berry: #ef5b7f;
   --color-sky: #2f9be6;
-  --color-line: #ecdcc0;
+  --color-line: #e9d7b6;
+  --color-ink-line: #3a2f55;
   --color-lilac: #9b7cf6;
   --color-sun: #ffcf4a;
 
@@ -63,7 +68,17 @@
   --line: var(--color-line);
   --brand: var(--color-forest);
   --brand-2: var(--color-forest-2);
+  /* The ink every outline and hard shadow is drawn in. */
+  --ink: var(--color-ink-line);
+  /* The colour of the world we are in. Today by default. */
+  --world: var(--color-forest);
+  --world-soft: #dff5e8;
 }
+
+[data-world='kennel'] { --world: var(--color-sky); --world-soft: #dcefff; }
+[data-world='breed'] { --world: var(--color-berry); --world-soft: #ffe1e9; }
+[data-world='puppies'] { --world: #ffcf4a; --world-soft: #fff3c4; }
+[data-world='play'] { --world: var(--color-lilac); --world-soft: #ece5ff; }
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -76,7 +91,13 @@
     --line: #3a4270;
     --brand: #3fc77a;
     --brand-2: #35b06b;
+    --ink: #d9d0f0;
+    --world-soft: #2a3a4a;
   }
+  [data-world='kennel'] { --world-soft: #24344f; }
+  [data-world='breed'] { --world-soft: #4a2a3a; }
+  [data-world='puppies'] { --world-soft: #4a3f22; }
+  [data-world='play'] { --world-soft: #3a2f55; }
 }
 
 html,
@@ -112,23 +133,56 @@ nav,
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Paper: a faint warm glow and a whisper of grain, so big cream areas read
-   as paper rather than a blank screen. The grain is an inline SVG noise. */
+/* Polka-dot paper in the world's colour. */
 .paper {
   background-color: var(--bg);
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.1 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    radial-gradient(circle at 15% 10%, rgb(255 207 74 / 12%) 0, transparent 40%),
-    radial-gradient(circle at 85% 90%, rgb(47 155 230 / 8%) 0, transparent 40%);
+  background-image: radial-gradient(color-mix(in srgb, var(--world) 22%, transparent) 1.6px, transparent 1.7px);
+  background-size: 18px 18px;
 }
 
-/* Cards: a quiet surface with a hairline, no drop. Boxes are for things
-   that need containing; lists and paragraphs mostly sit on the paper. */
+/* Stickers: a white card with an ink outline and a hard shadow. */
 .card {
   background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--ink);
 }
+/* A tilted sticker, for the odd card that should look stuck on. */
+.tilt-l { transform: rotate(-1.2deg); }
+.tilt-r { transform: rotate(1deg); }
+
+/* A ribbon label: coloured, outlined, slightly askew. Section titles wear one. */
+.ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--world);
+  color: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 3px 10px 4px;
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: rotate(-1.5deg);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.1;
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 25%);
+}
+[data-world='puppies'] .ribbon { color: var(--color-ink); text-shadow: none; }
+
+/* Bunting across the top of a world. */
+.bunting {
+  height: 14px;
+  background-image:
+    linear-gradient(135deg, var(--world) 25%, transparent 25%),
+    linear-gradient(225deg, var(--world) 25%, transparent 25%);
+  background-size: 14px 14px;
+  background-position: 0 0, 0 0;
+  opacity: 0.9;
+}
+
+
 
 .display {
   font-family: var(--font-display);
@@ -137,14 +191,14 @@ nav,
   font-variation-settings: 'opsz' 48, 'SOFT' 60;
 }
 
-/* Primary buttons press down a touch; nothing else is chunky. */
+/* Buttons are stickers too: ink outline, hard shadow, and they press in. */
 .btn-3d {
-  box-shadow: 0 2px 0 var(--btn-shadow, rgb(0 0 0 / 18%));
+  box-shadow: 3px 3px 0 var(--ink);
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
 .btn-3d:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 0 var(--btn-shadow, rgb(0 0 0 / 18%));
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
 }
 
 /* Small caps labels: the "DO THIS NEXT" kind of thing. */
