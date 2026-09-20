@@ -202,7 +202,7 @@ function ResultView({
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] truncate">
                   {entrant.name}
-                  {entrant.isPlayer && <span className="text-rust"> — your dog</span>}
+                  {entrant.isPlayer && <span className="text-rust-deep"> — your dog</span>}
                 </div>
                 <div className="text-[11px] text-[var(--text-faint)]">{entrant.breeder}</div>
               </div>
@@ -226,7 +226,7 @@ function ResultView({
 
 /** A short, soft shower of paper for a first place. */
 function Confetti({ seed }: { seed: number }) {
-  const colours = ['#c0703a', '#6f8f5f', '#d4a020', '#9c3b4b', '#4a7c95', '#b8956a'];
+  const colours = ['#4b4faf', '#00a6a6', '#f2c230', '#f26b5b', '#6675e8', '#8b8cab'];
   const pieces = Array.from({ length: 26 }, (_, i) => {
     const t = (seed * 31 + i * 17) % 100;
     return {

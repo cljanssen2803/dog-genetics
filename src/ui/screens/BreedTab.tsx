@@ -983,7 +983,7 @@ function OutsideCard({
             </div>
           )}
           {best.weaknesses.length > 0 && (
-            <div className="text-[12px] text-rust leading-snug">
+            <div className="text-[12px] text-rust-deep leading-snug">
               ↓ Would cost {best.weaknesses.map((w) => w.label.toLowerCase()).join(', ')}
             </div>
           )}

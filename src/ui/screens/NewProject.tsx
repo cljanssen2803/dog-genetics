@@ -164,7 +164,7 @@ function PresetCard({
   return (
     <Card className="mb-3">
       <div className="display text-[18px] font-semibold">{title}</div>
-      <div className="text-[12px] text-rust font-semibold mb-1.5">{tagline}</div>
+      <div className="text-[12px] text-rust-deep font-semibold mb-1.5">{tagline}</div>
       <p className="text-[13px] text-[var(--text-soft)] leading-relaxed mb-2">{body}</p>
       {bullets.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">

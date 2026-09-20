@@ -165,7 +165,7 @@ export function Game({ onExit }: { onExit: () => void }) {
             <ChevronLeft size={20} />
           </button>
           <div className="flex-1 min-w-0">
-            <div className="display text-[22px] truncate leading-tight text-[var(--text)]">{project.name}</div>
+            <div className="display text-[22px] truncate leading-tight text-[var(--on-world)]">{project.name}</div>
             <div className="inline-block mt-1 rounded-md border-2 border-[var(--ink)] bg-[var(--card)] px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide tabular text-[var(--text)]">
               Year {(project.month / 12).toFixed(1)} · Gen {project.generation} · Kennel{' '}
               {kennelCount(project)}{project.sandbox ? '' : `/${project.kennelCapacity}`}
@@ -213,7 +213,7 @@ export function Game({ onExit }: { onExit: () => void }) {
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl border-2 ${on ? 'border-[var(--ink)] text-[var(--text)] btn-3d' : 'border-transparent text-[var(--text-faint)]'}`}
+                className={`flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl border-2 ${on ? 'border-[var(--ink)] text-[var(--on-world)] btn-3d' : 'border-transparent text-[var(--text-faint)]'}`}
                 style={on ? { background: 'var(--world)' } : undefined}
               >
                 <t.icon size={22} strokeWidth={on ? 2.6 : 1.8} />
@@ -224,7 +224,7 @@ export function Game({ onExit }: { onExit: () => void }) {
           {/* Time: the one control that moves the calendar. */}
           <button
             onClick={advanceToEvent}
-            className="flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl bg-rust text-[var(--color-ink)] btn-3d border-2 border-[var(--ink)]"
+            className="flex-1 py-1.5 flex flex-col items-center gap-1 rounded-xl bg-coral text-[var(--color-paper)] btn-3d border-2 border-[var(--ink)]"
             aria-label="Advance time"
           >
             <FastForward size={22} strokeWidth={2.2} />
@@ -415,7 +415,7 @@ function TodayTab({
     <div className="px-4 pb-28 pt-3">
       {!sandbox && (
         <div className="card tilt-l mb-6 p-4 relative overflow-visible" style={{ background: 'var(--world-soft)' }}>
-          <span className="absolute -top-3 -left-2 ribbon !text-[12px] !py-0.5 !px-2 !rotate-[-4deg]" style={{ background: 'var(--color-blush)' }}>Do this next</span>
+          <span className="absolute -top-3 -left-2 ribbon !text-[12px] !py-0.5 !px-2 !rotate-[-4deg]" style={{ background: 'var(--color-coral)' }}>Do this next</span>
           <div className="display text-[24px] leading-[1.05] mt-2 mb-2" style={{ fontVariationSettings: "'opsz' 96, 'SOFT' 100" }}>{step.title}</div>
           <p className="text-[13px] text-[var(--text-soft)] leading-relaxed mb-3">{step.detail}</p>
           <Button full onClick={doStep}>
@@ -462,7 +462,7 @@ function TodayTab({
           <div className="flex items-center gap-3">
             <DogPortrait dog={heart} size={64} />
             <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-semibold text-rust">♥ Heart dog</div>
+              <div className="text-[11px] font-semibold text-rust-deep">♥ Heart dog</div>
               <div className="display text-[15px] font-semibold truncate">{heart.name}</div>
               <div className="text-[12px] text-[var(--text-faint)]">
                 {heart.status === 'kennel' ? 'The one this is all about.' : heart.status === 'deceased' ? 'Remembered.' : 'In a new home.'}

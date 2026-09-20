@@ -211,7 +211,7 @@ export function BreedBookSheet({ onClose }: { onClose: () => void }) {
               <div key={d.id} className="flex-none w-[96px] text-center">
                 <DogPortrait dog={d} size={96} />
                 <div className="text-[11px] mt-0.5 truncate">
-                  <span className="text-rust font-semibold">{d.titles![d.titles!.length - 1]}</span> {d.name}
+                  <span className="text-rust-deep font-semibold">{d.titles![d.titles!.length - 1]}</span> {d.name}
                 </div>
               </div>
             ))}

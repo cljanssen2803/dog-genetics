@@ -31,40 +31,40 @@
  * interface refers to them; the values are the look.
  */
 @theme {
-  /* The palette: periwinkle, mauve, dusty rose, blush, peach — plus a deep
-     plum-navy ink drawn from the periwinkle. The token NAMES are historical
-     (forest, rust, clay, sun...) because the interface refers to them; the
-     values are the palette. */
-  --color-peri: #b2b8ce;
-  --color-mauve: #bdaec8;
-  --color-rose: #dbb4c6;
-  --color-blush: #fec2c8;
-  --color-peach: #fecdc6;
+  /* The palette: indigo, periwinkle, teal, gold, coral — plus a deep indigo
+     ink drawn from the first, on warm cream paper. The token NAMES below the
+     five are historical (forest, rust, clay, sun...) because the interface
+     refers to them; the values are the palette. */
+  --color-indigo: #4b4faf;
+  --color-peri: #6675e8;
+  --color-teal: #00a6a6;
+  --color-gold: #f2c230;
+  --color-coral: #f26b5b;
 
-  --color-paper: #fbf7f3;
-  --color-paper-2: #f3ecec;
+  --color-paper: #fffaf0;
+  --color-paper-2: #f6efe1;
   --color-card: #ffffff;
-  --color-ink: #3b3556;
-  --color-ink-soft: #625b7a;
-  --color-ink-faint: #928ba6;
+  --color-ink: #2c2d5a;
+  --color-ink-soft: #585a86;
+  --color-ink-faint: #8b8cab;
   /* brand: icons, links, active text */
-  --color-forest: #6f628f;
-  --color-forest-2: #5c5079;
+  --color-forest: #4b4faf;
+  --color-forest-2: #3b3e93;
   /* good */
-  --color-moss: #6f8f7a;
-  /* accent (Time, secondary actions) and the "carries" text */
-  --color-rust: #fec2c8;
-  --color-rust-deep: #e9a3ad;
-  --color-clay: #8f6f8f;
+  --color-moss: #00a6a6;
+  /* accent (Time, secondary actions); the deep one is for text */
+  --color-rust: #f2c230;
+  --color-rust-deep: #a3770a;
+  --color-clay: #0a7c7c;
   /* bad / danger */
-  --color-berry: #c9647e;
+  --color-berry: #e0503f;
   /* info */
-  --color-sky: #7f88a8;
-  --color-line: #e4dce3;
-  --color-ink-line: #3b3556;
-  --color-lilac: #bdaec8;
+  --color-sky: #6675e8;
+  --color-line: #e8e0cf;
+  --color-ink-line: #2c2d5a;
+  --color-lilac: #6675e8;
   /* rare */
-  --color-sun: #fecdc6;
+  --color-sun: #f2c230;
 
   --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -84,36 +84,39 @@
   --brand-2: var(--color-forest-2);
   /* The ink every outline and hard shadow is drawn in. */
   --ink: var(--color-ink-line);
-  /* The colour of the world we are in. Today by default. Every world is a
-     pastel, so text on it is always ink. */
-  --world: var(--color-peri);
-  --world-soft: #e6e9f1;
+  /* The colour of the world we are in. Today by default. The worlds are
+     bright, so each says what colour text sits on it: cream on the deep
+     ones, ink on gold. */
+  --world: var(--color-indigo);
+  --world-soft: #e6e6f5;
+  --on-world: var(--color-paper);
 }
 
-[data-world='kennel'] { --world: var(--color-mauve); --world-soft: #ebe5ef; }
-[data-world='breed'] { --world: var(--color-rose); --world-soft: #f4e6ec; }
-[data-world='puppies'] { --world: var(--color-blush); --world-soft: #ffeaec; }
-[data-world='play'] { --world: var(--color-peach); --world-soft: #ffeeea; }
+[data-world='kennel'] { --world: var(--color-peri); --world-soft: #e8ebfc; }
+[data-world='breed'] { --world: var(--color-teal); --world-soft: #d8f1f0; }
+[data-world='puppies'] { --world: var(--color-gold); --world-soft: #fdf2cc; --on-world: var(--color-ink); }
+[data-world='play'] { --world: var(--color-coral); --world-soft: #fde3dd; }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1f1d2b;
-    --bg-2: #2a2739;
-    --card: #302c40;
-    --text: #f5f0f4;
-    --text-soft: #c9c2d2;
-    --text-faint: #948ca3;
-    --line: #453f58;
-    --brand: #c9bde0;
-    --brand-2: #b8aad2;
-    --ink: #e6dfec;
-    --world: #4b5068;
-    --world-soft: #2f3346;
+    --bg: #1c1d2e;
+    --bg-2: #27283c;
+    --card: #2e2f45;
+    --text: #f6f1e8;
+    --text-soft: #c9c5d6;
+    --text-faint: #918fa8;
+    --line: #42445c;
+    --brand: #a9b1f5;
+    --brand-2: #99a2ee;
+    --ink: #e9e3ee;
+    --world: #363a86;
+    --world-soft: #2b2d4a;
+    --on-world: #f6f1e8;
   }
-  [data-world='kennel'] { --world: #514660; --world-soft: #342e40; }
-  [data-world='breed'] { --world: #5e4653; --world-soft: #3c2f37; }
-  [data-world='puppies'] { --world: #6a4a52; --world-soft: #40303a; }
-  [data-world='play'] { --world: #6a534d; --world-soft: #403430; }
+  [data-world='kennel'] { --world: #4552b8; --world-soft: #2d3052; }
+  [data-world='breed'] { --world: #0b7676; --world-soft: #1f3d3d; }
+  [data-world='puppies'] { --world: #b5891a; --world-soft: #443a1e; --on-world: #1c1d2e; }
+  [data-world='play'] { --world: #c04d3f; --world-soft: #46302c; }
 }
 
 html,
@@ -173,7 +176,7 @@ nav,
   align-items: center;
   gap: 6px;
   background: var(--world);
-  color: var(--text);
+  color: var(--on-world);
   border: 2px solid var(--ink);
   border-radius: 10px;
   padding: 3px 10px 4px;
@@ -228,7 +231,7 @@ nav,
 
 /* The stage every dog stands on: a strip of sky and a strip of grass. */
 .stage {
-  background: linear-gradient(180deg, #e3e6f0 0%, #f6f4f8 64%, #d6dcc9 64.5%, #bfc9b0 100%);
+  background: linear-gradient(180deg, #e4e8fa 0%, #f8f5ee 64%, #d9e3c9 64.5%, #c3d1ab 100%);
 }
 @media (prefers-color-scheme: dark) {
   .stage {

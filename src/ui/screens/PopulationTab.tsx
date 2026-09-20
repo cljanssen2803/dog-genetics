@@ -199,7 +199,7 @@ function PedigreeBox({
         <DogPortrait dog={dog} size={30} framed={false} />
         <div className="min-w-0">
           <div className="text-[11.5px] font-semibold truncate">
-            {f.titles.length > 0 && <span className="text-rust">{f.titles[f.titles.length - 1]} </span>}
+            {f.titles.length > 0 && <span className="text-rust-deep">{f.titles[f.titles.length - 1]} </span>}
             {f.name} {f.sexSymbol}
           </div>
           <div className="text-[9.5px] text-[var(--text-faint)] truncate">{f.breed}</div>
@@ -444,7 +444,7 @@ function Chart({
     <div>
       <div className="flex justify-between items-baseline mb-1">
         <span className="text-[13px] font-semibold">{title}</span>
-        <span className={`text-[12px] font-semibold tabular-nums ${good ? 'text-moss' : 'text-rust'}`}>
+        <span className={`text-[12px] font-semibold tabular-nums ${good ? 'text-moss' : 'text-rust-deep'}`}>
           {last.toFixed(1)}
           {suffix}{' '}
           <span className="text-[11px] font-normal">

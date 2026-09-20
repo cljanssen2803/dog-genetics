@@ -241,7 +241,7 @@ export function Lab({ onBack, onCreated }: { onBack: () => void; onCreated: (id:
                         {m.carries.length > 0 && (
                           <span className="text-[var(--text-faint)]">Often carries {list(m.carries)} hidden. </span>
                         )}
-                        {m.lacks.length > 0 && <span className="text-rust">Lacks {list(m.lacks)}.</span>}
+                        {m.lacks.length > 0 && <span className="text-rust-deep">Lacks {list(m.lacks)}.</span>}
                       </div>
                     </div>
                   </div>

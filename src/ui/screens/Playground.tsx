@@ -231,7 +231,7 @@ export function Playground({
               <span className="text-[var(--text-faint)]"> × ♀</span> {dam ? dam.name : <span className="text-[var(--text-faint)]">pick a female</span>}
             </div>
             {sire && dam && (
-              <div className={`text-[11px] ${bothMerle ? 'text-[#8f3d58] font-semibold' : 'text-[var(--text-faint)]'}`}>
+              <div className={`text-[11px] ${bothMerle ? 'text-clay font-semibold' : 'text-[var(--text-faint)]'}`}>
                 {bothMerle ? 'Both merle — some puppies would be double merle.' : `Inbreeding ${(projectedCoi * 100).toFixed(1)}%`}
               </div>
             )}

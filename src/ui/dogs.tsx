@@ -723,7 +723,7 @@ function GenotypeTable({ dog }: { dog: Dog }) {
                       <div className="text-[11px] text-[var(--text-faint)]">{locus.gene}</div>
                     </div>
                     <code
-                      className={`text-[12.5px] font-mono ${notable ? 'text-rust font-bold' : 'text-[var(--text-faint)]'}`}
+                      className={`text-[12.5px] font-mono ${notable ? 'text-rust-deep font-bold' : 'text-[var(--text-faint)]'}`}
                     >
                       {genopairSymbol(locus.key, pair)}
                     </code>

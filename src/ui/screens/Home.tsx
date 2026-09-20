@@ -45,10 +45,10 @@ export function Home({
   return (
     <div className="paper min-h-full" data-world="breed">
       <div className="safe-top" style={{ background: 'var(--world)' }} />
-      <header className="border-b-[3px] border-[var(--ink)] text-[var(--text)]" style={{ background: 'var(--world)' }}>
+      <header className="border-b-[3px] border-[var(--ink)] text-[var(--on-world)]" style={{ background: 'var(--world)' }}>
         <div className="max-w-lg mx-auto px-4 pt-5 pb-6">
           <Wordmark />
-          <p className="text-[13px] leading-relaxed mt-3 max-w-[32ch] text-[var(--text-soft)]">
+          <p className="text-[13px] leading-relaxed mt-3 max-w-[32ch] text-[var(--on-world)] opacity-90">
             Design the dog you want. Then spend fifteen generations actually creating it, without
             wrecking the gene pool on the way.
           </p>

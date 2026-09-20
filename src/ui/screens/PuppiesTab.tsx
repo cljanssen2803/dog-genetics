@@ -49,7 +49,7 @@ export function PuppiesTab() {
 
       {kennelCount(project) >= project.kennelCapacity && !project.sandbox && (
         <div className="card p-3 mb-4 border-rust/40">
-          <p className="text-[12.5px] text-rust">
+          <p className="text-[12.5px] text-rust-deep">
             Kennel full ({kennelCount(project)} of {project.kennelCapacity}). Place some puppies in pet homes to make room.
           </p>
         </div>

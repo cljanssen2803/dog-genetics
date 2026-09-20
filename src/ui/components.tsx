@@ -198,11 +198,11 @@ export function Chip({
 }) {
   const tones = {
     neutral: 'bg-[var(--card)] text-[var(--text-soft)]',
-    good: 'bg-[#dfe8de] text-[#3d5a48]',
-    warn: 'bg-[#fecdc6] text-[#7a4a42]',
-    bad: 'bg-[#dbb4c6] text-[#6a2f47]',
-    info: 'bg-[#b2b8ce] text-[#2f3550]',
-    rare: 'bg-[#fec2c8] text-[#6a2f47]',
+    good: 'bg-[#cdeeed] text-[#0b5c5c]',
+    warn: 'bg-[#fdefc4] text-[#6e5006]',
+    bad: 'bg-[#fddcd6] text-[#8a2d21]',
+    info: 'bg-[#dfe3fb] text-[#2d3592]',
+    rare: 'bg-[#f2c230] text-[#3b2d03]',
   };
   return (
     <span
@@ -215,7 +215,7 @@ export function Chip({
 
 /** The score, as a show rosette. Gold for a top dog, then red, blue, green, plain. */
 export function Rosette({ score, size = 44, className = '' }: { score: number; size?: number; className?: string }) {
-  const colour = score >= 85 ? '#fec2c8' : score >= 70 ? '#dbb4c6' : score >= 55 ? '#bdaec8' : score >= 40 ? '#b2b8ce' : '#e6e1dc';
+  const colour = score >= 85 ? '#f2c230' : score >= 70 ? '#f26b5b' : score >= 55 ? '#00a6a6' : score >= 40 ? '#6675e8' : '#e8e0cf';
   const ink = 'var(--ink)';
   return (
     <svg viewBox="0 0 48 48" width={size} height={size} className={`flex-none ${className}`} role="img" aria-label={`Score ${score}`}>
@@ -223,8 +223,8 @@ export function Rosette({ score, size = 44, className = '' }: { score: number; s
         <circle key={i} cx={24 + Math.cos((i / 12) * Math.PI * 2) * 17} cy={24 + Math.sin((i / 12) * Math.PI * 2) * 17} r={6} fill={colour} stroke={ink} strokeWidth={1.6} />
       ))}
       <circle cx={24} cy={24} r={16} fill={colour} stroke={ink} strokeWidth={1.8} />
-      <circle cx={24} cy={24} r={12} fill="#fbf7f3" stroke={ink} strokeWidth={1.4} />
-      <text x={24} y={28.5} textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontWeight={800} fontSize={score >= 100 ? 11 : 13} fill="#3b3556">
+      <circle cx={24} cy={24} r={12} fill="#fffaf0" stroke={ink} strokeWidth={1.4} />
+      <text x={24} y={28.5} textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontWeight={800} fontSize={score >= 100 ? 11 : 13} fill="#2c2d5a">
         {score}
       </text>
     </svg>

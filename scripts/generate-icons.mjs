@@ -76,10 +76,10 @@ function encodePng(width, height, rgba) {
 
 // --- Drawing helpers -------------------------------------------------------
 
-const BACKGROUND_TOP = [31, 61, 47]; // deep forest green
-const BACKGROUND_BOTTOM = [22, 43, 34];
-const PAW = [244, 239, 228]; // warm parchment
-const ACCENT = [198, 122, 58]; // rust
+const BACKGROUND_TOP = [102, 117, 232]; // periwinkle
+const BACKGROUND_BOTTOM = [75, 79, 175]; // indigo
+const PAW = [242, 194, 48]; // gold
+const ACCENT = [0, 166, 166]; // teal
 
 function mix(a, b, t) {
   return [
@@ -162,10 +162,10 @@ for (const size of [180, 192, 512]) {
 // A vector version for anywhere that prefers it.
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#1f3d2f"/><stop offset="1" stop-color="#162b22"/>
+    <stop offset="0" stop-color="#6675e8"/><stop offset="1" stop-color="#4b4faf"/>
   </linearGradient></defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <g fill="#f4efe4">
+  <g fill="#f2c230">
     <ellipse cx="256" cy="330" rx="118" ry="96"/>
     <ellipse cx="150" cy="205" rx="44" ry="56"/>
     <ellipse cx="215" cy="165" rx="46" ry="58"/>
